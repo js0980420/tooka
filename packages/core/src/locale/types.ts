@@ -118,12 +118,9 @@ export type Locale = {
     toastCopyLinkFailed: string;
     exportAsHtml: string;
     exportAsPdf: string;
-    exportAsImagePptx: string;
-    exportAsPptx: string;
-    comingSoon: string;
-    pptxComingSoonTooltip: string;
+    exportAsPng: string;
     pdfExportFailed: string;
-    imagePptxExportFailed: string;
+    pngExportFailed: string;
     pdfExportSafariUnsupported: string;
     present: string;
     presentMenuAria: string;
@@ -423,7 +420,7 @@ export type Locale = {
     done: string;
   };
 
-  pptxToast: {
+  pngToast: {
     title: string;
     /** template: "Rendering page {current} of {total}" */
     processing: string;

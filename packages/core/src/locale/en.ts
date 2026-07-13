@@ -116,13 +116,9 @@ export const en: Locale = {
     toastCopyLinkFailed: 'Failed to copy link',
     exportAsHtml: 'Export as HTML',
     exportAsPdf: 'Export as PDF',
-    exportAsImagePptx: 'Export as image PPTX',
-    exportAsPptx: 'Export as PPTX',
-    comingSoon: 'Coming soon',
-    pptxComingSoonTooltip:
-      'Editable PPTX export isn’t ready yet. For now, use “Export as image PPTX” instead.',
+    exportAsPng: 'Export as PNG',
     pdfExportFailed: 'PDF export failed',
-    imagePptxExportFailed: 'PPTX export failed',
+    pngExportFailed: 'PNG export failed',
     pdfExportSafariUnsupported:
       'Export as PDF is not supported on Safari. Please try a Chromium-based browser instead.',
     present: 'Present',
@@ -397,10 +393,10 @@ export const en: Locale = {
     done: 'Done',
   },
 
-  pptxToast: {
-    title: 'Exporting PPTX',
+  pngToast: {
+    title: 'Exporting PNG…',
     processing: 'Rendering page {current} of {total}',
-    generating: 'Building presentation…',
+    generating: 'Packaging images…',
     done: 'Done',
   },
 
