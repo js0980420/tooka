@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - 所有 git commit 訊息用繁體中文 + Conventional Commits（`feat:`/`fix:`/`chore:`/`docs:`），結尾加 `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`。
+- **專案文件一律用英文撰寫**（2026-07-13 使用者指示）：README、CLAUDE.md、AGENTS.md、所有 SKILL.md、品牌檔（`themes/*.md`）的章節結構與說明文字。示範輪播的卡片文案（IG 內容本身）維持繁體中文。
 - 每個 task 結束前 `pnpm check`（biome）、`pnpm typecheck`、`pnpm test` 必須全綠才能 commit。
 - **零新增 npm 依賴**。
 - 畫布固定 **1080×1350**，唯一定義處是 `packages/core/src/app/lib/sdk.ts` 的 `CANVAS_WIDTH` / `CANVAS_HEIGHT`。
@@ -719,7 +720,7 @@ mkdir -p apps/studio/slides apps/studio/themes
 
 - [ ] **Step 2: 建立示範品牌 `starter`**
 
-`apps/studio/themes/starter.md` — 完整品牌檔（做為格式範本）：
+`apps/studio/themes/starter.md` — 完整品牌檔（做為格式範本）。**依全域約束改以英文撰寫**：frontmatter description、表格 Notes、各章節說明文字全用英文；Voice 章節的示例值可保留繁中（它描述的是繁中 IG 帳號的語氣），下方模板照此原則轉換：
 
 ```md
 ---
@@ -947,7 +948,7 @@ git commit -m "feat: 新增 starter 示範品牌與 demo-carousel 示範輪播�
 
 - [ ] **Step 1: 重寫 README.md**
 
-繁體中文、精簡（100 行內），內容：一句話定位（agent 驅動的 IG 輪播圖工具）、快速開始（`pnpm install` → `cd apps/studio && pnpm dev`）、工作流（`/create-carousel` 產卡 → 點選區塊留提示詞 → `/apply-comments` → 匯出 PNG）、品牌系統（`themes/` 一品牌一檔）、repo 結構表（packages/core、apps/studio）。結尾註明：基於 [1weiho/open-slide](https://github.com/1weiho/open-slide)（MIT）改造。刪除原 README 的 npm badge、Vercel OSS、star history 等上游內容。
+英文、精簡（100 行內），內容：一句話定位（agent 驅動的 IG 輪播圖工具）、快速開始（`pnpm install` → `cd apps/studio && pnpm dev`）、工作流（`/create-carousel` 產卡 → 點選區塊留提示詞 → `/apply-comments` → 匯出 PNG）、品牌系統（`themes/` 一品牌一檔）、repo 結構表（packages/core、apps/studio）。結尾註明：基於 [1weiho/open-slide](https://github.com/1weiho/open-slide)（MIT）改造。刪除原 README 的 npm badge、Vercel OSS、star history 等上游內容。
 
 - [ ] **Step 2: 重寫 CLAUDE.md 與 AGENTS.md**
 
