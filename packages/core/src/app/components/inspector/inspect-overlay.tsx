@@ -33,6 +33,7 @@ export function InspectOverlay() {
   const { active, slideId, selected, setSelected, cancel, openCrop, bufferOps } = useInspector();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<Highlight | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const selectedRef = useRef(selected);
   useEffect(() => {
@@ -53,6 +54,7 @@ export function InspectOverlay() {
       dragRef.current = null;
       document.documentElement.style.cursor = '';
       if (revert && drag.anchor.isConnected) drag.anchor.style.translate = drag.origInline;
+      setIsDragging(false);
     };
 
     const onKey = (e: KeyboardEvent) => {
@@ -80,6 +82,7 @@ export function InspectOverlay() {
           drag.anchor.setPointerCapture(drag.pointerId);
           document.documentElement.style.cursor = 'move';
           setHover(null);
+          setIsDragging(true);
         }
         const dx = (e.clientX - drag.startX) / drag.scale;
         const dy = (e.clientY - drag.startY) / drag.scale;
@@ -213,7 +216,13 @@ export function InspectOverlay() {
   if (!active) return null;
   return (
     <div ref={overlayRef} data-inspector-ui className="pointer-events-none absolute inset-0 z-30">
-      <Frame anchor={selectedAnchor} overlayRef={overlayRef} variant="selected" showImageActions />
+      <Frame
+        anchor={selectedAnchor}
+        overlayRef={overlayRef}
+        variant="selected"
+        showImageActions
+        isDragging={isDragging}
+      />
       <Frame anchor={dedupedHover} overlayRef={overlayRef} variant="hover" />
     </div>
   );
@@ -231,11 +240,13 @@ function Frame({
   overlayRef,
   variant,
   showImageActions = false,
+  isDragging = false,
 }: {
   anchor: HTMLElement | null;
   overlayRef: React.RefObject<HTMLDivElement>;
   variant: FrameVariant;
   showImageActions?: boolean;
+  isDragging?: boolean;
 }) {
   const [rect, setRect] = useState<RelRect | null>(null);
   const [hasTarget, setHasTarget] = useState(false);
@@ -292,14 +303,20 @@ function Frame({
 
     window.addEventListener('resize', scheduleMeasure, true);
     window.addEventListener('scroll', scheduleMeasure, true);
+    if (isDragging) {
+      window.addEventListener('pointermove', scheduleMeasure, true);
+    }
     return () => {
       resizeObserver.disconnect();
       cancelAnimationFrame(scheduled);
       cancelAnimationFrame(tracking);
       window.removeEventListener('resize', scheduleMeasure, true);
       window.removeEventListener('scroll', scheduleMeasure, true);
+      if (isDragging) {
+        window.removeEventListener('pointermove', scheduleMeasure, true);
+      }
     };
-  }, [measure, overlayRef, anchor]);
+  }, [measure, overlayRef, anchor, isDragging]);
 
   const visible = !!(hasTarget && rect);
 
@@ -316,11 +333,13 @@ function Frame({
   }, [visible]);
 
   if (!rect) return null;
-  const transition = morph
-    ? `left ${FRAME_MORPH_MS}ms ease-out, top ${FRAME_MORPH_MS}ms ease-out, ` +
-      `width ${FRAME_MORPH_MS}ms ease-out, height ${FRAME_MORPH_MS}ms ease-out, ` +
-      `opacity ${FRAME_FADE_MS}ms ease-out`
-    : `opacity ${FRAME_FADE_MS}ms ease-out`;
+  const transition = isDragging
+    ? 'none'
+    : morph
+      ? `left ${FRAME_MORPH_MS}ms ease-out, top ${FRAME_MORPH_MS}ms ease-out, ` +
+        `width ${FRAME_MORPH_MS}ms ease-out, height ${FRAME_MORPH_MS}ms ease-out, ` +
+        `opacity ${FRAME_FADE_MS}ms ease-out`
+      : `opacity ${FRAME_FADE_MS}ms ease-out`;
 
   const imageAnchor = anchor instanceof HTMLImageElement ? anchor : null;
   const actionsVisible = showImageActions && visible && !!imageAnchor;
