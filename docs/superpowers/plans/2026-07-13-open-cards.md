@@ -121,11 +121,14 @@ git mv apps/studio/open-slide.config.ts apps/studio/open-cards.config.ts
 對所有 git 追蹤檔案執行（排除 `pnpm-lock.yaml`，稍後由 pnpm 重生）：
 
 ```bash
-git ls-files -z | grep -zv 'pnpm-lock.yaml' | xargs -0 sed -i \
-  -e 's/@open-slide\//@open-cards\//g' \
-  -e 's/open-slide/open-cards/g' \
-  -e 's/OpenSlide/OpenCards/g'
+git ls-files -z | grep -zv 'pnpm-lock.yaml' \
+  | xargs -0 sh -c 'for f; do [ -L "$f" ] && continue; [ -f "$f" ] || continue; sed -i \
+      -e "s/@open-slide\//@open-cards\//g" \
+      -e "s/open-slide/open-cards/g" \
+      -e "s/OpenSlide/OpenCards/g" "$f"; done' _
 ```
+
+（repo 內有多個 tracked symlink——根目錄 `CLAUDE.md`、`.claude/skills/*`、`apps/studio/.claude|.agents/skills/*`——`sed -i` 直接碰它們會出錯或把 symlink 換成一般檔案，所以必須跳過。`apps/studio/.agents/skills/*` 的舊 symlink 目標含 `@open-slide` 路徑，改名後會暫時懸空，Task 8 Step 5 重新 sync 時解決，先不管。）
 
 替換後人工抽查三處確認語意正確：
 1. `packages/core/package.json` — `name` 為 `@open-cards/core`、`bin` 鍵為 `open-cards`；順手把 `description`、`homepage`、`repository`、`bugs`、`author`、`keywords` 改成 open-cards 自己的內容（repository 可先留空字串或移除）。
