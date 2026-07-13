@@ -21,8 +21,8 @@ Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **a
 | 使用流程 | Agent 驅動（同 open-slide），非 GUI 拖拉編輯器 |
 | 畫布尺寸 | 固定 1080×1350（4:5），不支援多尺寸 |
 | 衍生方式 | Fork 整個 monorepo 再改造 |
-| 品牌系統 | 整合 social-cards-engine 理念：品牌設定檔驅動風格 |
-| PNG 匯出 | 方案 A：瀏覽器內以 `modern-screenshot` 匯出 |
+| 品牌系統 | 擴充 open-slide 既有 themes 機制成品牌系統（加語氣、logo 欄位），不另建 runtime 注入層 |
+| PNG 匯出 | 瀏覽器內匯出：改造既有 PPTX 截圖管線（`html-to-image`，零新依賴） |
 | 專案名稱 | open-cards，位於 `~/projects/open-cards` |
 
 ## 架構
@@ -42,12 +42,13 @@ Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **a
 - present mode 保留不動（無害；未來可改造成手機框輪播預覽，本版不做）。
 - 全新 git 歷史，不保留 upstream 歷史（改名幅度大，upstream merge 必衝突）。
 
-### 3. 品牌系統
+### 3. 品牌系統（擴充既有 themes 機制）
 
-- 工作區新增 `brands/<品牌名>/brand.ts`：配色 token、字體、語氣描述、logo 資產路徑。
-- 每組輪播的設定指定所屬 `brand`；runtime 以 React context + CSS 變數把品牌 token 注入卡片。
-- skills 指示 agent：產卡前必讀品牌檔，一律使用 token，不寫死顏色/字體。
-- 換品牌設定檔即換整體風格（social-cards-engine 的「一品牌一插件」理念）。
+- 沿用 open-slide 的 themes 機制（`themes/<id>.md` + `<id>.demo.tsx`、`meta.theme` 回鏈、themes 瀏覽頁），使用者面向改稱「品牌 brand」。
+- 品牌 markdown 格式在原有 Palette / Typography / Layout / Fixed components 之外，新增「Voice（語氣）」與「Logo（資產路徑）」章節。
+- skills 指示 agent：產卡前必讀品牌檔並照抄 token，不寫死顏色/字體（原 themes 工作流不變）。
+- `/create-theme` skill 改寫為 `/create-brand`。
+- 換品牌檔即換整體風格（social-cards-engine 的「一品牌一插件」理念）。
 
 ### 4. Skills（agent 工作流）
 
@@ -57,7 +58,8 @@ Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **a
 
 ### 5. PNG 匯出
 
-- viewer 新增「匯出 PNG」：以 `modern-screenshot`（輕量依賴）將每張卡片 DOM 轉為 1080×1350 PNG，多張打包 zip 下載。
+- viewer 新增「匯出 PNG」：改造既有 PPTX 匯出的截圖管線（`html-to-image`、2x 像素密度、動畫凍結、字體等待），將每張卡片轉為 1080×1350 PNG，多張以 `fflate` 打包 zip 下載。零新依賴。
+- PPTX 匯出對 IG 場景無用且其 16:9 EMU 尺寸寫死，直接移除，由 PNG 匯出取代其選單位置。
 - 已知限制：極少數 CSS（特殊 filter、跨域圖片）可能有保真度誤差；若實際遇到，未來再補 Playwright CLI 截圖方案（本版不做）。
 
 ## 錯誤處理
