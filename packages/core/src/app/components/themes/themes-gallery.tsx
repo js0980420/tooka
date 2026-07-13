@@ -42,7 +42,7 @@ function ThemeCard({
       aria-label={ariaLabel}
       className="group block w-full text-left focus-visible:outline-none"
     >
-      <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
         <ThemePreview theme={theme} />
       </div>
       <div className="mt-3">

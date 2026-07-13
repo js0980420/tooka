@@ -98,7 +98,7 @@ export function ThemeDetail({ themeId, onBack }: { themeId: string; onBack: () =
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-8">
         <div className="flex min-w-0 flex-col gap-6">
           <div className="flex flex-col gap-3">
-            <div className="relative aspect-video overflow-hidden rounded-[8px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[8px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04]">
               {!theme.hasDemo ? (
                 <NoDemoLargeState />
               ) : !demo ? (
@@ -226,7 +226,7 @@ function ThemeSlideCard({ id }: { id: string }) {
 
   return (
     <Link to={`/s/${id}`} className="group block focus-visible:outline-none">
-      <div className="relative aspect-video overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04] group-hover:shadow-floating group-hover:ring-foreground/20 motion-safe:transition-[box-shadow,--tw-ring-color] motion-safe:duration-200">
         {FirstPage ? (
           <div className="h-full w-full motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03]">
             <SlideCanvas flat freezeMotion design={slide?.design}>

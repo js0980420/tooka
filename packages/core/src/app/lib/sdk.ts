@@ -33,5 +33,5 @@ export type FoldersManifest = {
   assignments: Record<string, string>;
 };
 
-export const CANVAS_WIDTH = 1920;
-export const CANVAS_HEIGHT = 1080;
+export const CANVAS_WIDTH = 1080;
+export const CANVAS_HEIGHT = 1350;
