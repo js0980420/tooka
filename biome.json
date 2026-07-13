@@ -28,7 +28,7 @@
   },
   "overrides": [
     {
-      "includes": ["**/slides/**", "apps/web/components/landing/**"],
+      "includes": ["**/slides/**"],
       "linter": {
         "rules": {
           "a11y": {
