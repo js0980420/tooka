@@ -29,8 +29,8 @@ const IG_SAFE_EDGE_INSET_Y = 220;
 const IG_CONTENT_SCALE = 0.84;
 
 export const pngExportVariants = [
-  { id: 'original', label: '下載長方尺寸', fileSuffix: 'original', previewLabel: '長方尺寸' },
-  { id: 'ig', label: '下載正方尺寸', fileSuffix: 'ig', previewLabel: '正方尺寸' },
+  { id: 'original', label: '下載 IG 直式', fileSuffix: 'original', previewLabel: 'IG 直式' },
+  { id: 'ig', label: '下載 IG 正方', fileSuffix: 'ig', previewLabel: 'IG 正方' },
 ] satisfies PngExportVariant[];
 
 const usesSquareSafeLayout = () =>
@@ -495,12 +495,12 @@ const Export: Page = () => (
         </p>
       </div>
       <ExportMode
-        label="長方尺寸"
+        label="IG 直式"
         inset="左右 72px、上下 60px"
         body="完整利用 4:5 畫面，適合官網、簡報與其他不裁切的發布位置。"
       />
       <ExportMode
-        label="正方尺寸"
+        label="IG 正方"
         inset="左右至少 144px、上下 220px"
         body="整體內容往中央收，預留 IG 裁切與預覽介面的四邊安全區。"
         accent
