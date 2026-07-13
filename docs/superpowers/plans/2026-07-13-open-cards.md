@@ -967,7 +967,10 @@ git commit -m "feat: 新增 starter 示範品牌與 demo-carousel 示範輪播�
 
 ```bash
 git rm CODE_OF_CONDUCT.md CONTRIBUTING.md SECURITY.md
+git rm -r .github/ISSUE_TEMPLATE 2>/dev/null; git rm .github/pull_request_template.md 2>/dev/null || true
 ```
+
+（issue/PR 模板是上游社群設施，Task 2 審查時發現仍殘留，一併刪除。）
 
 `LICENSE` 保留 MIT 全文與原作者版權行不動（MIT 要求保留），可在其上方加一行新版權：`Copyright (c) 2026 js0980420 (modifications)`。
 
