@@ -5,8 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  FileCode2,
-  FileText,
   ImageDown,
   Link2,
   Loader2,
@@ -52,15 +50,15 @@ import { cn } from '@/lib/utils';
 import { CarouselDots } from '../components/carousel-dots';
 import { NotesDrawer } from '../components/notes-drawer';
 import { OverviewGrid } from '../components/overview-grid';
-import { PdfProgressToast } from '../components/pdf-progress-toast';
+// PDF 匯出暫時停用：恢復時取消下方註解（含 exportPdf handler 與選單項）
+// import { PdfProgressToast } from '../components/pdf-progress-toast';
 import { openPresenterWindow, Player } from '../components/player';
 import { PngProgressToast } from '../components/png-progress-toast';
 import { SlideCanvas } from '../components/slide-canvas';
 import { isDeckWarmed, markDeckWarmed, SlidePreloadLayer } from '../components/slide-preload-layer';
 import { SlideTransitionLayer } from '../components/slide-transition-layer';
 import { type ThumbnailActions, ThumbnailRail } from '../components/thumbnail-rail';
-import { exportSlideAsHtml } from '../lib/export-html';
-import { exportSlideAsPdf, isSafari } from '../lib/export-pdf';
+// import { exportSlideAsPdf, isSafari } from '../lib/export-pdf';
 import { exportSlideAsPng } from '../lib/export-png';
 import { remapNotesSessionCacheAfterReorder } from '../lib/inspector/use-notes';
 import type { SlideModule } from '../lib/sdk';
@@ -430,18 +428,7 @@ export function Slide() {
     }
   };
 
-  const exportHtml = async () => {
-    if (!slide || exporting) return;
-    setExporting(true);
-    try {
-      await exportSlideAsHtml(slide, slideId);
-    } catch (err) {
-      console.error('[open-cards] export failed', err);
-    } finally {
-      setExporting(false);
-    }
-  };
-
+  /* PDF 匯出暫時停用
   const exportPdf = async () => {
     if (!slide || exporting) return;
     if (isSafari()) {
@@ -470,6 +457,7 @@ export function Slide() {
       toast.dismiss(toastId);
     }
   };
+  */
 
   const exportPng = async () => {
     if (!slide || exporting) return;
@@ -498,15 +486,13 @@ export function Slide() {
 
   const exportMenuItems = (
     <>
-      <DropdownMenuItem disabled={exporting} onClick={exportHtml}>
-        <FileCode2 />
-        {t.slide.exportAsHtml}
-      </DropdownMenuItem>
+      {/* PDF 匯出暫時停用
       <DropdownMenuItem disabled={exporting} onClick={exportPdf}>
         <FileText />
         {t.slide.exportAsPdf}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
+      */}
       <DropdownMenuItem disabled={exporting} onClick={exportPng}>
         <ImageDown />
         {t.slide.exportAsPng}

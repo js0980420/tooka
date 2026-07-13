@@ -113,7 +113,6 @@ export const zhTW: Locale = {
     moreActions: '更多動作',
     toastCopyLinkSuccess: '已複製連結到剪貼簿',
     toastCopyLinkFailed: '複製連結失敗',
-    exportAsHtml: '匯出為 HTML',
     exportAsPdf: '匯出為 PDF',
     exportAsPng: '匯出 PNG',
     pdfExportFailed: 'PDF 匯出失敗',

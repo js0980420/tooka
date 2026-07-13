@@ -114,7 +114,6 @@ export const en: Locale = {
     moreActions: 'More actions',
     toastCopyLinkSuccess: 'Link copied to clipboard',
     toastCopyLinkFailed: 'Failed to copy link',
-    exportAsHtml: 'Export as HTML',
     exportAsPdf: 'Export as PDF',
     exportAsPng: 'Export as PNG',
     pdfExportFailed: 'PDF export failed',

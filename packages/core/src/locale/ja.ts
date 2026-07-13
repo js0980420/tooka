@@ -114,7 +114,6 @@ export const ja: Locale = {
     moreActions: 'その他の操作',
     toastCopyLinkSuccess: 'リンクをクリップボードにコピーしました',
     toastCopyLinkFailed: 'リンクのコピーに失敗しました',
-    exportAsHtml: 'HTML として書き出し',
     exportAsPdf: 'PDF として書き出し',
     exportAsPng: 'PNG をエクスポート',
     pdfExportFailed: 'PDF の書き出しに失敗しました',

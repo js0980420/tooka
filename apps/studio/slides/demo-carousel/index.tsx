@@ -263,8 +263,16 @@ const Hook: Page = () => (
       >
         AI 生完圖，還能像 Canva 一樣拖曳精修 →
         <br />
-        <span style={{ fontSize: 30, color: 'var(--osd-accent)', fontWeight: 700, display: 'block', marginTop: 16 }}>
-          （這篇輪播圖就是用這個工具做的）
+        <span
+          style={{
+            fontSize: 30,
+            color: 'var(--osd-accent)',
+            fontWeight: 700,
+            display: 'block',
+            marginTop: 16,
+          }}
+        >
+          這篇輪播圖就是用這個工具做的
         </span>
       </p>
     </div>
@@ -411,7 +419,7 @@ const Cta: Page = () => (
             margin: '32px 0 0',
           }}
         >
-          底下留言「圖文卡片」
+          底下留言圖文卡片
         </h2>
         <p
           style={{
