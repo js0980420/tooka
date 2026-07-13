@@ -5,11 +5,11 @@
 
 ## 目標
 
-Fork [open-cards](https://github.com/1weiho/open-cards) monorepo，改造成 **agent 驅動的 IG 輪播圖製作工具**。使用流程：
+Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **agent 驅動的 IG 輪播圖製作工具**。使用流程：
 
 1. 自然語言描述主題 → agent 依品牌設定寫出 React 卡片
 2. 瀏覽器 dev server 預覽（1080×1350 畫布）
-3. 點選卡片上的區塊、輸入提示詞註解（沿用 open-cards inspector）→ `/apply-comments` 由 agent 套用修改
+3. 點選卡片上的區塊、輸入提示詞註解（沿用 open-slide inspector）→ `/apply-comments` 由 agent 套用修改
 4. 一鍵匯出每張卡片為 1080×1350 PNG，直接發 IG
 
 明確排除：影片輸出（remotion / hyperframes）已取消，不在範圍內。
@@ -18,10 +18,10 @@ Fork [open-cards](https://github.com/1weiho/open-cards) monorepo，改造成 **a
 
 | 決策 | 選擇 |
 | --- | --- |
-| 使用流程 | Agent 驅動（同 open-cards），非 GUI 拖拉編輯器 |
+| 使用流程 | Agent 驅動（同 open-slide），非 GUI 拖拉編輯器 |
 | 畫布尺寸 | 固定 1080×1350（4:5），不支援多尺寸 |
 | 衍生方式 | Fork 整個 monorepo 再改造 |
-| 品牌系統 | 擴充 open-cards 既有 themes 機制成品牌系統（加語氣、logo 欄位），不另建 runtime 注入層 |
+| 品牌系統 | 擴充 open-slide 既有 themes 機制成品牌系統（加語氣、logo 欄位），不另建 runtime 注入層 |
 | PNG 匯出 | 瀏覽器內匯出：改造既有 PPTX 截圖管線（`html-to-image`，零新依賴） |
 | 專案名稱 | open-cards，位於 `~/projects/open-cards` |
 
@@ -34,7 +34,7 @@ Fork [open-cards](https://github.com/1weiho/open-cards) monorepo，改造成 **a
 - npm 套件改名 `@open-cards/core`、CLI 指令改為 `open-cards`。
 - 內部程式識別字（`os-` 前綴、內部變數名）不強制全改，減少改壞風險。
 
-### 2. 瘦身（相對 open-cards）
+### 2. 瘦身（相對 open-slide）
 
 - **刪除 `apps/web`**（行銷網站）。
 - **刪除 `packages/cli`**（scaffolder）：`apps/demo` 改名為 `apps/studio`，作為日常製作輪播的工作區。
@@ -44,7 +44,7 @@ Fork [open-cards](https://github.com/1weiho/open-cards) monorepo，改造成 **a
 
 ### 3. 品牌系統（擴充既有 themes 機制）
 
-- 沿用 open-cards 的 themes 機制（`themes/<id>.md` + `<id>.demo.tsx`、`meta.theme` 回鏈、themes 瀏覽頁），使用者面向改稱「品牌 brand」。
+- 沿用 open-slide 的 themes 機制（`themes/<id>.md` + `<id>.demo.tsx`、`meta.theme` 回鏈、themes 瀏覽頁），使用者面向改稱「品牌 brand」。
 - 品牌 markdown 格式在原有 Palette / Typography / Layout / Fixed components 之外，新增「Voice（語氣）」與「Logo（資產路徑）」章節。
 - skills 指示 agent：產卡前必讀品牌檔並照抄 token，不寫死顏色/字體（原 themes 工作流不變）。
 - `/create-theme` skill 改寫為 `/create-brand`。
@@ -70,7 +70,7 @@ Fork [open-cards](https://github.com/1weiho/open-cards) monorepo，改造成 **a
 
 ## 錯誤處理
 
-- 匯出時字體未載入完成：沿用 open-cards print-ready 的 `waitForFonts` / `data-waitfor` 機制，確保截圖前資源就緒。
+- 匯出時字體未載入完成：沿用 open-slide print-ready 的 `waitForFonts` / `data-waitfor` 機制，確保截圖前資源就緒。
 - 品牌檔為 agent 讀取的 markdown（非 runtime 載入），不存在 runtime 驗證；`/create-carousel` skill 負責在品牌檔缺章節時提醒使用者補齊。
 
 ## 驗證方式
