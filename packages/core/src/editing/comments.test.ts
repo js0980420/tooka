@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { b64urlDecode, b64urlEncode, parseMarkers } from './comments.ts';
+import {
+  b64urlDecode,
+  b64urlEncode,
+  findInsertion,
+  parseMarkers,
+  removeMarker,
+} from './comments.ts';
 
 describe('b64url encoding', () => {
   it('round-trips arbitrary unicode strings', () => {
@@ -68,5 +74,29 @@ describe('parseMarkers', () => {
     const comments = parseMarkers(source);
     expect(comments.map((c) => c.note)).toEqual(['one', 'two']);
     expect(comments.map((c) => c.line)).toEqual([1, 3]);
+  });
+});
+
+describe('removeMarker', () => {
+  it('restores inline JSX without deleting the element text', () => {
+    const source = [
+      'export default () => (',
+      '  <p>Follow <span style={{ color: "orange" }}>@account</span> for more.</p>',
+      ');',
+      '',
+    ].join('\n');
+    const plan = findInsertion(source, 2, 12);
+    if (!plan) throw new Error('expected insertion plan');
+    const marker =
+      '\n' +
+      `${plan.indent}{/* @slide-comment id="c-deadbeef" ts="2026-04-25T00:00:00.000Z" ` +
+      `text="${b64urlEncode(JSON.stringify({ note: 'change it' }))}" */}`;
+    const withMarker = source.slice(0, plan.offset) + marker + source.slice(plan.offset);
+
+    expect(removeMarker(withMarker, 'c-deadbeef')).toBe(source);
+  });
+
+  it('returns null when the marker does not exist', () => {
+    expect(removeMarker('<div />', 'c-deadbeef')).toBeNull();
   });
 });

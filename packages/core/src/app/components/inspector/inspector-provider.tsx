@@ -284,7 +284,7 @@ export function InspectorProvider({
   pageIndex: number;
   children: ReactNode;
 }) {
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(import.meta.env.DEV);
   const [selected, setSelected] = useState<SelectedTarget | null>(null);
   const { comments, error, refetch, add, remove } = useComments(slideId);
   const { applyEdit, applyEdits } = useEditor(slideId);

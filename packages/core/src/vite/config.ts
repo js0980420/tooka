@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import type { InlineConfig } from 'vite';
+import { type InlineConfig, searchForWorkspaceRoot } from 'vite';
 import { apiPlugin } from './api-plugin.ts';
 import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
@@ -50,6 +50,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
   const slidesAbs = path.resolve(userCwd, slidesDir);
   const themesAbs = path.resolve(userCwd, themesDir);
   const assetsAbs = path.resolve(userCwd, assetsDir);
+  const workspaceRoot = searchForWorkspaceRoot(userCwd);
 
   return {
     base: config.base ?? '/',
@@ -113,7 +114,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
     },
     server: {
       port: config.port ?? 5173,
-      fs: { allow: [APP_ROOT, userCwd, slidesAbs, themesAbs, assetsAbs] },
+      fs: { allow: [workspaceRoot, APP_ROOT, userCwd, slidesAbs, themesAbs, assetsAbs] },
     },
     build: {
       outDir: path.resolve(userCwd, 'dist'),

@@ -240,10 +240,10 @@ export const zhCN: Locale = {
     agentNotWatching: 'Agent 没在关注',
     agentNotWatchingTooltip:
       '已和 dev server 断开连接，agent 看不到你选的元素了。请重新启动 dev server 来恢复连接。',
-    leaveComment: '留个 comment',
-    commentPlaceholder: '描述你希望代理执行的更改…',
-    commentShortcutHint: '⌘/ 聚焦 · ⌘↵ 添加',
-    addComment: '添加 comment',
+    leaveComment: '用提示词修改这个元素',
+    commentPlaceholder: '例如：缩短标题，并改成橙色…',
+    commentShortcutHint: '选择后直接输入 · ⌘↵ 添加',
+    addComment: '加入修改',
     unsavedChanges: {
       one: '{count} 项未保存的更改',
       other: '{count} 项未保存的更改',
@@ -253,7 +253,7 @@ export const zhCN: Locale = {
       other: '{count} 条评论',
     },
     commentLineLabel: '第 {n} 行',
-    commentsEmpty: '暂无评论。开启「检查」并点击幻灯片元素。',
+    commentsEmpty: '尚无修改提示。直接点击预览中的任一元素。',
     commentsApplyHintPrefix: '在你的代理中运行 ',
     commentsApplyHintSuffix: ' 以应用这些更改。',
     commentDeleteAria: '删除',

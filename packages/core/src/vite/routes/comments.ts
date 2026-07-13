@@ -3,10 +3,10 @@ import type { ViteDevServer } from 'vite';
 import {
   b64urlEncode,
   findInsertion,
-  markerDeleteRegex,
   newCommentId,
   offsetToLine,
   parseMarkers,
+  removeMarker,
 } from '../../editing/comments.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json, readBody, resolveSlideEntryPath } from './context.ts';
@@ -101,12 +101,9 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
           return json(res, 404, { error: 'slide not found' });
         }
 
-        const lines = source.split('\n');
-        const idRe = markerDeleteRegex(id);
-        const hit = lines.findIndex((l) => idRe.test(l));
-        if (hit === -1) return json(res, 404, { error: 'marker not found' });
-        lines.splice(hit, 1);
-        await fs.writeFile(file, lines.join('\n'), 'utf8');
+        const nextSource = removeMarker(source, id);
+        if (nextSource === null) return json(res, 404, { error: 'marker not found' });
+        await fs.writeFile(file, nextSource, 'utf8');
         return json(res, 200, { ok: true });
       }
 

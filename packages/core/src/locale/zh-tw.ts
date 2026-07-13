@@ -240,10 +240,10 @@ export const zhTW: Locale = {
     agentNotWatching: 'Agent 沒在關注',
     agentNotWatchingTooltip:
       '已和 dev server 斷線，agent 看不到你選的元素了。請重新啟動 dev server 來恢復連線。',
-    leaveComment: '留個 comment',
-    commentPlaceholder: '描述你希望代理進行的修改…',
-    commentShortcutHint: '⌘/ 聚焦 · ⌘↵ 新增',
-    addComment: '新增 comment',
+    leaveComment: '用提示詞修改這個元素',
+    commentPlaceholder: '例如：把標題改短，並改成橘色…',
+    commentShortcutHint: '選取後直接輸入 · ⌘↵ 新增',
+    addComment: '加入修改',
     unsavedChanges: {
       one: '{count} 項未儲存的變更',
       other: '{count} 項未儲存的變更',
@@ -253,7 +253,7 @@ export const zhTW: Locale = {
       other: '{count} 則留言',
     },
     commentLineLabel: '第 {n} 行',
-    commentsEmpty: '尚無留言。開啟「檢視」並點選投影片元素。',
+    commentsEmpty: '尚無修改提示。直接點選預覽中的任一元素。',
     commentsApplyHintPrefix: '在你的代理中執行 ',
     commentsApplyHintSuffix: ' 以套用這些變更。',
     commentDeleteAria: '刪除',

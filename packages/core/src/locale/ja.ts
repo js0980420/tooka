@@ -242,10 +242,10 @@ export const ja: Locale = {
     agentNotWatching: 'エージェント未接続',
     agentNotWatchingTooltip:
       'dev server との接続が切れたため、選択中の要素がエージェントに見えなくなっています。dev server を再起動して接続を復旧してください。',
-    leaveComment: 'コメントを残す',
-    commentPlaceholder: 'エージェントに依頼する変更を記述…',
-    commentShortcutHint: '⌘/ でフォーカス · ⌘↵ で追加',
-    addComment: 'コメントを追加',
+    leaveComment: 'プロンプトでこの要素を変更',
+    commentPlaceholder: '例：見出しを短くしてオレンジ色にする…',
+    commentShortcutHint: '選択後に入力 · ⌘↵ で追加',
+    addComment: '変更を追加',
     unsavedChanges: {
       one: '未保存の変更 {count} 件',
       other: '未保存の変更 {count} 件',
@@ -255,8 +255,7 @@ export const ja: Locale = {
       other: 'コメント {count} 件',
     },
     commentLineLabel: '行 {n}',
-    commentsEmpty:
-      'まだコメントはありません。インスペクトを有効にしてスライド要素をクリックしてください。',
+    commentsEmpty: '変更プロンプトはまだありません。プレビュー内の要素をクリックしてください。',
     commentsApplyHintPrefix: 'エージェントで ',
     commentsApplyHintSuffix: ' を実行して適用してください。',
     commentDeleteAria: '削除',

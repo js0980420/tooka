@@ -260,7 +260,13 @@ export function InspectorPanel() {
           </div>
         </>
       }
-      footer={<CommentsSection selected={pinSelected} onAdd={add} />}
+      footer={
+        <CommentsSection
+          key={`${pinSelected.line}:${pinSelected.column}:${pinSelected.anchor.tagName}`}
+          selected={pinSelected}
+          onAdd={add}
+        />
+      }
     >
       {pinSnapshot.text !== null && (
         <>
@@ -883,13 +889,21 @@ function CommentsSection({
   selected,
   onAdd,
 }: {
-  selected: { line: number; column: number };
+  selected: SelectedTarget;
   onAdd: (line: number, column: number, text: string) => Promise<void>;
 }) {
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const t = useLocale();
+
+  useEffect(() => {
+    const timer = setTimeout(
+      () => wrapRef.current?.querySelector('textarea')?.focus({ preventScroll: true }),
+      PANEL_TRANSITION_MS,
+    );
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

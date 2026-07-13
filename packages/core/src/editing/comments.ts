@@ -47,6 +47,17 @@ export function markerDeleteRegex(id: string): RegExp {
   );
 }
 
+export function removeMarker(source: string, id: string): string | null {
+  const match = markerDeleteRegex(id).exec(source);
+  if (!match) return null;
+
+  let start = match.index;
+  while (start > 0 && (source[start - 1] === ' ' || source[start - 1] === '\t')) start--;
+  if (source[start - 1] === '\n') start--;
+
+  return source.slice(0, start) + source.slice(match.index + match[0].length);
+}
+
 // We always splice the marker as the first child of a JSX container.
 // A JSX-comment-like token outside JSX context (e.g. as the body of
 // `() => ( <Foo/> )`) is parsed as an empty object literal and breaks
