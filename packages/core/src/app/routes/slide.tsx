@@ -17,7 +17,7 @@ import {
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AssetView } from '@/components/asset-view';
+import { AssetPanel } from '@/components/asset-panel/asset-panel';
 import { HistoryProvider } from '@/components/history-provider';
 import { CommentWidget } from '@/components/inspector/comment-widget';
 import { InspectOverlay } from '@/components/inspector/inspect-overlay';
@@ -41,7 +41,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { assetPathFor, hasAssetDrag, readAssetDrag } from '@/lib/asset-dnd';
 import { useFolders } from '@/lib/folders';
+import { type EditOp, useEditor } from '@/lib/inspector/use-editor';
 import { useAgentSocketConnected } from '@/lib/use-agent-socket';
 import { useClickPageNavigation } from '@/lib/use-click-page-navigation';
 import { useIsMobile } from '@/lib/use-is-mobile';
@@ -104,7 +106,8 @@ export function Slide() {
   const pageCount = pages.length;
   const rawIndex = Number(searchParams.get('p') ?? '1') - 1;
   const index = Number.isFinite(rawIndex) ? Math.max(0, Math.min(pageCount - 1, rawIndex)) : 0;
-  const view = searchParams.get('view') === 'assets' ? 'assets' : 'slides';
+  const [assetsPanelOpen, setAssetsPanelOpen] = useState(false);
+  const view = assetsPanelOpen ? 'assets' : 'slides';
   const [previewVariantOverride, setPreviewVariantOverride] = useState<string | null>(null);
   const pngExportVariants = slide?.pngExportVariants ?? [];
   const defaultPreviewVariantId =
@@ -116,6 +119,53 @@ export function Slide() {
   )
     ? previewVariantOverride
     : defaultPreviewVariantId;
+  const { applyEdit } = useEditor(slideId ?? '');
+
+  const handleCanvasAssetDragOver = useCallback((e: React.DragEvent) => {
+    if (!hasAssetDrag(e.dataTransfer)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }, []);
+
+  const handleCanvasAssetDrop = useCallback(
+    (e: React.DragEvent) => {
+      const payload = readAssetDrag(e.dataTransfer);
+      if (!payload) return;
+      e.preventDefault();
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      // Drops on an ImagePlaceholder are handled by the placeholder itself.
+      if (target?.closest('[data-slide-placeholder]')) return;
+      const boundary = e.currentTarget as HTMLElement;
+      let el = target;
+      let root: HTMLElement | null = null;
+      while (el && el !== boundary) {
+        if (el.dataset.slideLoc) root = el;
+        el = el.parentElement;
+      }
+      const loc = root?.dataset.slideLoc;
+      if (!root || !loc) {
+        console.warn('open-cards: asset drop landed outside a card root');
+        return;
+      }
+      const sep = loc.indexOf(':');
+      const line = Number(loc.slice(0, sep));
+      const column = Number(loc.slice(sep + 1));
+      if (sep <= 0 || !Number.isFinite(line) || !Number.isFinite(column)) return;
+      const rect = root.getBoundingClientRect();
+      const scale = root.offsetWidth > 0 ? rect.width / root.offsetWidth : 1;
+      const x = Math.round((e.clientX - rect.left) / scale);
+      const y = Math.round((e.clientY - rect.top) / scale);
+      const ops: EditOp[] = [];
+      if (getComputedStyle(root).position === 'static') {
+        ops.push({ kind: 'set-style', key: 'position', value: 'relative' });
+      }
+      ops.push({ kind: 'insert-image', assetPath: assetPathFor(payload), x, y });
+      applyEdit(line, column, ops).catch((err: unknown) => {
+        toast.error(err instanceof Error ? err.message : String(err));
+      });
+    },
+    [applyEdit],
+  );
 
   useEffect(() => {
     if (!import.meta.hot) return;
@@ -370,7 +420,7 @@ export function Slide() {
 
   // Hold the loader while a hidden layer warms the whole deck's images and
   // fonts, so the slide UI first paints with every asset already in cache.
-  if (view !== 'assets' && !isDeckWarmed(slideId)) {
+  if (!isDeckWarmed(slideId)) {
     return (
       <div className="grid min-h-dvh place-items-center px-8 text-muted-foreground">
         <div className="flex flex-col items-center gap-4">
@@ -554,20 +604,7 @@ export function Slide() {
               )}
               <span aria-hidden className="mx-0.5 hidden h-5 w-px bg-hairline md:block" />
               {import.meta.env.DEV && (
-                <Tabs
-                  value={view}
-                  onValueChange={(next) => {
-                    setSearchParams(
-                      (prev) => {
-                        const params = new URLSearchParams(prev);
-                        if (next === 'assets') params.set('view', 'assets');
-                        else params.delete('view');
-                        return params;
-                      },
-                      { replace: true },
-                    );
-                  }}
-                >
+                <Tabs value={view} onValueChange={(next) => setAssetsPanelOpen(next === 'assets')}>
                   <TabsList>
                     <TabsTrigger value="slides">{t.slide.slidesTab}</TabsTrigger>
                     <TabsTrigger value="assets">{t.slide.assetsTab}</TabsTrigger>
@@ -587,7 +624,7 @@ export function Slide() {
             </div>
 
             <div className="flex flex-1 items-center justify-end gap-1 md:ml-auto md:flex-none">
-              {view === 'slides' && (
+              {
                 <button
                   type="button"
                   aria-label={t.slide.copyLink}
@@ -613,8 +650,8 @@ export function Slide() {
                     />
                   </span>
                 </button>
-              )}
-              {view === 'slides' && allowHtmlDownload && (
+              }
+              {allowHtmlDownload && (
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     type="button"
@@ -637,7 +674,7 @@ export function Slide() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-              {view === 'slides' && (
+              {
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     type="button"
@@ -664,13 +701,11 @@ export function Slide() {
                     {allowHtmlDownload && exportMenuItems}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
-              {view === 'slides' && (
-                <DesignToggleButton active={designOpen} onToggle={() => setDesignOpen((v) => !v)} />
-              )}
-              {view === 'slides' && <InspectToggleButton />}
+              }
+              {<DesignToggleButton active={designOpen} onToggle={() => setDesignOpen((v) => !v)} />}
+              <InspectToggleButton />
               <span aria-hidden className="mx-0.5 hidden h-5 w-px bg-hairline md:block" />
-              {view === 'slides' && (
+              {
                 <div className="inline-flex items-stretch">
                   <Button
                     size="sm"
@@ -720,104 +755,103 @@ export function Slide() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              )}
+              }
             </div>
           </header>
 
-          {view === 'assets' ? (
-            <div className="min-h-0 flex-1">
-              <AssetView slideId={slideId} />
-            </div>
-          ) : (
-            <PngExportVariantProvider value={previewVariantId}>
-              <DesignProvider slideId={slideId}>
-                <div className="relative flex min-h-0 flex-1 flex-col">
-                  <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-                    <ResizableRail
+          <PngExportVariantProvider value={previewVariantId}>
+            <DesignProvider slideId={slideId}>
+              <div className="relative flex min-h-0 flex-1 flex-col">
+                <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+                  <ResizableRail
+                    pages={pages}
+                    design={slide.design}
+                    current={index}
+                    onSelect={goTo}
+                    onReorder={import.meta.env.DEV ? reorderPage : undefined}
+                    actions={thumbnailActions}
+                    moduleTransition={slide.transition}
+                    onOverview={() => setOverviewOpen(true)}
+                  />
+                  {import.meta.env.DEV && assetsPanelOpen && slideId && (
+                    <AssetPanel slideId={slideId} />
+                  )}
+                  <main
+                    ref={slideViewportRef}
+                    data-inspector-root
+                    data-slide-id={slideId}
+                    className="relative min-h-0 min-w-0 flex-1 bg-canvas p-2 md:p-10"
+                    onDragOver={import.meta.env.DEV ? handleCanvasAssetDragOver : undefined}
+                    onDrop={import.meta.env.DEV ? handleCanvasAssetDrop : undefined}
+                  >
+                    {pngExportVariants.length > 1 && previewVariantId && (
+                      <ExportVariantPreviewToggle
+                        label={t.slide.preview}
+                        variants={pngExportVariants}
+                        value={previewVariantId}
+                        onChange={setPreviewVariantOverride}
+                      />
+                    )}
+                    <SlideViewportNavigation
+                      targetRef={slideViewportRef}
+                      onPrev={() => goTo(index - 1)}
+                      onNext={() => goTo(index + 1)}
+                      canPrev={index > 0}
+                      canNext={index < pageCount - 1}
+                    />
+                    <SlideCanvas design={slide.design}>
+                      <SlideTransitionLayer
+                        pages={pages}
+                        index={index}
+                        total={pageCount}
+                        moduleTransition={slide.transition}
+                        disabled={prefersReducedMotion}
+                      />
+                    </SlideCanvas>
+                    <CarouselDots total={pageCount} current={index} onSelect={goTo} />
+                    <InspectOverlay />
+                    <SaveBar />
+                    {import.meta.env.DEV && <CommentWidget />}
+                  </main>
+                  {/* Mobile-only horizontal rail. Sits below the canvas and
+                    pads its bottom for the iOS home indicator / Safari URL bar. */}
+                  <div
+                    className="shrink-0 border-t border-hairline md:hidden"
+                    style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+                  >
+                    <ThumbnailRail
                       pages={pages}
                       design={slide.design}
                       current={index}
                       onSelect={goTo}
-                      onReorder={import.meta.env.DEV ? reorderPage : undefined}
+                      orientation="horizontal"
                       actions={thumbnailActions}
-                      moduleTransition={slide.transition}
-                      onOverview={() => setOverviewOpen(true)}
                     />
-                    <main
-                      ref={slideViewportRef}
-                      data-inspector-root
-                      data-slide-id={slideId}
-                      className="relative min-h-0 min-w-0 flex-1 bg-canvas p-2 md:p-10"
-                    >
-                      {pngExportVariants.length > 1 && previewVariantId && (
-                        <ExportVariantPreviewToggle
-                          label={t.slide.preview}
-                          variants={pngExportVariants}
-                          value={previewVariantId}
-                          onChange={setPreviewVariantOverride}
-                        />
-                      )}
-                      <SlideViewportNavigation
-                        targetRef={slideViewportRef}
-                        onPrev={() => goTo(index - 1)}
-                        onNext={() => goTo(index + 1)}
-                        canPrev={index > 0}
-                        canNext={index < pageCount - 1}
-                      />
-                      <SlideCanvas design={slide.design}>
-                        <SlideTransitionLayer
-                          pages={pages}
-                          index={index}
-                          total={pageCount}
-                          moduleTransition={slide.transition}
-                          disabled={prefersReducedMotion}
-                        />
-                      </SlideCanvas>
-                      <CarouselDots total={pageCount} current={index} onSelect={goTo} />
-                      <InspectOverlay />
-                      <SaveBar />
-                      {import.meta.env.DEV && <CommentWidget />}
-                    </main>
-                    {/* Mobile-only horizontal rail. Sits below the canvas and
-                    pads its bottom for the iOS home indicator / Safari URL bar. */}
-                    <div
-                      className="shrink-0 border-t border-hairline md:hidden"
-                      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-                    >
-                      <ThumbnailRail
-                        pages={pages}
-                        design={slide.design}
-                        current={index}
-                        onSelect={goTo}
-                        orientation="horizontal"
-                        actions={thumbnailActions}
-                      />
-                    </div>
-                    <InspectorPanel />
-                    <DesignPanel open={designOpen} onClose={() => setDesignOpen(false)} />
                   </div>
-                  {import.meta.env.DEV && (
-                    <NotesDrawer
-                      slideId={slideId}
-                      index={index}
-                      total={pageCount}
-                      initial={slide.notes?.[index]}
-                    />
-                  )}
-                  <OverviewGrid
-                    pages={pages}
-                    design={slide.design}
-                    open={overviewOpen}
-                    current={index}
-                    onClose={() => setOverviewOpen(false)}
-                    onSelect={goTo}
-                    variant="editor"
-                    moduleTransition={slide.transition}
-                  />
+                  <InspectorPanel />
+                  <DesignPanel open={designOpen} onClose={() => setDesignOpen(false)} />
                 </div>
-              </DesignProvider>
-            </PngExportVariantProvider>
-          )}
+                {import.meta.env.DEV && (
+                  <NotesDrawer
+                    slideId={slideId}
+                    index={index}
+                    total={pageCount}
+                    initial={slide.notes?.[index]}
+                  />
+                )}
+                <OverviewGrid
+                  pages={pages}
+                  design={slide.design}
+                  open={overviewOpen}
+                  current={index}
+                  onClose={() => setOverviewOpen(false)}
+                  onSelect={goTo}
+                  variant="editor"
+                  moduleTransition={slide.transition}
+                />
+              </div>
+            </DesignProvider>
+          </PngExportVariantProvider>
         </div>
       </InspectorProvider>
     </HistoryProvider>
