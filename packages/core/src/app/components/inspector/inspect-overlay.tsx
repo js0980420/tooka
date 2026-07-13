@@ -2,12 +2,26 @@ import { Crop, ImageIcon } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PANEL_TRANSITION_MS } from '@/components/panel/panel-shell';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { canvasScale, composeTranslate, parseTranslate } from '@/lib/inspector/drag';
 import { findSlideSource, type SlideSourceHit } from '@/lib/inspector/fiber';
 import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { useInspector } from './inspector-provider';
 
 type Highlight = { hit: SlideSourceHit };
+
+type DragState = {
+  pointerId: number;
+  anchor: HTMLElement;
+  line: number;
+  column: number;
+  startX: number;
+  startY: number;
+  base: { x: number; y: number };
+  scale: number;
+  origInline: string;
+  dragging: boolean;
+};
 
 type RelRect = { left: number; top: number; width: number; height: number };
 
@@ -16,9 +30,16 @@ const FRAME_MORPH_MS = 180;
 const LAYOUT_TRACK_MS = PANEL_TRANSITION_MS + FRAME_MORPH_MS;
 
 export function InspectOverlay() {
-  const { active, slideId, selected, setSelected, cancel, openCrop } = useInspector();
+  const { active, slideId, selected, setSelected, cancel, openCrop, bufferOps } = useInspector();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<Highlight | null>(null);
+
+  const selectedRef = useRef(selected);
+  useEffect(() => {
+    selectedRef.current = selected;
+  });
+  const dragRef = useRef<DragState | null>(null);
+  const suppressClickRef = useRef(false);
 
   useEffect(() => {
     if (!active) {
@@ -26,15 +47,45 @@ export function InspectOverlay() {
       return;
     }
 
+    const endDrag = (revert: boolean) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      dragRef.current = null;
+      document.documentElement.style.cursor = '';
+      if (revert && drag.anchor.isConnected) drag.anchor.style.translate = drag.origInline;
+    };
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        cancel();
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (dragRef.current) {
+        endDrag(true);
+        suppressClickRef.current = true;
+        return;
       }
+      cancel();
     };
 
     const onMove = (e: PointerEvent) => {
+      const drag = dragRef.current;
+      if (drag && e.pointerId === drag.pointerId) {
+        if (!drag.anchor.isConnected) {
+          endDrag(false);
+          return;
+        }
+        if (!drag.dragging) {
+          if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 3) return;
+          drag.dragging = true;
+          drag.anchor.setPointerCapture(drag.pointerId);
+          document.documentElement.style.cursor = 'move';
+          setHover(null);
+        }
+        const dx = (e.clientX - drag.startX) / drag.scale;
+        const dy = (e.clientY - drag.startY) / drag.scale;
+        drag.anchor.style.translate = `${Math.round(drag.base.x + dx)}px ${Math.round(drag.base.y + dy)}px`;
+        return;
+      }
       if (!isInspectableEventTarget(e.target)) return setHover(null);
       const el = pickElement(e.clientX, e.clientY);
       if (!el) return setHover(null);
@@ -44,6 +95,12 @@ export function InspectOverlay() {
     };
 
     const onClick = (e: MouseEvent) => {
+      if (suppressClickRef.current) {
+        suppressClickRef.current = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       if (!isInspectableEventTarget(e.target)) return;
       const el = pickElement(e.clientX, e.clientY);
       if (!el) return;
@@ -68,17 +125,86 @@ export function InspectOverlay() {
       openCrop(hit.anchor);
     };
 
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const sel = selectedRef.current;
+      if (!sel?.anchor.isConnected) return;
+      if (!isInspectableEventTarget(e.target)) return;
+      const el = pickElement(e.clientX, e.clientY);
+      if (!el) return;
+      const hit = findSlideSource(el, slideId, { hostOnly: true });
+      if (!hit || hit.anchor !== sel.anchor) return;
+      const base = parseTranslate(sel.anchor.style.translate);
+      if (!base) return;
+      const root = sel.anchor.closest<HTMLElement>('[data-inspector-root]');
+      if (!root) return;
+      const scale = canvasScale(root.getBoundingClientRect().width, root.offsetWidth);
+      if (scale === null) return;
+      e.preventDefault();
+      dragRef.current = {
+        pointerId: e.pointerId,
+        anchor: sel.anchor,
+        line: sel.line,
+        column: sel.column,
+        startX: e.clientX,
+        startY: e.clientY,
+        base,
+        scale,
+        origInline: sel.anchor.style.translate,
+        dragging: false,
+      };
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag || e.pointerId !== drag.pointerId) return;
+      const moved = drag.dragging;
+      endDrag(false);
+      if (!moved) return;
+      suppressClickRef.current = true;
+      if (!drag.anchor.isConnected) return;
+      const dx = (e.clientX - drag.startX) / drag.scale;
+      const dy = (e.clientY - drag.startY) / drag.scale;
+      const value = composeTranslate(drag.base.x + dx, drag.base.y + dy);
+      // bufferOps 以當下 DOM 值快照原始 style;先還原預覽,快照才是拖曳前的值
+      drag.anchor.style.translate = drag.origInline;
+      if (value === drag.origInline || (value === null && drag.origInline === '')) return;
+      bufferOps(drag.line, drag.column, drag.anchor, [
+        { kind: 'set-style', key: 'translate', value },
+      ]);
+    };
+
+    const onPointerCancel = (e: PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag || e.pointerId !== drag.pointerId) return;
+      endDrag(true);
+      suppressClickRef.current = true;
+    };
+
+    const onDragStart = (e: DragEvent) => {
+      if (dragRef.current) e.preventDefault();
+    };
+
     window.addEventListener('pointermove', onMove, true);
     window.addEventListener('click', onClick, true);
     window.addEventListener('dblclick', onDblClick, true);
     window.addEventListener('keydown', onKey, true);
+    window.addEventListener('pointerdown', onPointerDown, true);
+    window.addEventListener('pointerup', onPointerUp, true);
+    window.addEventListener('pointercancel', onPointerCancel, true);
+    window.addEventListener('dragstart', onDragStart, true);
     return () => {
+      endDrag(true);
       window.removeEventListener('pointermove', onMove, true);
       window.removeEventListener('click', onClick, true);
       window.removeEventListener('dblclick', onDblClick, true);
       window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('pointerup', onPointerUp, true);
+      window.removeEventListener('pointercancel', onPointerCancel, true);
+      window.removeEventListener('dragstart', onDragStart, true);
     };
-  }, [active, slideId, setSelected, cancel, openCrop]);
+  }, [active, slideId, setSelected, cancel, openCrop, bufferOps]);
 
   const hoverAnchor = hover?.hit.anchor.isConnected ? hover.hit.anchor : null;
   const selectedAnchor = selected?.anchor.isConnected ? selected.anchor : null;
