@@ -128,7 +128,7 @@ export function FolderItem({
 
   const icon: FolderIcon =
     row.kind === 'all'
-      ? { type: 'emoji', value: '🎞️' }
+      ? { type: 'emoji', value: '🎴' }
       : row.kind === 'draft'
         ? { type: 'emoji', value: '📝' }
         : row.kind === 'themes'

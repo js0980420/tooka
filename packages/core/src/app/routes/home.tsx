@@ -99,7 +99,7 @@ export function Home() {
   const title = selectedFolder?.name ?? (isAll ? t.home.slides : t.home.draft);
   const headerIcon = selectedFolder?.icon ?? {
     type: 'emoji' as const,
-    value: isAll ? '🎞️' : '📝',
+    value: isAll ? '🎴' : '📝',
   };
 
   const [query, setQuery] = useState('');
@@ -159,7 +159,7 @@ export function Home() {
                 onClick={() => selectFolder(ALL_SLIDES_ID)}
                 className={cn(isAll && 'bg-muted text-foreground')}
               >
-                <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />
+                <FolderIconChip icon={{ type: 'emoji', value: '🎴' }} />
                 <span className="flex-1 truncate">{t.home.slides}</span>
                 <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>

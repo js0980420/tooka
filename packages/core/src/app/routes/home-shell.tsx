@@ -197,7 +197,7 @@ export function HomeShell() {
                       'bg-muted text-foreground',
                   )}
                 >
-                  <FolderIconChip icon={{ type: 'emoji', value: '🎞️' }} />
+                  <FolderIconChip icon={{ type: 'emoji', value: '🎴' }} />
                   <span className="flex-1 truncate">{t.home.slides}</span>
                   <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
