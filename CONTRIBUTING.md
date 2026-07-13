@@ -1,6 +1,6 @@
-# Contributing to open-slide
+# Contributing to open-cards
 
-Thanks for your interest in improving open-slide! This guide covers the workflow for contributing to the framework itself — the `@open-slide/core` runtime, the `@open-slide/cli` scaffolder, and the supporting apps.
+Thanks for your interest in improving open-cards! This guide covers the workflow for contributing to the framework itself — the `@open-cards/core` runtime, the `@open-cards/cli` scaffolder, and the supporting apps.
 
 If you're authoring slides inside a scaffolded project, you don't need this file — drive your deck through your coding agent or edit `slides/<id>/index.tsx` directly.
 
@@ -8,7 +8,7 @@ If you're authoring slides inside a scaffolded project, you don't need this file
 
 - **Report a bug** via the [bug report template](./.github/ISSUE_TEMPLATE/bug_report.yml). Include a minimal reproduction.
 - **Propose a feature** via the [feature request template](./.github/ISSUE_TEMPLATE/feature_request.yml). Describe the problem before the solution.
-- **Ask a question or share what you're building** in [GitHub Discussions](https://github.com/1weiho/open-slide/discussions).
+- **Ask a question or share what you're building** in [GitHub Discussions](https://github.com/1weiho/open-cards/discussions).
 - **Send a pull request** — see below.
 
 For non-trivial changes, please open an issue or discussion first so we can align on direction before you invest the time.
@@ -19,9 +19,9 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| [`packages/core`](packages/core) | `@open-slide/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-slide` dev/build CLI. |
-| [`packages/cli`](packages/cli) | `@open-slide/cli` | `npx @open-slide/cli init` scaffolder + project template. |
-| [`apps/demo`](apps/demo) | private | Local consumer of `@open-slide/core` via `workspace:*`. The dogfood target for the framework. |
+| [`packages/core`](packages/core) | `@open-cards/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-cards` dev/build CLI. |
+| [`packages/cli`](packages/cli) | `@open-cards/cli` | `npx @open-cards/cli init` scaffolder + project template. |
+| [`apps/demo`](apps/demo) | private | Local consumer of `@open-cards/core` via `workspace:*`. The dogfood target for the framework. |
 | [`apps/web`](apps/web) | private | Marketing site (Next.js). |
 
 ## Prerequisites
@@ -33,12 +33,12 @@ pnpm + Turbo monorepo.
 ## Getting set up
 
 ```bash
-git clone https://github.com/1weiho/open-slide.git
-cd open-slide
+git clone https://github.com/1weiho/open-cards.git
+cd open-cards
 pnpm install
 ```
 
-Then run the demo against the local `@open-slide/core`:
+Then run the demo against the local `@open-cards/core`:
 
 ```bash
 pnpm dev
@@ -110,8 +110,8 @@ pnpm cli <script>
 
 ## Releases
 
-Releases are cut by the maintainer via `pnpm release`, which builds `@open-slide/core` + `@open-slide/cli` and runs `changeset publish`. Contributors don't need to publish anything — just land the changeset alongside your code.
+Releases are cut by the maintainer via `pnpm release`, which builds `@open-cards/core` + `@open-cards/cli` and runs `changeset publish`. Contributors don't need to publish anything — just land the changeset alongside your code.
 
 ## Questions
 
-Open a [discussion](https://github.com/1weiho/open-slide/discussions) — happy to help.
+Open a [discussion](https://github.com/1weiho/open-cards/discussions) — happy to help.

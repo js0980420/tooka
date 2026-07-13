@@ -1,6 +1,6 @@
 ---
 name: create-theme
-description: Use this skill when the user wants to create, draft, author, or extract a slide theme in this open-slide repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <slide>", "build a theme from these images". Produces two paired files under `themes/` — `<id>.md` (palette, typography, layout, fixed Title/Footer components, motion) and `<id>.demo.tsx` (a runnable demo slide that the dev-UI Themes panel previews). Do NOT use for editing real slides — only for authoring the theme bundle.
+description: Use this skill when the user wants to create, draft, author, or extract a slide theme in this open-cards repo. Triggers on phrases like "create a theme", "make a theme called X", "extract a theme from <slide>", "build a theme from these images". Produces two paired files under `themes/` — `<id>.md` (palette, typography, layout, fixed Title/Footer components, motion) and `<id>.demo.tsx` (a runnable demo slide that the dev-UI Themes panel previews). Do NOT use for editing real slides — only for authoring the theme bundle.
 ---
 
 # Create a slide theme
@@ -108,7 +108,7 @@ const Title = ({ children }: { children: React.ReactNode }) => (
 Pull the page number from `useSlidePageNumber()` — never hardcode `pageNum` / `total` props.
 
 ```tsx
-import { useSlidePageNumber } from '@open-slide/core';
+import { useSlidePageNumber } from '@open-cards/core';
 
 const Footer = () => {
   const { current, total } = useSlidePageNumber();
@@ -180,7 +180,7 @@ The demo is a normal slide module — same shape as `slides/<id>/index.tsx`, jus
 
 Contract:
 
-- `import { type Page, useSlidePageNumber } from '@open-slide/core';`
+- `import { type Page, useSlidePageNumber } from '@open-cards/core';`
 - Inline the **same** `Title`, `Footer`, `Eyebrow` components defined in the theme markdown — verbatim, no abstractions, no imports from elsewhere. The demo and the markdown must stay in lockstep so what the user sees in the panel matches what `create-slide` will paste into a real slide.
 - Export 2–3 `Page` components and a default array. Aim for: a Cover (Eyebrow + Title + subtitle), one Content page exercising body type + accent, and a Closer or "End" card. The "Example usage" block at the bottom of the markdown is a good starting point — extend it.
 - If the theme has runtime-tweakable tokens worth surfacing in the Design panel later, also `export const design: DesignSystem = {...}`.
@@ -189,7 +189,7 @@ Contract:
 Skeleton:
 
 ```tsx
-import { type Page, useSlidePageNumber } from '@open-slide/core';
+import { type Page, useSlidePageNumber } from '@open-cards/core';
 
 const Title = ({ children }: { children: React.ReactNode }) => (
   // …same JSX as in themes/<id>.md
@@ -246,5 +246,5 @@ Do not run the dev server. Do not modify real slides — even to demonstrate the
 - ❌ Treating `themes/<id>.demo.tsx` as a real slide. It is preview-only and lives outside the slides list; never put it under `slides/`.
 - ❌ Importing from `@/` or any slide-specific helper inside the demo. The demo is self-contained.
 - ❌ Inventing palette / fonts when the user supplied images or an existing slide. Extract, don't fabricate.
-- ❌ Editing `slides/`, `packages/`, `package.json`, or `open-slide.config.ts`.
+- ❌ Editing `slides/`, `packages/`, `package.json`, or `open-cards.config.ts`.
 - ❌ Skipping the Fixed components section. Title and Footer are the most common reuse target — they must be paste-ready.

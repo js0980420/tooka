@@ -1,4 +1,4 @@
-<img width="1280" height="640" alt="open-slide github cover" src="https://github.com/user-attachments/assets/02f5e6d7-12a7-4a8e-88e7-ae8770a96584" />
+<img width="1280" height="640" alt="open-cards github cover" src="https://github.com/user-attachments/assets/02f5e6d7-12a7-4a8e-88e7-ae8770a96584" />
 
 <br />
 <br />
@@ -6,23 +6,23 @@
   <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge-2026.svg" />
 </a>
 
-# open-slide
+# open-cards
 
-[![GitHub stars](https://img.shields.io/github/stars/1weiho/open-slide?style=for-the-badge)](https://github.com/1weiho/open-slide/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/1weiho/open-slide?style=for-the-badge)](https://github.com/1weiho/open-slide/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/1weiho/open-cards?style=for-the-badge)](https://github.com/1weiho/open-cards/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/1weiho/open-cards?style=for-the-badge)](https://github.com/1weiho/open-cards/network/members)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-**The slide framework built for agents.** Describe your deck in natural language — your coding agent writes the React. open-slide handles the canvas, scaling, navigation, hot reload, and present mode so the agent can focus on content.
+**The slide framework built for agents.** Describe your deck in natural language — your coding agent writes the React. open-cards handles the canvas, scaling, navigation, hot reload, and present mode so the agent can focus on content.
 
 Every slide renders into a fixed **1920 × 1080** canvas. Pages are arbitrary React components, not a constrained DSL.
 
 ```bash
-npx @open-slide/cli init my-slide
+npx @open-cards/cli init my-slide
 ```
 
-## Why open-slide
+## Why open-cards
 
-Slides are visual code. Agents are great at writing code. open-slide is the missing runtime that turns "make slides about X" into a polished, presentable deck — without you ever leaving the chat.
+Slides are visual code. Agents are great at writing code. open-cards is the missing runtime that turns "make slides about X" into a polished, presentable deck — without you ever leaving the chat.
 
 ## Highlights
 
@@ -64,7 +64,7 @@ Outputs a plain static build — one-click deploy to Vercel, Cloudflare Pages, Z
 ## Get started
 
 ```bash
-npx @open-slide/cli init my-slide
+npx @open-cards/cli init my-slide
 cd my-slide
 pnpm dev
 ```
@@ -77,15 +77,15 @@ This repo is a pnpm + Turbo monorepo.
 
 | Path | Description |
 | --- | --- |
-| [packages/core](packages/core) | `@open-slide/core` — runtime (home page, slide viewer, present mode, inspector), Vite plugin, and the `open-slide` dev/build/preview CLI. |
-| [packages/cli](packages/cli) | `@open-slide/cli` — `npx @open-slide/cli init` scaffolder. Generates a minimal workspace where Vite/React/tsconfig stay hidden inside core. |
-| [apps/demo](apps/demo) | Example workspace that consumes `@open-slide/core` via `workspace:*`. Used for local development of the framework. |
+| [packages/core](packages/core) | `@open-cards/core` — runtime (home page, slide viewer, present mode, inspector), Vite plugin, and the `open-cards` dev/build/preview CLI. |
+| [packages/cli](packages/cli) | `@open-cards/cli` — `npx @open-cards/cli init` scaffolder. Generates a minimal workspace where Vite/React/tsconfig stay hidden inside core. |
+| [apps/demo](apps/demo) | Example workspace that consumes `@open-cards/core` via `workspace:*`. Used for local development of the framework. |
 
 ## Development
 
 ```bash
 pnpm install
-pnpm dev      # runs the demo against the local @open-slide/core
+pnpm dev      # runs the demo against the local @open-cards/core
 pnpm build    # builds all packages
 pnpm check    # type-checks all packages
 pnpm lint     # lints via biome
@@ -93,13 +93,13 @@ pnpm lint     # lints via biome
 
 ## Star history
 
-If open-slide is useful to you, please [star the repo on GitHub](https://github.com/1weiho/open-slide) — it helps other people find the project.
+If open-cards is useful to you, please [star the repo on GitHub](https://github.com/1weiho/open-cards) — it helps other people find the project.
 
-[![Star History Chart](https://api.star-history.com/svg?repos=1weiho/open-slide&type=Date)](https://star-history.com/#1weiho/open-slide&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=1weiho/open-cards&type=Date)](https://star-history.com/#1weiho/open-cards&Date)
 
 ## Support
 
-If open-slide has been useful to you, consider supporting development:
+If open-cards has been useful to you, consider supporting development:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D11YPUP1)
 

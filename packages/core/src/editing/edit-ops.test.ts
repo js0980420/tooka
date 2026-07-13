@@ -1046,7 +1046,7 @@ describe('applyEdit / set-attr-asset', () => {
 describe('applyEdit / replace-placeholder-with-image', () => {
   it('rewrites <ImagePlaceholder> to <img> and adds an import', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       'export default [() => (',
       '<ImagePlaceholder hint="Product hero" width={1280} height={720} />',
       ')];',
@@ -1065,7 +1065,7 @@ describe('applyEdit / replace-placeholder-with-image', () => {
 
   it('reuses an existing import for the same asset path', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       "import hero from './assets/hero.png';",
       'export default [() => (',
       '<ImagePlaceholder hint="Hero" width={800} height={600} />',
@@ -1083,7 +1083,7 @@ describe('applyEdit / replace-placeholder-with-image', () => {
 
   it('omits width/height when the placeholder did not specify them', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       'export default [() => (',
       '<ImagePlaceholder hint="Logo" />',
       ')];',
@@ -1102,7 +1102,7 @@ describe('applyEdit / replace-placeholder-with-image', () => {
 
   it("fills missing height with '100%' when only width is provided", () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       'export default [() => (',
       '<ImagePlaceholder hint="Cover" width={800} />',
       ')];',
@@ -1130,7 +1130,7 @@ describe('applyEdit / replace-placeholder-with-image', () => {
 
   it('rejects asset paths outside ./assets/', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       'export default [() => (',
       '<ImagePlaceholder hint="x" />',
       ')];',

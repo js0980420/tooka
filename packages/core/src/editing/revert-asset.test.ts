@@ -4,7 +4,7 @@ import { applyRevertAsset, findAssetUsages, findReferencedAssets } from './rever
 describe('findAssetUsages', () => {
   it('returns 0 when the import is absent', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       'export default [() => (<ImagePlaceholder hint="x" />)];',
       '',
     ].join('\n');
@@ -96,7 +96,7 @@ describe('findReferencedAssets', () => {
 describe('applyRevertAsset', () => {
   it('reverts <img> back to <ImagePlaceholder> and removes the asset import', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       "import hero from './assets/hero.png';",
       'export default [() => (',
       "  <img src={hero} alt='Product hero' style={{ width: 1280, height: 720, objectFit: 'cover', objectPosition: '50% 50%' }} />",
@@ -114,7 +114,7 @@ describe('applyRevertAsset', () => {
 
   it('omits width/height when the style only carries objectFit', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       "import logo from './assets/logo.svg';",
       'export default [() => (',
       "  <img src={logo} alt='Logo' style={{ objectFit: 'cover', objectPosition: '50% 50%' }} />",
@@ -130,7 +130,7 @@ describe('applyRevertAsset', () => {
 
   it("treats '100%' style fillers as unset and keeps numeric dims", () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       "import cover from './assets/cover.png';",
       'export default [() => (',
       "  <img src={cover} alt='Cover' style={{ width: 800, height: '100%', objectFit: 'cover', objectPosition: '50% 50%' }} />",
@@ -142,9 +142,9 @@ describe('applyRevertAsset', () => {
     expect(r.source).toContain('<ImagePlaceholder hint="Cover" width={800} />');
   });
 
-  it('adds ImagePlaceholder to an existing @open-slide/core named import', () => {
+  it('adds ImagePlaceholder to an existing @open-cards/core named import', () => {
     const src = [
-      "import { type Page } from '@open-slide/core';",
+      "import { type Page } from '@open-cards/core';",
       "import hero from './assets/hero.png';",
       'export default [() => (',
       "  <img src={hero} alt='x' style={{ objectFit: 'cover' }} />",
@@ -153,12 +153,12 @@ describe('applyRevertAsset', () => {
     ].join('\n');
     const r = applyRevertAsset(src, './assets/hero.png');
     if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
-    expect(r.source).toMatch(/import \{ type Page, ImagePlaceholder \} from '@open-slide\/core';/);
+    expect(r.source).toMatch(/import \{ type Page, ImagePlaceholder \} from '@open-cards\/core';/);
   });
 
-  it('adds a separate value import when the only @open-slide/core import is type-only', () => {
+  it('adds a separate value import when the only @open-cards/core import is type-only', () => {
     const src = [
-      "import type { DesignSystem, Page, SlideMeta } from '@open-slide/core';",
+      "import type { DesignSystem, Page, SlideMeta } from '@open-cards/core';",
       "import hero from './assets/hero.png';",
       'export default [() => (',
       "  <img src={hero} alt='x' style={{ objectFit: 'cover' }} />",
@@ -168,12 +168,12 @@ describe('applyRevertAsset', () => {
     const r = applyRevertAsset(src, './assets/hero.png');
     if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
     expect(r.source).toMatch(
-      /import type \{ DesignSystem, Page, SlideMeta \} from '@open-slide\/core';/,
+      /import type \{ DesignSystem, Page, SlideMeta \} from '@open-cards\/core';/,
     );
-    expect(r.source).toContain("import { ImagePlaceholder } from '@open-slide/core';");
+    expect(r.source).toContain("import { ImagePlaceholder } from '@open-cards/core';");
   });
 
-  it('adds a fresh @open-slide/core import when none exists', () => {
+  it('adds a fresh @open-cards/core import when none exists', () => {
     const src = [
       "import hero from './assets/hero.png';",
       'export default [() => (',
@@ -183,12 +183,12 @@ describe('applyRevertAsset', () => {
     ].join('\n');
     const r = applyRevertAsset(src, './assets/hero.png');
     if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
-    expect(r.source.split('\n')[0]).toBe("import { ImagePlaceholder } from '@open-slide/core';");
+    expect(r.source.split('\n')[0]).toBe("import { ImagePlaceholder } from '@open-cards/core';");
   });
 
   it('is a no-op when the asset is not imported', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       'export default [() => (<ImagePlaceholder hint="x" />)];',
       '',
     ].join('\n');
@@ -199,7 +199,7 @@ describe('applyRevertAsset', () => {
 
   it('reverts multiple <img> usages of the same import in one file', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       "import hero from './assets/hero.png';",
       'export default [() => (',
       '  <div>',
@@ -218,7 +218,7 @@ describe('applyRevertAsset', () => {
 
   it('refuses to revert when the identifier is referenced outside <img src>', () => {
     const src = [
-      "import { ImagePlaceholder } from '@open-slide/core';",
+      "import { ImagePlaceholder } from '@open-cards/core';",
       "import hero from './assets/hero.png';",
       'export default [() => (',
       '  <div data-bg={hero}>',

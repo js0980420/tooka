@@ -1,4 +1,4 @@
-import config from 'virtual:open-slide/config';
+import config from 'virtual:open-cards/config';
 import { Loader2, RefreshCw, RotateCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';

@@ -36,7 +36,7 @@ export const zhCN: Locale = {
   },
 
   home: {
-    appTitle: 'open-slide',
+    appTitle: 'open-cards',
     draft: '草稿',
     duplicate: '复制',
     themes: '主题',
@@ -46,7 +46,7 @@ export const zhCN: Locale = {
     menu: '菜单',
     newFolder: '新建文件夹',
     folderName: '文件夹名称',
-    updateAvailable: 'open-slide {version} 已发布',
+    updateAvailable: 'open-cards {version} 已发布',
     updatePackage: '更新',
     updatingPackage: '更新中',
     updatePackageDone: '已更新。请重启 dev server 以使用新版本。',

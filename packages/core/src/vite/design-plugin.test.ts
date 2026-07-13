@@ -7,7 +7,7 @@ import {
   serializeDesign,
 } from './design-plugin.ts';
 
-const SLIDE_WITH_DESIGN = `import type { DesignSystem, Page } from '@open-slide/core';
+const SLIDE_WITH_DESIGN = `import type { DesignSystem, Page } from '@open-cards/core';
 
 const design: DesignSystem = {
   palette: {
@@ -32,7 +32,7 @@ const Cover: Page = () => (
 export default [Cover];
 `;
 
-const SLIDE_WITHOUT_DESIGN = `import type { Page } from '@open-slide/core';
+const SLIDE_WITHOUT_DESIGN = `import type { Page } from '@open-cards/core';
 
 const Cover: Page = () => (
   <div style={{ background: '#fff', color: '#000' }}>Hi</div>
@@ -99,7 +99,7 @@ describe('applyDesignWrite — slide with existing design', () => {
     const r = applyDesignWrite(SLIDE_WITH_DESIGN, next);
     if (!r.ok) throw new Error(r.error);
     expect(r.created).toBe(false);
-    expect(r.source).toContain("import type { DesignSystem, Page } from '@open-slide/core'");
+    expect(r.source).toContain("import type { DesignSystem, Page } from '@open-cards/core'");
     expect(r.source).toContain('const design: DesignSystem =');
     expect(r.source).toContain("accent: '#ff0000'");
     expect(r.source).not.toContain("'#6d4cff'");
@@ -132,11 +132,11 @@ describe('applyDesignWrite — slide without design', () => {
     expect(parsed.design).toEqual(defaultDesign);
   });
 
-  it('adds a fresh @open-slide/core type import when none exists', () => {
+  it('adds a fresh @open-cards/core type import when none exists', () => {
     const slide = `const Cover = () => <div>Hi</div>;\nexport default [Cover];\n`;
     const r = applyDesignWrite(slide, defaultDesign);
     if (!r.ok) throw new Error(r.error);
-    expect(r.source).toContain("import type { DesignSystem } from '@open-slide/core'");
+    expect(r.source).toContain("import type { DesignSystem } from '@open-cards/core'");
     expect(r.source).toContain('const design: DesignSystem =');
     const parsed = parseSlideDesign(r.source);
     if (!parsed.ok) throw new Error('inserted design is not parseable');

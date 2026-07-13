@@ -1,4 +1,4 @@
-declare module 'virtual:open-slide/slides' {
+declare module 'virtual:open-cards/slides' {
   import type { SlideModule } from './lib/sdk';
   export const slideIds: string[];
   export const slideThemes: Record<string, string>;
@@ -6,7 +6,7 @@ declare module 'virtual:open-slide/slides' {
   export function loadSlide(id: string): Promise<SlideModule>;
 }
 
-declare module 'virtual:open-slide/config' {
+declare module 'virtual:open-cards/config' {
   import type { Locale } from '../locale/types';
 
   const config: {
@@ -24,14 +24,14 @@ declare module 'virtual:open-slide/config' {
   export default config;
 }
 
-declare module 'virtual:open-slide/folders' {
+declare module 'virtual:open-cards/folders' {
   import type { FoldersManifest } from './lib/sdk';
 
   const manifest: FoldersManifest;
   export default manifest;
 }
 
-declare module 'virtual:open-slide/themes' {
+declare module 'virtual:open-cards/themes' {
   import type { DesignSystem } from './lib/design';
   import type { Page } from './lib/sdk';
 

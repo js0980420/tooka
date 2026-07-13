@@ -76,9 +76,9 @@ type Scope = 'slide' | 'global';
 type ViewMode = 'grid' | 'list';
 
 const GLOBAL_SLIDE_ID = '@global';
-const VIEW_MODE_STORAGE_KEY = 'open-slide:asset-view-mode';
-const SORT_STORAGE_KEY = 'open-slide:asset-sort-v1';
-const GRID_COLUMNS_STORAGE_KEY = 'open-slide:asset-grid-columns-v1';
+const VIEW_MODE_STORAGE_KEY = 'open-cards:asset-view-mode';
+const SORT_STORAGE_KEY = 'open-cards:asset-sort-v1';
+const GRID_COLUMNS_STORAGE_KEY = 'open-cards:asset-grid-columns-v1';
 const MIN_GRID_COLUMNS = 2;
 const MAX_GRID_COLUMNS = 10;
 const DEFAULT_GRID_COLUMNS = 4;

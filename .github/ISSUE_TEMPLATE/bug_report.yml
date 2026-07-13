@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with the open-slide runtime, CLI, or scaffolder.
+description: Report a problem with the open-cards runtime, CLI, or scaffolder.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -21,7 +21,7 @@ body:
       label: Steps to reproduce
       description: Minimal, numbered steps. A link to a repo or sandbox is ideal.
       placeholder: |
-        1. `npx @open-slide/cli init repro`
+        1. `npx @open-cards/cli init repro`
         2. `cd repro && pnpm dev`
         3. Open http://localhost:5173 and click …
     validations:
@@ -43,15 +43,15 @@ body:
     id: package
     attributes:
       label: Affected package
-      description: e.g. `@open-slide/core`, `@open-slide/cli`, or "scaffolded project".
+      description: e.g. `@open-cards/core`, `@open-cards/cli`, or "scaffolded project".
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: Output of `npm ls @open-slide/core` (or the CLI version you ran).
-      placeholder: "@open-slide/core@1.2.3"
+      description: Output of `npm ls @open-cards/core` (or the CLI version you ran).
+      placeholder: "@open-cards/core@1.2.3"
     validations:
       required: true
   - type: input

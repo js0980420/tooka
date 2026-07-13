@@ -3,14 +3,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import fg from 'fast-glob';
 import { normalizePath, type Plugin } from 'vite';
-import type { OpenSlideConfig } from '../config.ts';
+import type { OpenCardsConfig } from '../config.ts';
 
 export type ThemesPluginOptions = {
   userCwd: string;
-  config: OpenSlideConfig;
+  config: OpenCardsConfig;
 };
 
-const THEMES_VMOD = 'virtual:open-slide/themes';
+const THEMES_VMOD = 'virtual:open-cards/themes';
 
 function resolved(id: string): string {
   return `\0${id}`;
@@ -102,7 +102,7 @@ function generateThemesModule(themes: ParsedTheme[], isDev: boolean): string {
     })
     .join('\n');
 
-  return `// virtual:open-slide/themes — generated
+  return `// virtual:open-cards/themes — generated
 export const themes = ${JSON.stringify(meta)};
 
 export async function loadThemeDemo(id) {
@@ -122,7 +122,7 @@ export function themesPlugin(opts: ThemesPluginOptions): Plugin {
   let isDev = false;
 
   return {
-    name: 'open-slide:themes',
+    name: 'open-cards:themes',
     config(_c, env) {
       isDev = env.command === 'serve';
     },

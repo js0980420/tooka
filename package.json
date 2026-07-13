@@ -1,11 +1,11 @@
 {
-  "name": "open-slide-monorepo",
+  "name": "open-cards-monorepo",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@10.17.0",
   "scripts": {
     "dev": "turbo run dev",
-    "dev:demo": "turbo run dev --filter=demo",
+    "dev:studio": "turbo run dev --filter=studio",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "format": "biome format --write .",
@@ -16,7 +16,7 @@
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "core": "pnpm --filter @open-slide/core"
+    "core": "pnpm --filter @open-cards/core"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.12",

@@ -12,12 +12,12 @@ import { registerWatchers } from './routes/watchers.ts';
 
 export type { ApiPluginOptions };
 
-// All open-slide dev-server endpoints in one plugin. To see the routes
+// All open-cards dev-server endpoints in one plugin. To see the routes
 // owned by a group, open the matching file under `routes/` — each file
 // leads with a comment-block manifest of its endpoints.
 export function apiPlugin(opts: ApiPluginOptions): Plugin {
   return {
-    name: 'open-slide:api',
+    name: 'open-cards:api',
     apply: 'serve',
     configureServer(server) {
       const ctx = makeContext(opts);

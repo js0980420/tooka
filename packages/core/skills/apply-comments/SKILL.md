@@ -1,11 +1,11 @@
 ---
 name: apply-comments
-description: Apply pending @slide-comment markers written by the open-slide inspector tool. Use when the user asks to "apply comments", "process slide comments", "apply the inspector comments", or references markers left inside `slides/<id>/index.tsx`.
+description: Apply pending @slide-comment markers written by the open-cards inspector tool. Use when the user asks to "apply comments", "process slide comments", "apply the inspector comments", or references markers left inside `slides/<id>/index.tsx`.
 ---
 
 # Apply slide comments
 
-The open-slide editor has an inspector tool that lets the user click on a rendered page element and attach a textual comment (e.g. *"make this red"*, *"change to 'Open Slide Rocks'"*). Each comment is persisted as an in-source JSX marker inside `slides/<slideId>/index.tsx`.
+The open-cards editor has an inspector tool that lets the user click on a rendered page element and attach a textual comment (e.g. *"make this red"*, *"change to 'Open Slide Rocks'"*). Each comment is persisted as an in-source JSX marker inside `slides/<slideId>/index.tsx`.
 
 Your job: read those markers, perform the described edits, and delete the markers.
 
@@ -78,6 +78,6 @@ You can run this inline via `node -e '...'` if you need to inspect a payload; ot
 
 ## Do not
 
-- Do not touch `package.json`, `open-slide.config.ts`, or files outside `slides/`.
+- Do not touch `package.json`, `open-cards.config.ts`, or files outside `slides/`.
 - Do not add dependencies.
 - Do not re-introduce markers or leave `TODO` breadcrumbs — the user already has a record in git.

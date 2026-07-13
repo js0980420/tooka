@@ -36,7 +36,7 @@ export const zhTW: Locale = {
   },
 
   home: {
-    appTitle: 'open-slide',
+    appTitle: 'open-cards',
     draft: '草稿',
     duplicate: '複製',
     themes: '主題',
@@ -46,7 +46,7 @@ export const zhTW: Locale = {
     menu: '選單',
     newFolder: '新增資料夾',
     folderName: '資料夾名稱',
-    updateAvailable: 'open-slide {version} 已發布',
+    updateAvailable: 'open-cards {version} 已發布',
     updatePackage: '更新',
     updatingPackage: '更新中',
     updatePackageDone: '已更新。請重新啟動 dev server 以使用新版本。',

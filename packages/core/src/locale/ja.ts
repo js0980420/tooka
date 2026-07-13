@@ -36,7 +36,7 @@ export const ja: Locale = {
   },
 
   home: {
-    appTitle: 'open-slide',
+    appTitle: 'open-cards',
     draft: '下書き',
     duplicate: '複製',
     themes: 'テーマ',
@@ -46,7 +46,7 @@ export const ja: Locale = {
     menu: 'メニュー',
     newFolder: '新規フォルダ',
     folderName: 'フォルダ名',
-    updateAvailable: 'open-slide {version} が利用可能です',
+    updateAvailable: 'open-cards {version} が利用可能です',
     updatePackage: '更新',
     updatingPackage: '更新中',
     updatePackageDone: '更新しました。新しいバージョンを使うには dev server を再起動してください。',

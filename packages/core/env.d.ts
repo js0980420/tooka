@@ -3,7 +3,7 @@
 //
 // Consumers opt in via tsconfig:
 //
-//   { "compilerOptions": { "types": ["@open-slide/core/env"] } }
+//   { "compilerOptions": { "types": ["@open-cards/core/env"] } }
 
 declare module '*.svg' {
   const src: string;

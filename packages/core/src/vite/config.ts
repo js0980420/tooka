@@ -9,7 +9,7 @@ import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
 import { notesPlugin } from './notes-plugin.ts';
-import { loadUserConfig, type OpenSlideConfig, openSlidePlugin } from './open-slide-plugin.ts';
+import { loadUserConfig, type OpenCardsConfig, openCardsPlugin } from './open-cards-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
 
 function findPackageRoot(fromFile: string): string {
@@ -37,7 +37,7 @@ const CORE_VERSION = readCoreVersion();
 
 export type CreateViteConfigOptions = {
   userCwd: string;
-  config?: OpenSlideConfig;
+  config?: OpenCardsConfig;
   mode?: 'serve' | 'build';
 };
 
@@ -60,7 +60,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       locTagsPlugin({ userCwd, slidesDir }),
       react(),
       tailwindcss(),
-      openSlidePlugin({ userCwd, config, coreVersion: CORE_VERSION }),
+      openCardsPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
       themesPlugin({ userCwd, config }),
       designPlugin({ userCwd }),
       apiPlugin({ userCwd, slidesDir, assetsDir, coreVersion: CORE_VERSION }),
@@ -94,15 +94,15 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'class-variance-authority',
         'emoji-picker-react',
       ],
-      // The app source ships inside node_modules/@open-slide/core/src/app, so
+      // The app source ships inside node_modules/@open-cards/core/src/app, so
       // Vite's dep scanner traverses it as if it were a third-party dep and
       // tries to bundle our virtual imports with esbuild. Mark them external.
       esbuildOptions: {
         plugins: [
           {
-            name: 'open-slide:virtual-externals',
+            name: 'open-cards:virtual-externals',
             setup(build) {
-              build.onResolve({ filter: /^virtual:open-slide\// }, (args) => ({
+              build.onResolve({ filter: /^virtual:open-cards\// }, (args) => ({
                 path: args.path,
                 external: true,
               }));

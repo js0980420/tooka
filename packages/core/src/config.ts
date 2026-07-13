@@ -1,12 +1,12 @@
 import type { Locale } from './locale/types';
 
-export type OpenSlideBuildConfig = {
+export type OpenCardsBuildConfig = {
   showSlideBrowser?: boolean;
   showSlideUi?: boolean;
   allowHtmlDownload?: boolean;
 };
 
-export type OpenSlideConfig = {
+export type OpenCardsConfig = {
   base?: string;
   slidesDir?: string;
   themesDir?: string;
@@ -18,5 +18,5 @@ export type OpenSlideConfig = {
    * chooses one (their choice is then remembered locally).
    */
   locale?: Locale;
-  build?: OpenSlideBuildConfig;
+  build?: OpenCardsBuildConfig;
 };

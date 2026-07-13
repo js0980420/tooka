@@ -1,4 +1,4 @@
-import config from 'virtual:open-slide/config';
+import config from 'virtual:open-cards/config';
 import {
   Check,
   ChevronDown,
@@ -108,7 +108,7 @@ export function Slide() {
   useEffect(() => {
     if (!import.meta.hot) return;
     if (!slideId || !slide || pageCount === 0) return;
-    import.meta.hot.send('open-slide:current', {
+    import.meta.hot.send('open-cards:current', {
       slideId,
       pageIndex: index,
       totalPages: pageCount,
@@ -424,7 +424,7 @@ export function Slide() {
       if (linkCopiedTimerRef.current) clearTimeout(linkCopiedTimerRef.current);
       linkCopiedTimerRef.current = setTimeout(() => setLinkCopied(false), 1200);
     } catch (err) {
-      console.error('[open-slide] copy link failed', err);
+      console.error('[open-cards] copy link failed', err);
       toast.error(t.slide.toastCopyLinkFailed);
     }
   };
@@ -435,7 +435,7 @@ export function Slide() {
     try {
       await exportSlideAsHtml(slide, slideId);
     } catch (err) {
-      console.error('[open-slide] export failed', err);
+      console.error('[open-cards] export failed', err);
     } finally {
       setExporting(false);
     }
@@ -462,7 +462,7 @@ export function Slide() {
         toast.custom(() => <PdfProgressToast progress={p} />, { id: toastId, duration: Infinity });
       });
     } catch (err) {
-      console.error('[open-slide] pdf export failed', err);
+      console.error('[open-cards] pdf export failed', err);
       toast.error(t.slide.pdfExportFailed, { id: toastId, duration: 4000 });
     } finally {
       setExporting(false);
@@ -487,7 +487,7 @@ export function Slide() {
         toast.custom(() => <PptxProgressToast progress={p} />, { id: toastId, duration: Infinity });
       });
     } catch (err) {
-      console.error('[open-slide] image pptx export failed', err);
+      console.error('[open-cards] image pptx export failed', err);
       toast.error(t.slide.imagePptxExportFailed, { id: toastId, duration: 4000 });
     } finally {
       setExporting(false);
@@ -818,7 +818,7 @@ export function Slide() {
   );
 }
 
-const RAIL_WIDTH_STORAGE_KEY = 'open-slide:thumbnail-rail-width';
+const RAIL_WIDTH_STORAGE_KEY = 'open-cards:thumbnail-rail-width';
 const DEFAULT_RAIL_WIDTH = 264;
 const MIN_RAIL_WIDTH = 200;
 const MAX_RAIL_WIDTH = 480;
@@ -993,7 +993,7 @@ function SelectionReporter() {
           text: (selected.anchor.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 120),
         }
       : null;
-    import.meta.hot.send('open-slide:current', { selection });
+    import.meta.hot.send('open-cards:current', { selection });
   }, [selected]);
   return null;
 }

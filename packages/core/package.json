@@ -1,7 +1,7 @@
 {
-  "name": "@open-slide/core",
+  "name": "@open-cards/core",
   "version": "1.15.2",
-  "description": "Runtime and CLI for open-slide — write slides in slides/, we handle the rest.",
+  "description": "Runtime and CLI for open-cards — write slides in slides/, we handle the rest.",
   "type": "module",
   "exports": {
     ".": {
@@ -21,7 +21,7 @@
     }
   },
   "bin": {
-    "open-slide": "./bin.js"
+    "open-cards": "./bin.js"
   },
   "files": [
     "bin.js",
@@ -51,14 +51,14 @@
     "name": "1weiho",
     "url": "https://github.com/1weiho"
   },
-  "homepage": "https://open-slide.dev",
+  "homepage": "https://open-cards.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/1weiho/open-slide.git",
+    "url": "git+https://github.com/1weiho/open-cards.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/1weiho/open-slide/issues"
+    "url": "https://github.com/1weiho/open-cards/issues"
   },
   "publishConfig": {
     "access": "public"

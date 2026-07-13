@@ -1,4 +1,4 @@
-import config from 'virtual:open-slide/config';
+import config from 'virtual:open-cards/config';
 import { useSyncExternalStore } from 'react';
 import { en } from '../../locale/en';
 import { ja } from '../../locale/ja';
@@ -22,7 +22,7 @@ export const LOCALE_OPTIONS: ReadonlyArray<{ id: LocaleId; label: string }> = [
   { id: 'ja', label: '日本語' },
 ];
 
-const STORAGE_KEY = 'open-slide:locale';
+const STORAGE_KEY = 'open-cards:locale';
 const configLocale = config.locale as Locale | undefined;
 
 function isLocaleId(value: string | null): value is LocaleId {

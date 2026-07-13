@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 將 open-slide fork 改造成 agent 驅動的 IG 輪播圖工具 open-cards：1080×1350 畫布、品牌系統、IG 式預覽、PNG 匯出。
+**Goal:** 將 open-cards fork 改造成 agent 驅動的 IG 輪播圖工具 open-cards：1080×1350 畫布、品牌系統、IG 式預覽、PNG 匯出。
 
 **Architecture:** 整份 monorepo 複製後瘦身（移除 web/cli/changesets），全域改名，把畫布尺寸單一來源化後改為 4:5，將既有 PPTX 截圖管線改造成 PNG 匯出，viewer 加 IG 式導覽，themes 機制擴充為品牌系統，skills 全面改寫為輪播工作流。
 
@@ -17,25 +17,25 @@
 - 每個 task 結束前 `pnpm check`（biome）、`pnpm typecheck`、`pnpm test` 必須全綠才能 commit。
 - **零新增 npm 依賴**。
 - 畫布固定 **1080×1350**，唯一定義處是 `packages/core/src/app/lib/sdk.ts` 的 `CANVAS_WIDTH` / `CANVAS_HEIGHT`。
-- 全域改名規則：`@open-slide/` → `@open-cards/`、`open-slide` → `open-cards`、`OpenSlide` → `OpenCards`。**保留** `os-` / `osd-` CSS class 與 data-attribute 前綴（內部識別字，與 open-slide 字串無關）。
+- 全域改名規則：`@open-cards/` → `@open-cards/`、`open-cards` → `open-cards`、`OpenCards` → `OpenCards`。**保留** `os-` / `osd-` CSS class 與 data-attribute 前綴（內部識別字，與 open-cards 字串無關）。
 - 不使用 changesets（已移除），不手動 bump 版本。
 - `packages/core/src/app/components/ui` 是 shadcn 產生且被 biome 忽略 — 不要動。
-- 工作目錄：`/home/js0980420/projects/open-cards`（repo 已 init，含 docs/ 兩個 commit）。來源：`/home/js0980420/projects/open-slide`。
+- 工作目錄：`/home/js0980420/projects/open-cards`（repo 已 init，含 docs/ 兩個 commit）。來源：`/home/js0980420/projects/open-cards`。
 
 ---
 
-### Task 1: 匯入 open-slide 原始碼作為基底
+### Task 1: 匯入 open-cards 原始碼作為基底
 
 **Files:**
-- Create: 整個 repo 內容（複製自 open-slide，排除 git/產物）
+- Create: 整個 repo 內容（複製自 open-cards，排除 git/產物）
 
 **Interfaces:**
-- Produces: 一個 `pnpm install && pnpm typecheck && pnpm test && pnpm check` 全綠的 open-slide 副本，後續所有 task 在其上修改。
+- Produces: 一個 `pnpm install && pnpm typecheck && pnpm test && pnpm check` 全綠的 open-cards 副本，後續所有 task 在其上修改。
 
 - [ ] **Step 1: 複製原始碼**
 
 ```bash
-cd /home/js0980420/projects/open-slide
+cd /home/js0980420/projects/open-cards
 rsync -a --exclude .git --exclude node_modules --exclude dist --exclude .turbo \
   --exclude 'apps/demo/dist' ./ /home/js0980420/projects/open-cards/
 ```
@@ -54,7 +54,7 @@ Expected: 三個指令都成功結束（exit 0）。若 check 有格式問題，
 
 ```bash
 git add -A
-git commit -m "chore: 匯入 open-slide 原始碼作為 open-cards 基底"
+git commit -m "chore: 匯入 open-cards 原始碼作為 open-cards 基底"
 ```
 
 ---
@@ -99,11 +99,11 @@ git commit -m "chore: 移除 apps/web、packages/cli 與 changesets 發佈設施
 
 ---
 
-### Task 3: 全域改名 open-slide → open-cards、demo → studio
+### Task 3: 全域改名 open-cards → open-cards、demo → studio
 
 **Files:**
-- Rename: `apps/demo/` → `apps/studio/`、`apps/studio/open-slide.config.ts` → `open-cards.config.ts`
-- Modify: 所有含 `open-slide` / `OpenSlide` 字串的追蹤檔案（含 `packages/core` 全部、locale、skills、README、CLAUDE.md、turbo/workspace 設定）
+- Rename: `apps/demo/` → `apps/studio/`、`apps/studio/open-cards.config.ts` → `open-cards.config.ts`
+- Modify: 所有含 `open-cards` / `OpenCards` 字串的追蹤檔案（含 `packages/core` 全部、locale、skills、README、CLAUDE.md、turbo/workspace 設定）
 
 **Interfaces:**
 - Produces: 套件名 `@open-cards/core`、bin 名 `open-cards`、config 型別 `OpenCardsConfig`、設定檔名 `open-cards.config.ts`、workspace app 名 `studio`。後續 task 一律使用這些新名稱。
@@ -113,7 +113,7 @@ git commit -m "chore: 移除 apps/web、packages/cli 與 changesets 發佈設施
 ```bash
 cd /home/js0980420/projects/open-cards
 git mv apps/demo apps/studio
-git mv apps/studio/open-slide.config.ts apps/studio/open-cards.config.ts
+git mv apps/studio/open-cards.config.ts apps/studio/open-cards.config.ts
 ```
 
 - [ ] **Step 2: 全域字串替換**
@@ -123,12 +123,12 @@ git mv apps/studio/open-slide.config.ts apps/studio/open-cards.config.ts
 ```bash
 git ls-files -z | grep -zv 'pnpm-lock.yaml' \
   | xargs -0 sh -c 'for f; do [ -L "$f" ] && continue; [ -f "$f" ] || continue; sed -i \
-      -e "s/@open-slide\//@open-cards\//g" \
-      -e "s/open-slide/open-cards/g" \
-      -e "s/OpenSlide/OpenCards/g" "$f"; done' _
+      -e "s/@open-cards\//@open-cards\//g" \
+      -e "s/open-cards/open-cards/g" \
+      -e "s/OpenCards/OpenCards/g" "$f"; done' _
 ```
 
-（repo 內有多個 tracked symlink——根目錄 `CLAUDE.md`、`.claude/skills/*`、`apps/studio/.claude|.agents/skills/*`——`sed -i` 直接碰它們會出錯或把 symlink 換成一般檔案，所以必須跳過。`apps/studio/.agents/skills/*` 的舊 symlink 目標含 `@open-slide` 路徑，改名後會暫時懸空，Task 8 Step 5 重新 sync 時解決，先不管。）
+（repo 內有多個 tracked symlink——根目錄 `CLAUDE.md`、`.claude/skills/*`、`apps/studio/.claude|.agents/skills/*`——`sed -i` 直接碰它們會出錯或把 symlink 換成一般檔案，所以必須跳過。`apps/studio/.agents/skills/*` 的舊 symlink 目標含 `@open-cards` 路徑，改名後會暫時懸空，Task 8 Step 5 重新 sync 時解決，先不管。）
 
 替換後人工抽查三處確認語意正確：
 1. `packages/core/package.json` — `name` 為 `@open-cards/core`、`bin` 鍵為 `open-cards`；順手把 `description`、`homepage`、`repository`、`bugs`、`author`、`keywords` 改成 open-cards 自己的內容（repository 可先留空字串或移除）。
@@ -951,7 +951,7 @@ git commit -m "feat: 新增 starter 示範品牌與 demo-carousel 示範輪播�
 
 - [ ] **Step 1: 重寫 README.md**
 
-英文、精簡（100 行內），內容：一句話定位（agent 驅動的 IG 輪播圖工具）、快速開始（`pnpm install` → `cd apps/studio && pnpm dev`）、工作流（`/create-carousel` 產卡 → 點選區塊留提示詞 → `/apply-comments` → 匯出 PNG）、品牌系統（`themes/` 一品牌一檔）、repo 結構表（packages/core、apps/studio）。結尾註明：基於 [1weiho/open-slide](https://github.com/1weiho/open-slide)（MIT）改造。刪除原 README 的 npm badge、Vercel OSS、star history 等上游內容。
+英文、精簡（100 行內），內容：一句話定位（agent 驅動的 IG 輪播圖工具）、快速開始（`pnpm install` → `cd apps/studio && pnpm dev`）、工作流（`/create-carousel` 產卡 → 點選區塊留提示詞 → `/apply-comments` → 匯出 PNG）、品牌系統（`themes/` 一品牌一檔）、repo 結構表（packages/core、apps/studio）。結尾註明：基於 [1weiho/open-cards](https://github.com/1weiho/open-cards)（MIT）改造。刪除原 README 的 npm badge、Vercel OSS、star history 等上游內容。
 
 - [ ] **Step 2: 重寫 CLAUDE.md 與 AGENTS.md**
 

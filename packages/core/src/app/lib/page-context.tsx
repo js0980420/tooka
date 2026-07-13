@@ -8,7 +8,7 @@ type SlidePageContextValue = {
 // Stored on globalThis so dev (src) and published (dist) copies of this module
 // share one context instance — otherwise the provider writes to one context and
 // the hook reads from another, and `useSlidePageNumber` always sees null.
-const GLOBAL_KEY = '__open_slide_page_context__';
+const GLOBAL_KEY = '__open_cards_page_context__';
 type GlobalWithCtx = typeof globalThis & {
   [GLOBAL_KEY]?: Context<SlidePageContextValue | null>;
 };
@@ -31,7 +31,7 @@ export function useSlidePageNumber(): { current: number; total: number } {
   const ctx = useContext(SlidePageContext);
   if (!ctx) {
     throw new Error(
-      'useSlidePageNumber must be called from a slide page rendered by @open-slide/core',
+      'useSlidePageNumber must be called from a slide page rendered by @open-cards/core',
     );
   }
   return { current: ctx.index + 1, total: ctx.total };

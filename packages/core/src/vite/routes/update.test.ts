@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { detectPackageManager, updateCommandFor } from './update.ts';
 
 async function tempProject(): Promise<string> {
-  return await fs.mkdtemp(path.join(os.tmpdir(), 'open-slide-update-'));
+  return await fs.mkdtemp(path.join(os.tmpdir(), 'open-cards-update-'));
 }
 
 describe('update routes helpers', () => {
@@ -46,19 +46,19 @@ describe('update routes helpers', () => {
   it('uses fixed update commands for each package manager', () => {
     expect(updateCommandFor('pnpm')).toEqual({
       cmd: 'pnpm',
-      args: ['add', '@open-slide/core@latest'],
+      args: ['add', '@open-cards/core@latest'],
     });
     expect(updateCommandFor('yarn')).toEqual({
       cmd: 'yarn',
-      args: ['add', '@open-slide/core@latest'],
+      args: ['add', '@open-cards/core@latest'],
     });
     expect(updateCommandFor('bun')).toEqual({
       cmd: 'bun',
-      args: ['add', '@open-slide/core@latest'],
+      args: ['add', '@open-cards/core@latest'],
     });
     expect(updateCommandFor('npm')).toEqual({
       cmd: 'npm',
-      args: ['install', '@open-slide/core@latest'],
+      args: ['install', '@open-cards/core@latest'],
     });
   });
 });

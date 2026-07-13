@@ -64,7 +64,7 @@ function planEnsureImagePlaceholderImport(ast: t.File): Splice | null {
   const imports = findImports(ast);
   let valueImport: ImportInfo | null = null;
   for (const imp of imports) {
-    if (imp.source !== '@open-slide/core') continue;
+    if (imp.source !== '@open-cards/core') continue;
     const declIsTypeOnly = readKind(imp.node);
     for (const spec of imp.node.specifiers) {
       if (!t.isImportSpecifier(spec)) continue;
@@ -93,7 +93,7 @@ function planEnsureImagePlaceholderImport(ast: t.File): Splice | null {
   return {
     from: 0,
     to: 0,
-    text: "import { ImagePlaceholder } from '@open-slide/core';\n",
+    text: "import { ImagePlaceholder } from '@open-cards/core';\n",
   };
 }
 
