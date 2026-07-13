@@ -1,6 +1,6 @@
 # @open-cards/core
 
-Runtime and CLI for [open-cards](https://github.com/1weiho/open-cards) — a React-based slide framework where you write slides and the framework handles the Vite/React stack, layout, navigation, hot reload, and fullscreen play mode.
+Runtime and CLI for [open-cards](https://github.com/1weiho/open-cards) — a React-based card-carousel framework where you write cards and the framework handles the Vite/React stack, layout, navigation, hot reload, and fullscreen play mode.
 
 ## Install
 
@@ -12,7 +12,7 @@ Most users get this installed automatically by running `npx @open-cards/cli init
 
 ## What's inside
 
-- **Runtime** — home page, slide viewer, thumbnail rail, keyboard navigation, and fullscreen presenter mode. Every slide renders into a fixed **1080×1350** canvas; the framework scales it.
+- **Runtime** — home page, card viewer, thumbnail rail, keyboard navigation, and fullscreen presenter mode. Every card renders into a fixed **1080×1350** canvas; the framework scales it.
 - **Vite plugin** — discovers `slides/<id>/index.{tsx,jsx,ts,js}`, exposes them via virtual modules, and reloads when slides are added or removed.
 - **CLI** — `open-cards dev | build | preview` so workspaces never need to touch Vite, React, or tsconfig directly.
 
@@ -53,9 +53,9 @@ const openCardsConfig: OpenCardsConfig = {
 
 The value is passed straight to Vite's `base` and to React Router's `basename`, so client-side navigation matches the deployed path.
 
-## Authoring slides
+## Authoring cards
 
-Slides live under `slides/<kebab-case-id>/index.tsx` and default-export an array of `Page` components:
+Cards live under `slides/<kebab-case-id>/index.tsx` and default-export an array of `Page` components:
 
 ```tsx
 import type { Page } from '@open-cards/core';
