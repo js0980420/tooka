@@ -98,7 +98,7 @@ function NoDemoState() {
         <p className="mt-1 text-[10.5px] leading-snug text-muted-foreground">
           {t.themes.noDemoHintPrefix}
           <code className="rounded-[3px] bg-card px-1 py-0.5 font-mono text-[10px] text-foreground">
-            /create-theme
+            /create-brand
           </code>
           {t.themes.noDemoHintSuffix}
         </p>
@@ -119,7 +119,7 @@ function ThemesEmptyState() {
         <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
           {t.themes.noThemesHintPrefix}
           <code className="rounded-[4px] bg-muted px-1.5 py-0.5 font-mono text-[11.5px] text-foreground">
-            /create-theme
+            /create-brand
           </code>
           {t.themes.noThemesHintSuffix}
         </p>

@@ -295,7 +295,7 @@ function NoDemoLargeState() {
         <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
           {t.themes.noDemoHintPrefix}
           <code className="rounded-[4px] bg-card px-1.5 py-0.5 font-mono text-[11.5px] text-foreground">
-            /create-theme
+            /create-brand
           </code>
           {t.themes.noDemoHintSuffix}
         </p>
