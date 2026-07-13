@@ -43,9 +43,9 @@ Manage images, videos, and fonts per carousel through a built-in assets panel. S
 
 Fullscreen playback with keyboard navigation, plus a **presenter mode** with current/next card preview, speaker notes, and a timer. Built for the stage, not just the browser tab.
 
-### 📦 Export to static HTML & PDF
+### 📦 Export to PNG
 
-One command exports your card carousel as a self-contained static HTML site or a print-ready PDF. Share without a server.
+One click exports your card carousel as high-quality ordered PNG images, ready to be uploaded straight to Instagram.
 
 ### 📁 Card manager
 
