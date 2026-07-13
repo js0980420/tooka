@@ -11,6 +11,10 @@ pnpm dev
 
 Then open the dev server and create a new slide at `slides/<your-slide>/index.tsx`.
 
+The workspace ships with two cards: **Blank canvas** (`slides/blank/`), an empty 1080 × 1350 page — drop an image straight onto it to place it on the canvas — and **demo-carousel**, a finished example to learn from.
+
+Not sure whether an image fits the canvas? Open the **Assets** page, upload it, and click the preview: the *Canvas fit* view overlays it on the 1080 × 1350 frame at true relative scale and tells you if the aspect ratio matches.
+
 ## Scripts
 
 | Command | Description |
@@ -33,7 +37,7 @@ export const meta: SlideMeta = { title: 'My slide' };
 export default [Cover] satisfies Page[];
 ```
 
-Every page renders into a fixed **1920 × 1080** canvas — design with absolute pixel values. Put images, videos, and fonts under `slides/<id>/assets/` and import them directly.
+Every page renders into a fixed **1080 × 1350** canvas — design with absolute pixel values. Put images, videos, and fonts under `slides/<id>/assets/` and import them directly.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
 
