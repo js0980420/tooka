@@ -1,0 +1,69 @@
+name: Bug report
+description: Report a problem with the open-slide runtime, CLI, or scaffolder.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill in the sections below so we can reproduce it quickly.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear, concise description of the bug.
+      placeholder: When I run `pnpm dev`, the inspector overlay…
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal, numbered steps. A link to a repo or sandbox is ideal.
+      placeholder: |
+        1. `npx @open-slide/cli init repro`
+        2. `cd repro && pnpm dev`
+        3. Open http://localhost:5173 and click …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include screenshots, stack traces, or console output if relevant.
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Affected package
+      description: e.g. `@open-slide/core`, `@open-slide/cli`, or "scaffolded project".
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `npm ls @open-slide/core` (or the CLI version you ran).
+      placeholder: "@open-slide/core@1.2.3"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Node version, package manager, OS, browser (if it's a runtime/UI bug).
+      placeholder: "Node 20.11.1, pnpm 10.17.0, macOS 14.5, Chrome 126"
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else worth knowing — recent upgrades, related issues, workarounds tried.

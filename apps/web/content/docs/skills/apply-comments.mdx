@@ -1,0 +1,41 @@
+---
+title: /apply-comments
+description: Turns inspector comments into real edits.
+---
+
+`/apply-comments` closes the visual feedback loop. You drop comments through
+the inspector; the skill resolves them into code edits.
+
+For the full iteration loop see [Iterate](/docs/flow/iterate).
+
+## What it does
+
+1. Scans the workspace for `@slide-comment` markers.
+2. For each marker, reads the surrounding code and the comment text.
+3. Edits the file to satisfy the comment.
+4. Removes the marker.
+
+```text
+› /apply-comments
+✓ 3 markers · slides/q2-launch/index.tsx
+✓ 1 marker  · slides/intro/index.tsx
+```
+
+## Marker semantics
+
+A `@slide-comment` marker is a normal JSX/JS comment that the inspector
+inserts next to the element you commented on. It's invisible at runtime —
+the rendered output never changes. The marker carries:
+
+- The user's note (the message you typed).
+- A pointer to the element (so an agent reading the file knows what *this*
+  meant).
+
+## When to use it
+
+After a batch of inspector comments — typically right before saving the
+deck for the day or right before a rehearsal. Refreshing the dev server
+after `/apply-comments` shows the new state with the markers cleared.
+
+If a comment is ambiguous, the agent will leave the marker in place and
+explain why. Refine the comment text and re-run.

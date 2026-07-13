@@ -1,0 +1,61 @@
+---
+title: /slide-authoring
+description: The technical reference the agent reads before writing a slide.
+---
+
+`/slide-authoring` is the canonical spec for everything inside
+`slides/<id>/`. The agent reads it before writing — file contract, the
+1920×1080 canvas, type scale, palette, layout vocabulary, the self-review
+checklist, and the anti-pattern list. `/create-slide` defers to it for the
+*how*.
+
+You don't usually invoke `slide-authoring` directly. Other skills do.
+
+## What it ships
+
+The defaults below are opinionated so an agent doesn't have to reinvent the
+look of every deck. Override any of it per-deck, or codify your overrides
+in a [theme](/docs/core-feature/themes).
+
+### Type scale
+
+A 1920×1080 stage pairs well with bigger type than the web is used to. The
+scale below is a reasonable default — adjust per deck.
+
+| Role          | Size (px) |
+| ------------- | --------- |
+| Display       | 188       |
+| H1            | 128       |
+| H2            | 84        |
+| Body          | 28 – 36   |
+| Caption / mono| 14 – 18   |
+
+Letter-spacing should tighten as size grows (`-0.04em` on display, around
+`-0.011em` on body).
+
+### Palette
+
+A two-tone neutral plus an accent goes a long way. The default dark tokens:
+
+```ts
+const palette = {
+  ink: '#0a0a0c',
+  panel: '#111114',
+  text: '#f6f5f0',
+  textSoft: '#c9c7bd',
+  muted: '#7f7e78',
+  accent: '#7170ff',
+};
+```
+
+For a recipe-driven design system, write a theme — see
+[Themes](/docs/core-feature/themes).
+
+### Layout patterns
+
+- **Hero.** One eyebrow, one headline, one supporting line, optional CTA.
+- **Two-column.** 60/40 split. Left for prose, right for visual artefact.
+- **Index.** A list of entries with monospace numbering.
+- **Quote.** Big italic display, attribution in mono.
+
+The agent applies these unless you tell it otherwise.

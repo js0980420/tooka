@@ -1,0 +1,41 @@
+---
+title: /current-slide
+description: Resolves "this slide" / "this element" to a concrete reference.
+---
+
+`/current-slide` is what makes deictic prompts work. *"This page"*, *"this
+heading"*, *"the slide I'm on"* — the skill teaches the agent how to
+resolve them to a concrete slide id, page index, and (when set) the JSX
+element you've picked in the [inspector](/docs/core-feature/inspector).
+
+## How it works
+
+The dev server writes the user's current view to
+`node_modules/.open-slide/current.json` on every navigation and selection
+change:
+
+- `slideId` — the deck folder name.
+- `pageIndex` — which page of the array.
+- `element` (optional) — source `file:line:col`, tag name, and a text
+  snippet of the JSX node you picked in the inspector.
+
+The skill reads that file before asking *which slide?*
+
+## When it fires
+
+You don't usually invoke it directly. `/slide-authoring` cross-references
+it, so any "fix this" prompt routes through it automatically.
+
+## Why it matters
+
+It collapses the most common round-trip in agent-driven editing:
+
+```text
+You: make this title smaller
+Agent: which title?
+You: the one on slide 3
+```
+
+With `/current-slide`, the agent already knows. The
+[Iterate](/docs/flow/iterate) page covers how this folds into the broader
+inspector / `/apply-comments` loop.

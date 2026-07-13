@@ -1,0 +1,90 @@
+---
+title: Slide module exports
+description: The shape the runtime expects from each slides/<id>/index.tsx.
+---
+
+```tsx title="slides/<id>/index.tsx"
+import type { Page, SlideMeta } from '@open-slide/core';
+
+const Cover: Page = () => <div>{/* ... */}</div>;
+
+export const meta: SlideMeta = {
+  title: 'Cover',
+  theme: 'corporate',
+};
+
+export const notes = {
+  0: 'Open with the analyst quote.',
+};
+
+export default [Cover] satisfies Page[];
+```
+
+## Default export
+
+`Page[]` — the array of components, in display order. Each component fills
+its container; the runtime renders one at a time onto the 1920×1080 canvas.
+
+```ts
+type Page = ComponentType;
+```
+
+## `meta` (optional)
+
+```ts
+type SlideMeta = {
+  /** Display title for the deck — used in the slide browser. */
+  title?: string;
+  /** Name of a theme under `themes/<id>.md`. The agent reads it before authoring. */
+  theme?: string;
+};
+```
+
+## `notes` (optional)
+
+A map of page index → markdown string. Surfaced in [presenter mode](/docs/core-feature/present-mode).
+
+```ts
+export const notes: Record<number, string> = {
+  0: 'Open with a smile.',
+  3: 'Pause for questions.',
+};
+```
+
+## `transition` (optional)
+
+A module-level `SlideTransition` becomes the default animation between every
+page in the deck. Per-page overrides are assigned on the `Page` component
+itself. See [SlideTransition](/docs/reference/slide-transitions) for the full
+schema and a tasteful family of defaults.
+
+```ts
+import type { SlideTransition } from '@open-slide/core';
+
+export const transition: SlideTransition = {
+  duration: 200,
+  exit:  { /* … */ },
+  enter: { /* … */ },
+};
+```
+
+## Imports from `@open-slide/core`
+
+```ts
+import {
+  CANVAS_WIDTH,        // 1920
+  CANVAS_HEIGHT,       // 1080
+  ImagePlaceholder,    // sized empty placeholder — see /docs/reference/image-placeholder
+  unstable_SharedElement, // match an element across pages — see /docs/reference/slide-transitions
+} from '@open-slide/core';
+import type {
+  unstable_SharedElementProps,
+  Page,
+  SlideMeta,
+  SlideModule,
+  SlideTransition,     // per-page / module-level animations — see /docs/reference/slide-transitions
+  SharedElementTransition,
+  TransitionPhase,
+  ImagePlaceholderProps,
+} from '@open-slide/core';
+```

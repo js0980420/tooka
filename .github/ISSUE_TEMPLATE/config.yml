@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & discussion
+    url: https://github.com/1weiho/open-slide/discussions
+    about: Ask a question or share what you're building with open-slide.
+  - name: Support the project
+    url: https://ko-fi.com/D1D11YPUP1
+    about: If open-slide has been useful to you, consider supporting development.
