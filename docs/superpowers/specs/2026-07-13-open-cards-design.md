@@ -71,7 +71,7 @@ Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **a
 ## 錯誤處理
 
 - 匯出時字體未載入完成：沿用 open-slide print-ready 的 `waitForFonts` / `data-waitfor` 機制，確保截圖前資源就緒。
-- 品牌檔缺失或欄位不全：dev server 啟動時明確報錯指出缺哪個欄位，不 fallback 靜默出錯圖。
+- 品牌檔為 agent 讀取的 markdown（非 runtime 載入），不存在 runtime 驗證；`/create-carousel` skill 負責在品牌檔缺章節時提醒使用者補齊。
 
 ## 驗證方式
 
