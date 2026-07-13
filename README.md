@@ -2,10 +2,6 @@
 
 # open-cards
 
-[![GitHub stars](https://img.shields.io/github/stars/1weiho/open-cards?style=for-the-badge)](https://github.com/1weiho/open-cards/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/1weiho/open-cards?style=for-the-badge)](https://github.com/1weiho/open-cards/network/members)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-
 **The card-carousel framework built for agents.** Describe your cards in natural language — your coding agent writes the React. open-cards handles the canvas, scaling, navigation, hot reload, and present mode so the agent can focus on content.
 
 Every card renders into a fixed **1080 × 1350** canvas. Pages are arbitrary React components, not a constrained DSL.
@@ -59,46 +55,8 @@ Outputs a plain static build — one-click deploy to Vercel, Cloudflare Pages, Z
 
 ```bash
 npx @open-cards/cli init my-cards
-```
-```bash
 cd my-cards
 pnpm dev
 ```
 
-The scaffolded workspace ships with agent skills preconfigured for Claude Code. From there you drive the carousel through your agent — or edit `slides/<id>/index.tsx` directly. See [CLAUDE.md](CLAUDE.md) for the hard rules.
-
-## Repo layout
-
-This repo is a pnpm + Turbo monorepo.
-
-| Path | Description |
-| --- | --- |
-| [packages/core](packages/core) | `@open-cards/core` — runtime (home page, card viewer, present mode, inspector), Vite plugin, and the `open-cards` dev/build/preview CLI. |
-| [packages/cli](packages/cli) | `@open-cards/cli` — `npx @open-cards/cli init` scaffolder. Generates a minimal workspace where Vite/React/tsconfig stay hidden inside core. |
-| [apps/demo](apps/demo) | Example workspace that consumes `@open-cards/core` via `workspace:*`. Used for local development of the framework. |
-
-## Development
-
-```bash
-pnpm install
-pnpm dev      # runs the demo against the local @open-cards/core
-pnpm build    # builds all packages
-pnpm check    # type-checks all packages
-pnpm lint     # lints via biome
-```
-
-## Star history
-
-If open-cards is useful to you, please [star the repo on GitHub](https://github.com/1weiho/open-cards) — it helps other people find the project.
-
-[![Star History Chart](https://api.star-history.com/svg?repos=1weiho/open-cards&type=Date)](https://star-history.com/#1weiho/open-cards&Date)
-
-## Support
-
-If open-cards has been useful to you, consider supporting development:
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D11YPUP1)
-
-## License
-
-MIT
+The scaffolded workspace ships with agent skills preconfigured for Claude Code. From there you drive the carousel through your agent — or edit `slides/<id>/index.tsx` directly.
