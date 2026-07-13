@@ -356,6 +356,16 @@ export type Locale = {
     /** template: "Deleted {name} and reverted {count} usage." */
     toastDeletedWithRevert: string;
     noPreview: string;
+    previewTabOriginal: string;
+    previewTabCanvas: string;
+    /** template: "Canvas {w} × {h}" */
+    canvasFrameLabel: string;
+    /** template: "{w} × {h} px" */
+    imageDimsLabel: string;
+    canvasFitExact: string;
+    canvasFitRatio: string;
+    canvasFitMismatch: string;
+    canvasFitLowRes: string;
     importHintComment: string;
     importHintSemi: string;
     logoSearchTitle: string;
