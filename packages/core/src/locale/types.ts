@@ -130,6 +130,8 @@ export type Locale = {
     slidesTab: string;
     assetsTab: string;
     renameSlide: string;
+    nextPageAria: string;
+    prevPageAria: string;
     loadingEyebrow: string;
     loadingAssetsEyebrow: string;
     emptyEyebrow: string;

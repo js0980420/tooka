@@ -3,6 +3,7 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Download,
   FileCode2,
   FileText,
@@ -48,6 +49,7 @@ import { useIsMobile } from '@/lib/use-is-mobile';
 import { format, useLocale } from '@/lib/use-locale';
 import { useWheelPageNavigation } from '@/lib/use-wheel-page-navigation';
 import { cn } from '@/lib/utils';
+import { CarouselDots } from '../components/carousel-dots';
 import { NotesDrawer } from '../components/notes-drawer';
 import { OverviewGrid } from '../components/overview-grid';
 import { PdfProgressToast } from '../components/pdf-progress-toast';
@@ -742,6 +744,7 @@ export function Slide() {
                         disabled={prefersReducedMotion}
                       />
                     </SlideCanvas>
+                    <CarouselDots total={pageCount} current={index} onSelect={goTo} />
                     <InspectOverlay />
                     <SaveBar />
                     {import.meta.env.DEV && <CommentWidget />}
@@ -986,6 +989,7 @@ function SlideViewportNavigation({
 }) {
   const { active } = useInspector();
   const isMobile = useIsMobile();
+  const t = useLocale();
 
   useWheelPageNavigation({
     ref: targetRef,
@@ -1009,7 +1013,34 @@ function SlideViewportNavigation({
     onNext,
   });
 
-  return null;
+  return (
+    <>
+      {canPrev ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon-lg"
+          aria-label={t.slide.prevPageAria}
+          onClick={onPrev}
+          className="absolute top-1/2 left-3 z-20 -translate-y-1/2 rounded-full shadow-floating backdrop-blur-sm md:left-5"
+        >
+          <ChevronLeft />
+        </Button>
+      ) : null}
+      {canNext ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon-lg"
+          aria-label={t.slide.nextPageAria}
+          onClick={onNext}
+          className="absolute top-1/2 right-3 z-20 -translate-y-1/2 rounded-full shadow-floating backdrop-blur-sm md:right-5"
+        >
+          <ChevronRight />
+        </Button>
+      ) : null}
+    </>
+  );
 }
 
 function InlineTitleEditor({

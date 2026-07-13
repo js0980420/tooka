@@ -128,6 +128,8 @@ export const zhTW: Locale = {
     slidesTab: '投影片',
     assetsTab: '素材',
     renameSlide: '重新命名投影片',
+    nextPageAria: '下一張卡片',
+    prevPageAria: '上一張卡片',
     loadingEyebrow: '載入中',
     loadingAssetsEyebrow: '載入資源中',
     emptyEyebrow: '空白',

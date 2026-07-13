@@ -128,6 +128,8 @@ export const zhCN: Locale = {
     slidesTab: '幻灯片',
     assetsTab: '素材',
     renameSlide: '重命名幻灯片',
+    nextPageAria: '下一张卡片',
+    prevPageAria: '上一张卡片',
     loadingEyebrow: '加载中',
     loadingAssetsEyebrow: '加载资源中',
     emptyEyebrow: '空白',

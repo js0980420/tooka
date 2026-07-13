@@ -129,6 +129,8 @@ export const ja: Locale = {
     slidesTab: 'スライド',
     assetsTab: 'アセット',
     renameSlide: 'スライドの名前を変更',
+    nextPageAria: '次のカード',
+    prevPageAria: '前のカード',
     loadingEyebrow: '読み込み中',
     loadingAssetsEyebrow: 'アセットを読み込み中',
     emptyEyebrow: '空',

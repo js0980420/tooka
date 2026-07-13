@@ -21,10 +21,26 @@ export type SharedElementTransition = {
   delay?: number;
 };
 
+export const defaultCarouselTransition: SlideTransition = {
+  duration: 300,
+  enter: {
+    keyframes: [
+      { transform: 'translateX(calc(var(--osd-dir, 1) * 100%))' },
+      { transform: 'translateX(0)' },
+    ],
+  },
+  exit: {
+    keyframes: [
+      { transform: 'translateX(0)' },
+      { transform: 'translateX(calc(var(--osd-dir, 1) * -100%))' },
+    ],
+  },
+};
+
 export function resolveTransition(
   pages: Page[],
   index: number,
   moduleDefault?: SlideTransition,
 ): SlideTransition | undefined {
-  return pages[index]?.transition ?? moduleDefault;
+  return pages[index]?.transition ?? moduleDefault ?? defaultCarouselTransition;
 }

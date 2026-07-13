@@ -129,6 +129,8 @@ export const en: Locale = {
     slidesTab: 'Slides',
     assetsTab: 'Assets',
     renameSlide: 'Rename slide',
+    nextPageAria: 'Next card',
+    prevPageAria: 'Previous card',
     loadingEyebrow: 'Loading',
     loadingAssetsEyebrow: 'Loading assets',
     emptyEyebrow: 'Empty',
