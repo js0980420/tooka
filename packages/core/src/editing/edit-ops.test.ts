@@ -1144,3 +1144,87 @@ describe('applyEdit / replace-placeholder-with-image', () => {
     expect(r.error).toMatch(/\.\/assets\//);
   });
 });
+
+describe('applyEdit / insert-image', () => {
+  it('inserts an absolutely positioned <img> before the closing tag and adds an import', () => {
+    const src = [
+      'export default [() => (',
+      "<div style={{ position: 'relative' }}><span>hi</span></div>",
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 2, 0, [
+      { kind: 'insert-image', assetPath: './assets/hero.png', x: 120, y: 340 },
+    ]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).toContain("import hero from './assets/hero.png';");
+    expect(r.source).toContain(
+      "<span>hi</span><img src={hero} alt=\"\" style={{ position: 'absolute', left: 0, top: 0, translate: '120px 340px', width: '320px' }} /></div>",
+    );
+  });
+
+  it('rounds fractional coordinates', () => {
+    const src = ['export default [() => (', '<div><span>hi</span></div>', ')];', ''].join('\n');
+    const r = applyEdit(src, 2, 0, [
+      { kind: 'insert-image', assetPath: './assets/a.png', x: 10.6, y: 19.2 },
+    ]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).toContain("translate: '11px 19px'");
+  });
+
+  it('reuses an existing import for the same asset path', () => {
+    const src = [
+      "import hero from './assets/hero.png';",
+      'export default [() => (',
+      '<div><img src={hero} alt="" /></div>',
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 3, 0, [
+      { kind: 'insert-image', assetPath: './assets/hero.png', x: 0, y: 0 },
+    ]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    const occurrences = r.source.match(/from '\.\/assets\/hero\.png'/g) ?? [];
+    expect(occurrences.length).toBe(1);
+  });
+
+  it('supports global-scope asset paths', () => {
+    const src = ['export default [() => (', '<div><span>hi</span></div>', ')];', ''].join('\n');
+    const r = applyEdit(src, 2, 0, [
+      { kind: 'insert-image', assetPath: '@assets/logo.png', x: 5, y: 6 },
+    ]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).toContain("import logo from '@assets/logo.png';");
+  });
+
+  it('applies a batched set-style position upgrade to the same element', () => {
+    const src = ['export default [() => (', '<div><span>hi</span></div>', ')];', ''].join('\n');
+    const r = applyEdit(src, 2, 0, [
+      { kind: 'set-style', key: 'position', value: 'relative' },
+      { kind: 'insert-image', assetPath: './assets/a.png', x: 1, y: 2 },
+    ]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).toContain("position: 'relative'");
+    expect(r.source).toContain("translate: '1px 2px'");
+  });
+
+  it('rejects paths outside the asset conventions', () => {
+    const src = ['export default [() => (', '<div><span>hi</span></div>', ')];', ''].join('\n');
+    const r = applyEdit(src, 2, 0, [
+      { kind: 'insert-image', assetPath: '/etc/passwd', x: 0, y: 0 },
+    ]);
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error('expected failure');
+    expect(r.error).toMatch(/\.\/assets\//);
+  });
+
+  it('rejects self-closing target elements', () => {
+    const src = ['export default [() => (', '<img src="x.png" alt="" />', ')];', ''].join('\n');
+    const r = applyEdit(src, 2, 0, [
+      { kind: 'insert-image', assetPath: './assets/a.png', x: 0, y: 0 },
+    ]);
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error('expected failure');
+    expect(r.error).toMatch(/self-closing/);
+  });
+});

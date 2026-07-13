@@ -1,5 +1,6 @@
 import { type CSSProperties, type HTMLAttributes, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { assetPathFor, hasAssetDrag, readAssetDrag } from '@/lib/asset-dnd';
 import { uploadWithAutoRename } from '@/lib/assets';
 import { useLocale } from '@/lib/use-locale';
 
@@ -28,13 +29,13 @@ export function ImagePlaceholder({
   const dndProps = import.meta.env.DEV
     ? {
         onDragEnter: (e: React.DragEvent<HTMLDivElement>) => {
-          if (uploading || !hasImageFile(e)) return;
+          if (uploading || !acceptsDrag(e)) return;
           e.preventDefault();
           dragDepth.current += 1;
           setDragActive(true);
         },
         onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
-          if (uploading || !hasImageFile(e)) return;
+          if (uploading || !acceptsDrag(e)) return;
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
         },
@@ -43,12 +44,13 @@ export function ImagePlaceholder({
           if (dragDepth.current === 0) setDragActive(false);
         },
         onDrop: (e: React.DragEvent<HTMLDivElement>) => {
-          if (uploading || !hasImageFile(e)) return;
+          if (uploading || !acceptsDrag(e)) return;
           e.preventDefault();
           dragDepth.current = 0;
           setDragActive(false);
-          const file = pickImageFile(e.dataTransfer.files);
-          if (!file) return;
+          const payload = readAssetDrag(e.dataTransfer);
+          const file = payload ? null : pickImageFile(e.dataTransfer.files);
+          if (!payload && !file) return;
           const root = e.currentTarget;
           const slideId = root.closest<HTMLElement>('[data-slide-id]')?.dataset.slideId;
           const loc = root.dataset.slideLoc;
@@ -59,7 +61,10 @@ export function ImagePlaceholder({
           const column = Number(loc.slice(idx + 1));
           if (!Number.isFinite(line) || !Number.isFinite(column)) return;
           setUploading(true);
-          handleDrop(slideId, file, line, column)
+          const done = payload
+            ? replacePlaceholder(slideId, assetPathFor(payload), line, column)
+            : handleDrop(slideId, file as File, line, column);
+          done
             .catch(() => toast.error(t.imagePlaceholder.uploadFailed))
             .finally(() => setUploading(false));
         },
@@ -186,11 +191,12 @@ function DropOverlay({ label }: { label: string }) {
   );
 }
 
-function hasImageFile(e: React.DragEvent): boolean {
-  const types = e.dataTransfer?.types;
-  if (!types) return false;
-  for (let i = 0; i < types.length; i++) {
-    if (types[i] === 'Files') return true;
+function acceptsDrag(e: React.DragEvent): boolean {
+  const dt = e.dataTransfer;
+  if (!dt) return false;
+  if (hasAssetDrag(dt)) return true;
+  for (let i = 0; i < dt.types.length; i++) {
+    if (dt.types[i] === 'Files') return true;
   }
   return false;
 }
@@ -206,6 +212,15 @@ function pickImageFile(files: FileList): File | null {
 async function handleDrop(slideId: string, file: File, line: number, column: number) {
   const { ok, entry } = await uploadWithAutoRename(slideId, file);
   if (!ok || !entry) throw new Error('upload failed');
+  await replacePlaceholder(slideId, `./assets/${entry.name}`, line, column);
+}
+
+async function replacePlaceholder(
+  slideId: string,
+  assetPath: string,
+  line: number,
+  column: number,
+) {
   const res = await fetch('/__edit', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -213,7 +228,7 @@ async function handleDrop(slideId: string, file: File, line: number, column: num
       slideId,
       line,
       column,
-      ops: [{ kind: 'replace-placeholder-with-image', assetPath: `./assets/${entry.name}` }],
+      ops: [{ kind: 'replace-placeholder-with-image', assetPath }],
     }),
   });
   if (!res.ok) throw new Error(`edit failed (${res.status})`);

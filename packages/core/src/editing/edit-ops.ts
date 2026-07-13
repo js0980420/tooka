@@ -13,7 +13,8 @@ export type EditOp =
       prevText?: string;
     }
   | { kind: 'set-attr-asset'; attr: string; assetPath: string }
-  | { kind: 'replace-placeholder-with-image'; assetPath: string };
+  | { kind: 'replace-placeholder-with-image'; assetPath: string }
+  | { kind: 'insert-image'; assetPath: string; x: number; y: number };
 
 export type ApplyEditResult =
   | { ok: true; source: string }
@@ -1130,6 +1131,28 @@ type PlaceholderEditPlan = {
   elementSplice: Splice;
 };
 
+function planInsertImage(
+  ast: t.File,
+  element: t.JSXElement,
+  assetPath: string,
+  x: number,
+  y: number,
+): PlaceholderEditPlan | { error: string } {
+  if (!assetPath.startsWith('./assets/') && !assetPath.startsWith('@assets/')) {
+    return { error: 'asset path must start with ./assets/ or @assets/' };
+  }
+  const closing = element.closingElement;
+  if (!closing) return { error: 'cannot insert into a self-closing element' };
+
+  const { identifier, importSplice } = planAssetImport(ast, assetPath);
+  const translate = `'${Math.round(x)}px ${Math.round(y)}px'`;
+  const img =
+    `<img src={${identifier}} alt="" ` +
+    `style={{ position: 'absolute', left: 0, top: 0, translate: ${translate}, width: '320px' }} />`;
+  const at = closing.start ?? 0;
+  return { importSplice, elementSplice: { from: at, to: at, text: img } };
+}
+
 function planReplacePlaceholder(
   ast: t.File,
   element: t.JSXElement,
@@ -1227,7 +1250,8 @@ export function applyEdit(
   const placeholderOps = ops.flatMap((op) =>
     op.kind === 'replace-placeholder-with-image' ? [op] : [],
   );
-  if (assetOps.length > 0 || placeholderOps.length > 0) {
+  const insertOps = ops.flatMap((op) => (op.kind === 'insert-image' ? [op] : []));
+  if (assetOps.length > 0 || placeholderOps.length > 0 || insertOps.length > 0) {
     const importSplices: Splice[] = [];
     for (const op of assetOps) {
       const plan = planAssetAttr(ast, element, op.attr, op.assetPath);
@@ -1237,6 +1261,12 @@ export function applyEdit(
     }
     for (const op of placeholderOps) {
       const plan = planReplacePlaceholder(ast, element, op.assetPath);
+      if ('error' in plan) return { ok: false, status: 422, error: plan.error };
+      splices.push(plan.elementSplice);
+      if (plan.importSplice) importSplices.push(plan.importSplice);
+    }
+    for (const op of insertOps) {
+      const plan = planInsertImage(ast, element, op.assetPath, op.x, op.y);
       if ('error' in plan) return { ok: false, status: 422, error: plan.error };
       splices.push(plan.elementSplice);
       if (plan.importSplice) importSplices.push(plan.importSplice);
