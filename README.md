@@ -1,11 +1,5 @@
 <img width="1280" height="640" alt="open-cards github cover" src="./assets/cover.jpg" />
 
-<br />
-<br />
-<a href="https://vercel.com/open-source-program">
-  <img alt="Vercel OSS Program" src="https://vercel.com/oss/program-badge-2026.svg" />
-</a>
-
 # open-cards
 
 [![GitHub stars](https://img.shields.io/github/stars/1weiho/open-cards?style=for-the-badge)](https://github.com/1weiho/open-cards/stargazers)
