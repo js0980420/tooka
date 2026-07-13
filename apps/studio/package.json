@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "open-cards dev",
+    "dev": "open-cards dev --host",
     "build": "open-cards build",
     "preview": "open-cards preview"
   },
