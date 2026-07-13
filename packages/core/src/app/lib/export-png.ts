@@ -3,8 +3,9 @@ import { createRoot, type Root } from 'react-dom/client';
 import { designToCssVars } from './design';
 import { pngFileName } from './export-png-name';
 import { SlidePageProvider } from './page-context';
+import { PngExportVariantProvider } from './png-export-variant';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from './print-ready';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, type SlideModule } from './sdk';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, type PngExportVariant, type SlideModule } from './sdk';
 
 const CAPTURE_PIXEL_RATIO = 1;
 
@@ -29,6 +30,7 @@ export async function exportSlideAsPng(
   slide: SlideModule,
   slideId: string,
   onProgress?: (progress: PngExportProgress) => void,
+  variant?: PngExportVariant,
 ): Promise<void> {
   const pages = slide.default ?? [];
   if (pages.length === 0) return;
@@ -83,7 +85,11 @@ export async function exportSlideAsPng(
     frames.push(host);
     const r = createRoot(host);
     r.render(
-      createElement(SlidePageProvider, { index: i, total: pages.length }, createElement(Page)),
+      createElement(
+        PngExportVariantProvider,
+        { value: variant?.id ?? null },
+        createElement(SlidePageProvider, { index: i, total: pages.length }, createElement(Page)),
+      ),
     );
     reactRoots.push(r);
   }
@@ -122,8 +128,9 @@ export async function exportSlideAsPng(
     }
 
     onProgress?.({ phase: 'generating', current: total, total, percent: 98 });
+    const exportId = variant ? `${slideId}-${variant.fileSuffix}` : slideId;
     if (images.length === 1) {
-      downloadBlob(new Blob([images[0] as BlobPart], { type: 'image/png' }), `${slideId}.png`);
+      downloadBlob(new Blob([images[0] as BlobPart], { type: 'image/png' }), `${exportId}.png`);
     } else {
       const { zipSync } = await import('fflate');
       const files: Record<string, Uint8Array> = {};
@@ -131,7 +138,7 @@ export async function exportSlideAsPng(
         files[pngFileName(i, images.length)] = images[i];
       }
       const zipped = zipSync(files);
-      downloadBlob(new Blob([zipped as BlobPart], { type: 'application/zip' }), `${slideId}.zip`);
+      downloadBlob(new Blob([zipped as BlobPart], { type: 'application/zip' }), `${exportId}.zip`);
     }
   } finally {
     onProgress?.({ phase: 'done', current: total, total, percent: 100 });

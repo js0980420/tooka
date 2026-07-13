@@ -110,6 +110,7 @@ export const en: Locale = {
     agentDisconnectedTooltip:
       'Lost connection to the dev server, so your agent can no longer see the current slide or inspector selection. Restart the dev server to restore the connection.',
     download: 'Download',
+    preview: 'Preview',
     copyLink: 'Copy link',
     moreActions: 'More actions',
     toastCopyLinkSuccess: 'Link copied to clipboard',

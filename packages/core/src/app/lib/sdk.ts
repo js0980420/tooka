@@ -4,6 +4,13 @@ import type { SlideTransition } from './transition.ts';
 
 export type Page = ComponentType & { transition?: SlideTransition };
 
+export type PngExportVariant = {
+  id: string;
+  label: string;
+  fileSuffix: string;
+  previewLabel?: string;
+};
+
 export type SlideMeta = {
   title?: string;
   theme?: string;
@@ -15,6 +22,7 @@ export type SlideModule = {
   default: Page[];
   meta?: SlideMeta;
   design?: DesignSystem;
+  pngExportVariants?: readonly PngExportVariant[];
   // Index-aligned with `default`.
   notes?: (string | undefined)[];
   transition?: SlideTransition;

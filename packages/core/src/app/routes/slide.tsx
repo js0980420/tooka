@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Eye,
   ImageDown,
   Link2,
   Loader2,
@@ -61,7 +62,8 @@ import { type ThumbnailActions, ThumbnailRail } from '../components/thumbnail-ra
 // import { exportSlideAsPdf, isSafari } from '../lib/export-pdf';
 import { exportSlideAsPng } from '../lib/export-png';
 import { remapNotesSessionCacheAfterReorder } from '../lib/inspector/use-notes';
-import type { SlideModule } from '../lib/sdk';
+import { PngExportVariantProvider } from '../lib/png-export-variant';
+import type { PngExportVariant, SlideModule } from '../lib/sdk';
 import { usePrefersReducedMotion } from '../lib/use-prefers-reduced-motion';
 import { useSlideModule } from '../lib/use-slide-module';
 
@@ -103,6 +105,17 @@ export function Slide() {
   const rawIndex = Number(searchParams.get('p') ?? '1') - 1;
   const index = Number.isFinite(rawIndex) ? Math.max(0, Math.min(pageCount - 1, rawIndex)) : 0;
   const view = searchParams.get('view') === 'assets' ? 'assets' : 'slides';
+  const [previewVariantOverride, setPreviewVariantOverride] = useState<string | null>(null);
+  const pngExportVariants = slide?.pngExportVariants ?? [];
+  const defaultPreviewVariantId =
+    pngExportVariants.find((variant) => variant.id === 'original')?.id ??
+    pngExportVariants[0]?.id ??
+    null;
+  const previewVariantId = pngExportVariants.some(
+    (variant) => variant.id === previewVariantOverride,
+  )
+    ? previewVariantOverride
+    : defaultPreviewVariantId;
 
   useEffect(() => {
     if (!import.meta.hot) return;
@@ -459,10 +472,10 @@ export function Slide() {
   };
   */
 
-  const exportPng = async () => {
+  const exportPng = async (variant?: PngExportVariant) => {
     if (!slide || exporting) return;
     setExporting(true);
-    const toastId = `png-export-${slideId}`;
+    const toastId = `png-export-${slideId}-${variant?.id ?? 'default'}`;
     toast.custom(
       () => (
         <PngProgressToast
@@ -472,9 +485,17 @@ export function Slide() {
       { id: toastId, duration: Infinity },
     );
     try {
-      await exportSlideAsPng(slide, slideId, (p) => {
-        toast.custom(() => <PngProgressToast progress={p} />, { id: toastId, duration: Infinity });
-      });
+      await exportSlideAsPng(
+        slide,
+        slideId,
+        (p) => {
+          toast.custom(() => <PngProgressToast progress={p} />, {
+            id: toastId,
+            duration: Infinity,
+          });
+        },
+        variant,
+      );
     } catch (err) {
       console.error('[open-cards] png export failed', err);
       toast.error(t.slide.pngExportFailed, { id: toastId, duration: 4000 });
@@ -493,10 +514,23 @@ export function Slide() {
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       */}
-      <DropdownMenuItem disabled={exporting} onClick={exportPng}>
-        <ImageDown />
-        {t.slide.exportAsPng}
-      </DropdownMenuItem>
+      {slide?.pngExportVariants?.length ? (
+        slide.pngExportVariants.map((variant) => (
+          <DropdownMenuItem
+            key={variant.id}
+            disabled={exporting}
+            onClick={() => exportPng(variant)}
+          >
+            <ImageDown />
+            {variant.label}
+          </DropdownMenuItem>
+        ))
+      ) : (
+        <DropdownMenuItem disabled={exporting} onClick={() => exportPng()}>
+          <ImageDown />
+          {t.slide.exportAsPng}
+        </DropdownMenuItem>
+      )}
     </>
   );
 
@@ -695,88 +729,140 @@ export function Slide() {
               <AssetView slideId={slideId} />
             </div>
           ) : (
-            <DesignProvider slideId={slideId}>
-              <div className="relative flex min-h-0 flex-1 flex-col">
-                <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-                  <ResizableRail
-                    pages={pages}
-                    design={slide.design}
-                    current={index}
-                    onSelect={goTo}
-                    onReorder={import.meta.env.DEV ? reorderPage : undefined}
-                    actions={thumbnailActions}
-                    moduleTransition={slide.transition}
-                    onOverview={() => setOverviewOpen(true)}
-                  />
-                  <main
-                    ref={slideViewportRef}
-                    data-inspector-root
-                    data-slide-id={slideId}
-                    className="relative min-h-0 min-w-0 flex-1 bg-canvas p-2 md:p-10"
-                  >
-                    <SlideViewportNavigation
-                      targetRef={slideViewportRef}
-                      onPrev={() => goTo(index - 1)}
-                      onNext={() => goTo(index + 1)}
-                      canPrev={index > 0}
-                      canNext={index < pageCount - 1}
-                    />
-                    <SlideCanvas design={slide.design}>
-                      <SlideTransitionLayer
-                        pages={pages}
-                        index={index}
-                        total={pageCount}
-                        moduleTransition={slide.transition}
-                        disabled={prefersReducedMotion}
-                      />
-                    </SlideCanvas>
-                    <CarouselDots total={pageCount} current={index} onSelect={goTo} />
-                    <InspectOverlay />
-                    <SaveBar />
-                    {import.meta.env.DEV && <CommentWidget />}
-                  </main>
-                  {/* Mobile-only horizontal rail. Sits below the canvas and
-                    pads its bottom for the iOS home indicator / Safari URL bar. */}
-                  <div
-                    className="shrink-0 border-t border-hairline md:hidden"
-                    style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-                  >
-                    <ThumbnailRail
+            <PngExportVariantProvider value={previewVariantId}>
+              <DesignProvider slideId={slideId}>
+                <div className="relative flex min-h-0 flex-1 flex-col">
+                  <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+                    <ResizableRail
                       pages={pages}
                       design={slide.design}
                       current={index}
                       onSelect={goTo}
-                      orientation="horizontal"
+                      onReorder={import.meta.env.DEV ? reorderPage : undefined}
                       actions={thumbnailActions}
+                      moduleTransition={slide.transition}
+                      onOverview={() => setOverviewOpen(true)}
                     />
+                    <main
+                      ref={slideViewportRef}
+                      data-inspector-root
+                      data-slide-id={slideId}
+                      className="relative min-h-0 min-w-0 flex-1 bg-canvas p-2 md:p-10"
+                    >
+                      {pngExportVariants.length > 1 && previewVariantId && (
+                        <ExportVariantPreviewToggle
+                          label={t.slide.preview}
+                          variants={pngExportVariants}
+                          value={previewVariantId}
+                          onChange={setPreviewVariantOverride}
+                        />
+                      )}
+                      <SlideViewportNavigation
+                        targetRef={slideViewportRef}
+                        onPrev={() => goTo(index - 1)}
+                        onNext={() => goTo(index + 1)}
+                        canPrev={index > 0}
+                        canNext={index < pageCount - 1}
+                      />
+                      <SlideCanvas design={slide.design}>
+                        <SlideTransitionLayer
+                          pages={pages}
+                          index={index}
+                          total={pageCount}
+                          moduleTransition={slide.transition}
+                          disabled={prefersReducedMotion}
+                        />
+                      </SlideCanvas>
+                      <CarouselDots total={pageCount} current={index} onSelect={goTo} />
+                      <InspectOverlay />
+                      <SaveBar />
+                      {import.meta.env.DEV && <CommentWidget />}
+                    </main>
+                    {/* Mobile-only horizontal rail. Sits below the canvas and
+                    pads its bottom for the iOS home indicator / Safari URL bar. */}
+                    <div
+                      className="shrink-0 border-t border-hairline md:hidden"
+                      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+                    >
+                      <ThumbnailRail
+                        pages={pages}
+                        design={slide.design}
+                        current={index}
+                        onSelect={goTo}
+                        orientation="horizontal"
+                        actions={thumbnailActions}
+                      />
+                    </div>
+                    <InspectorPanel />
+                    <DesignPanel open={designOpen} onClose={() => setDesignOpen(false)} />
                   </div>
-                  <InspectorPanel />
-                  <DesignPanel open={designOpen} onClose={() => setDesignOpen(false)} />
-                </div>
-                {import.meta.env.DEV && (
-                  <NotesDrawer
-                    slideId={slideId}
-                    index={index}
-                    total={pageCount}
-                    initial={slide.notes?.[index]}
+                  {import.meta.env.DEV && (
+                    <NotesDrawer
+                      slideId={slideId}
+                      index={index}
+                      total={pageCount}
+                      initial={slide.notes?.[index]}
+                    />
+                  )}
+                  <OverviewGrid
+                    pages={pages}
+                    design={slide.design}
+                    open={overviewOpen}
+                    current={index}
+                    onClose={() => setOverviewOpen(false)}
+                    onSelect={goTo}
+                    variant="editor"
+                    moduleTransition={slide.transition}
                   />
-                )}
-                <OverviewGrid
-                  pages={pages}
-                  design={slide.design}
-                  open={overviewOpen}
-                  current={index}
-                  onClose={() => setOverviewOpen(false)}
-                  onSelect={goTo}
-                  variant="editor"
-                  moduleTransition={slide.transition}
-                />
-              </div>
-            </DesignProvider>
+                </div>
+              </DesignProvider>
+            </PngExportVariantProvider>
           )}
         </div>
       </InspectorProvider>
     </HistoryProvider>
+  );
+}
+
+function ExportVariantPreviewToggle({
+  label,
+  variants,
+  value,
+  onChange,
+}: {
+  label: string;
+  variants: readonly PngExportVariant[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="absolute top-3 right-3 z-30 flex items-center gap-1 rounded-lg border border-hairline bg-background/95 p-1 shadow-sm backdrop-blur-md">
+      <span className="flex items-center gap-1 px-1.5 text-[11px] font-medium text-muted-foreground">
+        <Eye className="size-3.5" />
+        <span className="hidden xl:inline">{label}</span>
+      </span>
+      {variants.map((variant) => {
+        const active = variant.id === value;
+        const variantLabel = variant.previewLabel ?? variant.label;
+        return (
+          <button
+            key={variant.id}
+            type="button"
+            aria-label={`${label}: ${variantLabel}`}
+            aria-pressed={active}
+            className={cn(
+              'rounded-md px-2 py-1 text-[11px] font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+              active
+                ? 'bg-brand text-brand-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+            )}
+            onClick={() => onChange(variant.id)}
+          >
+            {variantLabel}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

@@ -10,7 +10,8 @@ export type {
 } from './app/lib/design.ts';
 export { cssVarsToString, defaultDesign, designToCssVars } from './app/lib/design.ts';
 export { useSlidePageNumber } from './app/lib/page-context.tsx';
-export type { Page, SlideMeta, SlideModule } from './app/lib/sdk.ts';
+export { usePngExportVariant } from './app/lib/png-export-variant.tsx';
+export type { Page, PngExportVariant, SlideMeta, SlideModule } from './app/lib/sdk.ts';
 export { CANVAS_HEIGHT, CANVAS_WIDTH } from './app/lib/sdk.ts';
 export type { StepProps, StepsProps } from './app/lib/step-context.tsx';
 export { Step, Steps } from './app/lib/step-context.tsx';

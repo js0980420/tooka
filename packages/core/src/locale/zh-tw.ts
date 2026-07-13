@@ -109,6 +109,7 @@ export const zhTW: Locale = {
     home: '首頁',
     backToHome: '返回首頁',
     download: '下載',
+    preview: '預覽',
     copyLink: '複製連結',
     moreActions: '更多動作',
     toastCopyLinkSuccess: '已複製連結到剪貼簿',

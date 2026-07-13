@@ -109,6 +109,7 @@ export const zhCN: Locale = {
     home: '首页',
     backToHome: '返回首页',
     download: '下载',
+    preview: '预览',
     copyLink: '复制链接',
     moreActions: '更多操作',
     toastCopyLinkSuccess: '已复制链接到剪贴板',
