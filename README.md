@@ -1,4 +1,4 @@
-<img width="1280" height="640" alt="open-cards github cover" src="https://github.com/user-attachments/assets/02f5e6d7-12a7-4a8e-88e7-ae8770a96584" />
+<img width="1280" height="640" alt="open-cards github cover" src="./assets/cover.jpg" />
 
 <br />
 <br />
@@ -14,7 +14,7 @@
 
 **The slide framework built for agents.** Describe your deck in natural language — your coding agent writes the React. open-cards handles the canvas, scaling, navigation, hot reload, and present mode so the agent can focus on content.
 
-Every slide renders into a fixed **1920 × 1080** canvas. Pages are arbitrary React components, not a constrained DSL.
+Every slide renders into a fixed **1080 × 1350** canvas. Pages are arbitrary React components, not a constrained DSL.
 
 ```bash
 npx @open-cards/cli init my-slide
@@ -31,7 +31,7 @@ Slides are visual code. Agents are great at writing code. open-cards is the miss
 Works with any coding agent (Claude Code, Codex, Cursor, …). The scaffolder ships with built-in skills:
 
 - **`/create-slide`** — drafts a deck end-to-end. Asks four scoping questions (topic & aesthetic, page count, text density, motion vs. static), picks an id, plans the structure, and writes the pages.
-- **`/slide-authoring`** — the technical reference for the 1920 × 1080 canvas, type scale, palette, and layout rules. The agent reads this before writing.
+- **`/slide-authoring`** — the technical reference for the 1080 × 1350 canvas, type scale, palette, and layout rules. The agent reads this before writing.
 
 From a one-line prompt to a polished deck, no boilerplate.
 

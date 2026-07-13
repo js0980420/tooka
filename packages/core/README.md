@@ -12,7 +12,7 @@ Most users get this installed automatically by running `npx @open-cards/cli init
 
 ## What's inside
 
-- **Runtime** — home page, slide viewer, thumbnail rail, keyboard navigation, and fullscreen presenter mode. Every slide renders into a fixed **1920×1080** canvas; the framework scales it.
+- **Runtime** — home page, slide viewer, thumbnail rail, keyboard navigation, and fullscreen presenter mode. Every slide renders into a fixed **1080×1350** canvas; the framework scales it.
 - **Vite plugin** — discovers `slides/<id>/index.{tsx,jsx,ts,js}`, exposes them via virtual modules, and reloads when slides are added or removed.
 - **CLI** — `open-cards dev | build | preview` so workspaces never need to touch Vite, React, or tsconfig directly.
 
@@ -76,8 +76,8 @@ export const meta = { title: 'Hello' };
 
 ```ts
 import {
-  CANVAS_WIDTH,   // 1920
-  CANVAS_HEIGHT,  // 1080
+  CANVAS_WIDTH,   // 1080
+  CANVAS_HEIGHT,  // 1350
   unstable_SharedElement, // match or fade objects across pages for shared element transitions
   type Page,
   type SlideMeta,
