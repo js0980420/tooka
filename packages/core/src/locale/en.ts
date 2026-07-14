@@ -455,6 +455,12 @@ export const en: Locale = {
     facebookPageIdLabel: 'Facebook Page ID',
     facebookPageIdPlaceholder: '123456789012345',
     facebookPageName: 'Facebook Page',
+    threadsTitle: 'Threads API',
+    threadsDesc:
+      'Add a long-lived Threads access token to publish threads. The token is refreshed automatically before expiry.',
+    threadsTokenPlaceholder: 'THAA…',
+    threadsAccountUsername: 'Threads account',
+    threadsUserIdDerived: 'The Threads account ID is retrieved automatically when you save.',
     tokenSourceLabel: 'Token source',
     businessSystemUser: 'Business permanent token',
     businessSystemUserDesc:
@@ -496,6 +502,11 @@ export const en: Locale = {
     toastFacebookAccountMismatch: 'The token and Page ID belong to different Facebook Pages.',
     toastFacebookConnectionSuccess: 'Connected to Facebook Page {name}.',
     toastFacebookTestFailed: 'Connection failed. Check the Page ID, access token, and permissions.',
+    toastThreadsInvalidToken:
+      'The Threads access token is invalid or fully expired (expired tokens cannot be extended). Generate a new one in the Meta developer dashboard.',
+    toastThreadsConnectionSuccess: 'Connected to Threads account @{username}.',
+    toastThreadsTestFailed: 'Connection failed. Check the access token and permissions.',
+    confirmThreadsDisconnect: 'Disconnect Threads API and delete the saved credentials?',
     toastConnectionSuccess: 'Connected to Instagram account @{username}.',
     toastTestFailed: 'Connection failed. Check the token source, account ID, and permissions.',
     toastTestError: 'Could not test the connection.',
@@ -506,6 +517,7 @@ export const en: Locale = {
     envNote:
       'Credentials are written to the project .env and added to .gitignore. Apps and AI tools with project file access can still read them.',
     tutorialLink: 'How to apply for the Instagram API',
+    threadsTutorialLink: 'How to apply for the Threads API',
   },
 
   templates: {

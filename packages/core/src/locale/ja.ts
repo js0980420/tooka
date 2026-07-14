@@ -458,6 +458,12 @@ export const ja: Locale = {
     facebookPageIdLabel: 'Facebook Page ID',
     facebookPageIdPlaceholder: '123456789012345',
     facebookPageName: 'Facebook ページ',
+    threadsTitle: 'Threads API',
+    threadsDesc:
+      'Threads の長期アクセストークンを入力すると、スレッドの自動投稿が使えます。有効期限前に自動更新を試みます。',
+    threadsTokenPlaceholder: 'THAA…',
+    threadsAccountUsername: 'Threads アカウント',
+    threadsUserIdDerived: '保存時に Threads からアカウント ID を自動取得します。',
     tokenSourceLabel: 'トークンの種類',
     businessSystemUser: 'Business 永久トークン',
     businessSystemUserDesc:
@@ -499,6 +505,11 @@ export const ja: Locale = {
     toastFacebookConnectionSuccess: 'Facebook ページ {name} に接続しました。',
     toastFacebookTestFailed:
       '接続に失敗しました。Page ID、アクセストークン、権限を確認してください。',
+    toastThreadsInvalidToken:
+      'Threads アクセストークンが無効か完全に期限切れです（期限切れは延長不可）。Meta 開発者ダッシュボードで再発行してください。',
+    toastThreadsConnectionSuccess: 'Threads アカウント @{username} に接続しました。',
+    toastThreadsTestFailed: '接続に失敗しました。アクセストークンと権限を確認してください。',
+    confirmThreadsDisconnect: 'Threads API の接続を解除し、認証情報を削除しますか？',
     toastConnectionSuccess: 'Instagram アカウント @{username} に接続しました。',
     toastTestFailed: '接続に失敗しました。トークンの種類、アカウント ID、権限を確認してください。',
     toastTestError: '接続をテストできませんでした。',
@@ -509,6 +520,7 @@ export const ja: Locale = {
     envNote:
       '認証情報はプロジェクトの .env に保存され、.gitignore に追加されます。プロジェクトのファイル権限を持つアプリや AI ツールは引き続き読み取れます。',
     tutorialLink: 'Instagram API の申請方法',
+    threadsTutorialLink: 'Threads API の申請方法',
   },
 
   templates: {

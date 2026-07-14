@@ -451,6 +451,11 @@ export const zhTW: Locale = {
     facebookPageIdLabel: 'Facebook Page ID',
     facebookPageIdPlaceholder: '123456789012345',
     facebookPageName: '粉絲專頁',
+    threadsTitle: 'Threads API',
+    threadsDesc: '填入 Threads 長期 Access Token 即可自動發佈串文，系統會在到期前自動更新權杖。',
+    threadsTokenPlaceholder: 'THAA…',
+    threadsAccountUsername: 'Threads 帳號',
+    threadsUserIdDerived: '儲存時會由 Threads 自動取得帳號 ID。',
     tokenSourceLabel: '權杖來源',
     businessSystemUser: '企業後台永久權杖',
     businessSystemUserDesc: 'Meta Business System User，使用 graph.facebook.com，不需定期更新。',
@@ -490,6 +495,11 @@ export const zhTW: Locale = {
     toastFacebookAccountMismatch: '權杖與 Page ID 不屬於同一個 Facebook 粉絲專頁。',
     toastFacebookConnectionSuccess: '連線成功！Facebook 粉絲專頁：{name}',
     toastFacebookTestFailed: '連線測試失敗，請檢查 Page ID、Access Token 與權限。',
+    toastThreadsInvalidToken:
+      'Threads Access Token 無效或已完全過期（過期權杖無法延期），請至 Meta 開發者後台重新產生。',
+    toastThreadsConnectionSuccess: '連線成功！Threads 帳號：@{username}',
+    toastThreadsTestFailed: '連線測試失敗，請檢查 Access Token 與權限。',
+    confirmThreadsDisconnect: '確定要斷開 Threads API 連線並刪除憑證嗎？',
     toastConnectionSuccess: '連線成功！Instagram 帳號：@{username}',
     toastTestFailed: '連線測試失敗，請檢查權杖來源、帳號 ID 與權限。',
     toastTestError: '連線測試發生錯誤。',
@@ -500,6 +510,7 @@ export const zhTW: Locale = {
     envNote:
       '憑證會寫入專案的 .env 並加入 .gitignore。具有專案檔案權限的應用程式或 AI 工具仍可讀取。',
     tutorialLink: '如何申請 Instagram API',
+    threadsTutorialLink: '如何申請 Threads API',
   },
 
   templates: {

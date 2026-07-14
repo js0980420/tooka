@@ -451,6 +451,11 @@ export const zhCN: Locale = {
     facebookPageIdLabel: 'Facebook Page ID',
     facebookPageIdPlaceholder: '123456789012345',
     facebookPageName: '粉丝专页',
+    threadsTitle: 'Threads API',
+    threadsDesc: '填入 Threads 长期 Access Token 即可自动发布串文，系统会在到期前自动刷新令牌。',
+    threadsTokenPlaceholder: 'THAA…',
+    threadsAccountUsername: 'Threads 账号',
+    threadsUserIdDerived: '保存时会由 Threads 自动取得账号 ID。',
     tokenSourceLabel: '令牌来源',
     businessSystemUser: '企业后台永久令牌',
     businessSystemUserDesc: 'Meta Business System User，使用 graph.facebook.com，无需定期刷新。',
@@ -490,6 +495,11 @@ export const zhCN: Locale = {
     toastFacebookAccountMismatch: '令牌与 Page ID 不属于同一个 Facebook 粉丝专页。',
     toastFacebookConnectionSuccess: '连接成功！Facebook 粉丝专页：{name}',
     toastFacebookTestFailed: '连接测试失败，请检查 Page ID、Access Token 与权限。',
+    toastThreadsInvalidToken:
+      'Threads Access Token 无效或已完全过期（过期令牌无法延期），请到 Meta 开发者后台重新生成。',
+    toastThreadsConnectionSuccess: '连接成功！Threads 账号：@{username}',
+    toastThreadsTestFailed: '连接测试失败，请检查 Access Token 与权限。',
+    confirmThreadsDisconnect: '确定要断开 Threads API 连接并删除凭证吗？',
     toastConnectionSuccess: '连接成功！Instagram 账号：@{username}',
     toastTestFailed: '连接测试失败，请检查令牌来源、账号 ID 与权限。',
     toastTestError: '连接测试发生错误。',
@@ -500,6 +510,7 @@ export const zhCN: Locale = {
     envNote:
       '凭证会写入项目的 .env 并加入 .gitignore。拥有项目文件权限的应用程序或 AI 工具仍可读取。',
     tutorialLink: '如何申请 Instagram API',
+    threadsTutorialLink: '如何申请 Threads API',
   },
 
   templates: {

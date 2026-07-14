@@ -223,3 +223,96 @@ describe('Facebook Page connect routes', () => {
     await expect(readEnvValues(dir, ['FB_ACCESS_TOKEN'])).resolves.toEqual({});
   });
 });
+
+describe('Threads connect routes', () => {
+  it('derives the account, refreshes the token, and stores the credentials', async () => {
+    const fetcher = vi.fn(async (input: URL | string) => {
+      const url = String(input);
+      if (url.includes('refresh_access_token')) {
+        return Response.json({ access_token: 'THAA-refreshed', expires_in: 5_184_000 });
+      }
+      return Response.json({ id: '9876543210', username: 'open_cards' });
+    });
+    vi.stubGlobal('fetch', fetcher);
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(postRequest({ token: 'THAA-token' }, '/threads'), response, () => {});
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body);
+    expect(body.threads).toMatchObject({
+      userId: '9876543210',
+      username: 'open_cards',
+      needsReauth: false,
+    });
+    expect(body.threads.expiresAt).toBeGreaterThan(Date.now());
+    await expect(
+      readEnvValues(dir, ['THREADS_ACCESS_TOKEN', 'THREADS_USER_ID', 'THREADS_USERNAME']),
+    ).resolves.toEqual({
+      THREADS_ACCESS_TOKEN: 'THAA-refreshed',
+      THREADS_USER_ID: '9876543210',
+      THREADS_USERNAME: 'open_cards',
+    });
+  });
+
+  it('stores the submitted token with an estimated expiry when refresh is unavailable', async () => {
+    const fetcher = vi.fn(async (input: URL | string) => {
+      const url = String(input);
+      if (url.includes('refresh_access_token')) {
+        return Response.json({ error: {} }, { status: 400 });
+      }
+      return Response.json({ id: '9876543210', username: 'open_cards' });
+    });
+    vi.stubGlobal('fetch', fetcher);
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(postRequest({ token: 'THAA-token' }, '/threads'), response, () => {});
+
+    expect(response.statusCode).toBe(200);
+    const fiftyNineDays = 59 * 24 * 60 * 60 * 1000;
+    expect(JSON.parse(response.body).threads.expiresAt).toBeGreaterThan(Date.now() + fiftyNineDays);
+    const values = await readEnvValues(dir, ['THREADS_ACCESS_TOKEN', 'THREADS_TOKEN_EXPIRES_AT']);
+    expect(values.THREADS_ACCESS_TOKEN).toBe('THAA-token');
+    expect(Number(values.THREADS_TOKEN_EXPIRES_AT)).toBeGreaterThan(Date.now() + fiftyNineDays);
+  });
+
+  it('extends a stale token via refresh and validates the refreshed one', async () => {
+    const fetcher = vi.fn(async (input: URL | string) => {
+      const url = new URL(String(input));
+      if (url.pathname.includes('refresh_access_token')) {
+        return Response.json({ access_token: 'THAA-refreshed', expires_in: 5_184_000 });
+      }
+      if (url.searchParams.get('access_token') === 'THAA-refreshed') {
+        return Response.json({ id: '9876543210', username: 'open_cards' });
+      }
+      return Response.json({ error: {} }, { status: 400 });
+    });
+    vi.stubGlobal('fetch', fetcher);
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(postRequest({ token: 'THAA-stale' }, '/threads'), response, () => {});
+
+    expect(response.statusCode).toBe(200);
+    await expect(readEnvValues(dir, ['THREADS_ACCESS_TOKEN'])).resolves.toEqual({
+      THREADS_ACCESS_TOKEN: 'THAA-refreshed',
+    });
+  });
+
+  it('rejects invalid Threads tokens without storing them', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ error: {} }, { status: 400 })),
+    );
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(postRequest({ token: 'bad-token' }, '/threads'), response, () => {});
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({ error: 'invalid_token' });
+    await expect(readEnvValues(dir, ['THREADS_ACCESS_TOKEN'])).resolves.toEqual({});
+  });
+});

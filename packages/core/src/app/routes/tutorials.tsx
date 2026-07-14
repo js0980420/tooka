@@ -1,4 +1,4 @@
-import { BookOpen, Move, Share2, Sliders, Smartphone } from 'lucide-react';
+import { AtSign, BookOpen, Move, Share2, Sliders, Smartphone } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -274,6 +274,94 @@ export function TutorialsPage() {
                 </p>
               </div>
             </div>
+          </section>
+        </div>
+      ),
+    },
+    {
+      id: 'threads-api',
+      title: '如何自動發佈到 Threads (API 申請)',
+      icon: AtSign,
+      category: '進階整合',
+      content: (
+        <div className="space-y-6">
+          <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+            若想一鍵自動發佈卡片至 Threads（脆），您需要透過 Meta 的 <strong>Threads API</strong>{' '}
+            取得存取權杖。Threads API 是獨立的使用案例，不需要綁定 Facebook 粉絲專頁，申請流程比
+            Instagram 簡單許多。
+          </p>
+
+          <div className="rounded-xl border border-brand/20 bg-brand/5 p-5">
+            <h3 className="text-brand font-semibold text-base flex items-center gap-2">
+              💡 你需要準備什麼？
+            </h3>
+            <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed">
+              一個 Threads 帳號，以及一個 Meta for Developers 開發者帳號（用 Facebook
+              帳號即可免費註冊）。全程不需審核即可對自己的帳號發文。
+            </p>
+          </div>
+
+          <section className="space-y-3">
+            <h4 className="text-base font-semibold">四個核心申請步驟</h4>
+            <div className="space-y-3 text-[12.5px]">
+              <div className="flex gap-3">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                  1
+                </div>
+                <p className="text-muted-foreground leading-normal">
+                  <strong>建立 Meta 應用程式</strong>：前往{' '}
+                  <a
+                    href="https://developers.facebook.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand hover:underline"
+                  >
+                    Meta for Developers
+                  </a>{' '}
+                  點選「建立應用程式」，使用案例選擇「<strong>存取 Threads API</strong>」。
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                  2
+                </div>
+                <p className="text-muted-foreground leading-normal">
+                  <strong>勾選權限</strong>：在應用程式的 Threads 使用案例設定中，啟用{' '}
+                  <code>threads_basic</code> 與 <code>threads_content_publish</code>{' '}
+                  兩項權限（前者讀取帳號資訊、後者發布貼文）。
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                  3
+                </div>
+                <p className="text-muted-foreground leading-normal">
+                  <strong>加入 Threads 測試人員</strong>
+                  ：在「應用程式角色」中把自己的 Threads 帳號加為測試人員，然後到 Threads App
+                  的「設定 → 帳號 → 網站權限 → 邀請」接受邀請。
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                  4
+                </div>
+                <p className="text-muted-foreground leading-normal">
+                  <strong>產生長效存取權杖</strong>：在 Meta 後台 Threads
+                  使用案例的存取權杖工具中，直接產生 <strong>60 天的長效權杖</strong>
+                  （請勿使用約 1 小時就過期的短效權杖）。將權杖貼到「Connects → Threads
+                  API」儲存後，系統會自動取得帳號 ID，並在到期前自動更新權杖。
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <h4 className="text-base font-semibold">小提醒</h4>
+            <p className="text-[13px] text-muted-foreground leading-relaxed">
+              Threads 的長效權杖有效期為 60 天。只要保持 open-cards 定期開啟使用，系統會在到期前 10
+              天內自動幫您更新權杖；若權杖已完全過期，回 Meta 後台重新產生一顆長效權杖，到 Connects
+              頁面貼上即可。短效權杖（約 1 小時）無法自動延期，請務必在後台選擇長效權杖。
+            </p>
           </section>
         </div>
       ),

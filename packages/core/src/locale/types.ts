@@ -484,6 +484,11 @@ export type Locale = {
     facebookPageIdLabel: string;
     facebookPageIdPlaceholder: string;
     facebookPageName: string;
+    threadsTitle: string;
+    threadsDesc: string;
+    threadsTokenPlaceholder: string;
+    threadsAccountUsername: string;
+    threadsUserIdDerived: string;
     tokenSourceLabel: string;
     businessSystemUser: string;
     businessSystemUserDesc: string;
@@ -522,6 +527,10 @@ export type Locale = {
     toastFacebookAccountMismatch: string;
     toastFacebookConnectionSuccess: string;
     toastFacebookTestFailed: string;
+    toastThreadsInvalidToken: string;
+    toastThreadsConnectionSuccess: string;
+    toastThreadsTestFailed: string;
+    confirmThreadsDisconnect: string;
     toastConnectionSuccess: string;
     toastTestFailed: string;
     toastTestError: string;
@@ -531,6 +540,7 @@ export type Locale = {
     toastDisconnectFailed: string;
     envNote: string;
     tutorialLink: string;
+    threadsTutorialLink: string;
   };
 
   templates: {
