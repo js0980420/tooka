@@ -1,6 +1,5 @@
 import { Crop, ImageIcon } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { PANEL_TRANSITION_MS } from '@/components/panel/panel-shell';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { canvasScale, composeTranslate, parseTranslate } from '@/lib/inspector/drag';
 import { findSlideSource, type SlideSourceHit } from '@/lib/inspector/fiber';
@@ -20,6 +19,7 @@ type DragState = {
   base: { x: number; y: number };
   scale: number;
   origInline: string;
+  origTransition: string;
   dragging: boolean;
 };
 
@@ -27,7 +27,7 @@ type RelRect = { left: number; top: number; width: number; height: number };
 
 const FRAME_FADE_MS = 150;
 const FRAME_MORPH_MS = 180;
-const LAYOUT_TRACK_MS = PANEL_TRANSITION_MS + FRAME_MORPH_MS;
+const RAPID_CHANGE_MS = 120;
 
 export function InspectOverlay() {
   const { active, slideId, selected, setSelected, cancel, openCrop, bufferOps } = useInspector();
@@ -53,7 +53,17 @@ export function InspectOverlay() {
       if (!drag) return;
       dragRef.current = null;
       document.documentElement.style.cursor = '';
-      if (revert && drag.anchor.isConnected) drag.anchor.style.translate = drag.origInline;
+      if (drag.anchor.isConnected) {
+        if (revert) drag.anchor.style.translate = drag.origInline;
+        if (drag.dragging) {
+          // Restore after the post-drag translate writes have painted, so the
+          // element's own transition can't animate the revert.
+          const { anchor, origTransition } = drag;
+          requestAnimationFrame(() => {
+            anchor.style.transition = origTransition;
+          });
+        }
+      }
       setIsDragging(false);
     };
 
@@ -80,6 +90,9 @@ export function InspectOverlay() {
           if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 3) return;
           drag.dragging = true;
           drag.anchor.setPointerCapture(drag.pointerId);
+          // A transition on the element would re-interpolate from scratch on
+          // every pointermove, leaving it crawling far behind the cursor.
+          drag.anchor.style.transition = 'none';
           document.documentElement.style.cursor = 'move';
           setHover(null);
           setIsDragging(true);
@@ -139,9 +152,11 @@ export function InspectOverlay() {
       if (!hit || hit.anchor !== sel.anchor) return;
       const base = parseTranslate(sel.anchor.style.translate);
       if (!base) return;
-      const root = sel.anchor.closest<HTMLElement>('[data-inspector-root]');
-      if (!root) return;
-      const scale = canvasScale(root.getBoundingClientRect().width, root.offsetWidth);
+      // The canvas is the transform-scaled element; the inspector root is the
+      // unscaled viewport around it and always measures at scale 1.
+      const canvas = sel.anchor.closest<HTMLElement>('[data-osd-canvas]');
+      if (!canvas) return;
+      const scale = canvasScale(canvas.getBoundingClientRect().width, canvas.offsetWidth);
       if (scale === null) return;
       e.preventDefault();
       dragRef.current = {
@@ -154,6 +169,7 @@ export function InspectOverlay() {
         base,
         scale,
         origInline: sel.anchor.style.translate,
+        origTransition: sel.anchor.style.transition,
         dragging: false,
       };
     };
@@ -250,6 +266,9 @@ function Frame({
 }) {
   const [rect, setRect] = useState<RelRect | null>(null);
   const [hasTarget, setHasTarget] = useState(false);
+  const [rapid, setRapid] = useState(false);
+  const rectRef = useRef<RelRect | null>(null);
+  const lastChangeRef = useRef(0);
 
   const measure = useCallback(() => {
     const overlay = overlayRef.current;
@@ -268,55 +287,35 @@ function Frame({
     };
 
     setHasTarget(true);
-    setRect((prev) => (sameRect(prev, next) ? prev : next));
+    if (sameRect(rectRef.current, next)) return;
+    // Rapid successive changes (dragging, panel transitions) must track the
+    // target 1:1; only isolated jumps (reselect, discard restore) morph.
+    const now = performance.now();
+    setRapid(now - lastChangeRef.current < RAPID_CHANGE_MS);
+    lastChangeRef.current = now;
+    rectRef.current = next;
+    setRect(next);
   }, [overlayRef, anchor]);
 
   useLayoutEffect(() => {
     measure();
   }, [measure]);
 
+  // A continuous measure loop while the frame is visible keeps it glued to
+  // the anchor through drags, layout animations, scrolling, and DOM reverts
+  // (e.g. discarding buffered edits) — `sameRect` gates re-renders.
   useEffect(() => {
     if (!anchor) {
       setHasTarget(false);
       return;
     }
 
-    let scheduled = 0;
-    let tracking = 0;
-    const scheduleMeasure = () => {
-      cancelAnimationFrame(scheduled);
-      scheduled = requestAnimationFrame(measure);
-    };
-
-    const resizeObserver = new ResizeObserver(scheduleMeasure);
-    const root = document.querySelector<HTMLElement>('[data-inspector-root]');
-    if (root) resizeObserver.observe(root);
-    if (overlayRef.current) resizeObserver.observe(overlayRef.current);
-    resizeObserver.observe(anchor);
-
-    const stopAt = performance.now() + LAYOUT_TRACK_MS;
-    const trackPanelTransition = () => {
+    let raf = requestAnimationFrame(function loop() {
       measure();
-      if (performance.now() < stopAt) tracking = requestAnimationFrame(trackPanelTransition);
-    };
-    tracking = requestAnimationFrame(trackPanelTransition);
-
-    window.addEventListener('resize', scheduleMeasure, true);
-    window.addEventListener('scroll', scheduleMeasure, true);
-    if (isDragging) {
-      window.addEventListener('pointermove', scheduleMeasure, true);
-    }
-    return () => {
-      resizeObserver.disconnect();
-      cancelAnimationFrame(scheduled);
-      cancelAnimationFrame(tracking);
-      window.removeEventListener('resize', scheduleMeasure, true);
-      window.removeEventListener('scroll', scheduleMeasure, true);
-      if (isDragging) {
-        window.removeEventListener('pointermove', scheduleMeasure, true);
-      }
-    };
-  }, [measure, overlayRef, anchor, isDragging]);
+      raf = requestAnimationFrame(loop);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [measure, anchor]);
 
   const visible = !!(hasTarget && rect);
 
@@ -333,13 +332,14 @@ function Frame({
   }, [visible]);
 
   if (!rect) return null;
-  const transition = isDragging
-    ? 'none'
-    : morph
-      ? `left ${FRAME_MORPH_MS}ms ease-out, top ${FRAME_MORPH_MS}ms ease-out, ` +
-        `width ${FRAME_MORPH_MS}ms ease-out, height ${FRAME_MORPH_MS}ms ease-out, ` +
-        `opacity ${FRAME_FADE_MS}ms ease-out`
-      : `opacity ${FRAME_FADE_MS}ms ease-out`;
+  const transition =
+    isDragging || rapid
+      ? `opacity ${FRAME_FADE_MS}ms ease-out`
+      : morph
+        ? `left ${FRAME_MORPH_MS}ms ease-out, top ${FRAME_MORPH_MS}ms ease-out, ` +
+          `width ${FRAME_MORPH_MS}ms ease-out, height ${FRAME_MORPH_MS}ms ease-out, ` +
+          `opacity ${FRAME_FADE_MS}ms ease-out`
+        : `opacity ${FRAME_FADE_MS}ms ease-out`;
 
   const imageAnchor = anchor instanceof HTMLImageElement ? anchor : null;
   const actionsVisible = showImageActions && visible && !!imageAnchor;
