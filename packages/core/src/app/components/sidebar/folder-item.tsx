@@ -166,13 +166,13 @@ export function FolderItem({
           : row.kind === 'assets'
             ? t.home.assets
             : row.kind === 'tutorials'
-              ? 'Help'
+              ? t.home.tutorials
               : row.kind === 'prompts'
-                ? 'Prompts'
+                ? t.home.prompts
                 : row.kind === 'connects'
                   ? t.home.connects
                   : row.kind === 'publish'
-                    ? 'Publish'
+                    ? t.home.publish
                     : row.folder.name;
 
   const commitRename = () => {

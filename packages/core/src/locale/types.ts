@@ -42,6 +42,9 @@ export type Locale = {
     templates: string;
     assets: string;
     connects: string;
+    prompts: string;
+    publish: string;
+    tutorials: string;
     folders: string;
     slides: string;
     menu: string;
