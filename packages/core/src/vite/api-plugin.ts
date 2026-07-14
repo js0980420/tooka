@@ -5,6 +5,7 @@ import { registerConnectRoutes } from './routes/connects.ts';
 import { type ApiPluginOptions, makeContext } from './routes/context.ts';
 import { registerEditRoutes } from './routes/edit.ts';
 import { registerFolderRoutes } from './routes/folders.ts';
+import { registerPublishRoutes } from './routes/publish.ts';
 import { registerRestartRoutes } from './routes/restart.ts';
 import { registerSlideRoutes } from './routes/slides.ts';
 import { registerSvglRoutes } from './routes/svgl.ts';
@@ -30,6 +31,7 @@ export function apiPlugin(opts: ApiPluginOptions): Plugin {
       registerSvglRoutes(server);
       registerFolderRoutes(server, ctx);
       registerConnectRoutes(server, ctx);
+      registerPublishRoutes(server, ctx);
       registerUpdateRoutes(server, ctx);
       registerRestartRoutes(server);
     },

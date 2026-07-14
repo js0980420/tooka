@@ -18,6 +18,7 @@ export const PROMPTS_ID = '__prompts__';
 export const ASSETS_ID = '__assets__';
 export const CONNECTS_ID = '__connects__';
 export const TUTORIALS_ID = '__tutorials__';
+export const PUBLISH_ID = '__publish__';
 
 export const FOLDER_DND_MIME = 'application/x-folder-id';
 
@@ -175,6 +176,15 @@ export function Sidebar({
             count={0}
             selected={selectedId === CONNECTS_ID}
             onSelect={() => onSelect(CONNECTS_ID)}
+            onDropSlide={() => {}}
+          />
+        )}
+        {import.meta.env.DEV && (
+          <FolderItem
+            row={{ kind: 'publish' }}
+            count={0}
+            selected={selectedId === PUBLISH_ID}
+            onSelect={() => onSelect(PUBLISH_ID)}
             onDropSlide={() => {}}
           />
         )}

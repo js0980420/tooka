@@ -20,6 +20,7 @@ import {
   ASSETS_ID,
   CONNECTS_ID,
   PROMPTS_ID,
+  PUBLISH_ID,
   Sidebar,
   TEMPLATES_ID,
   TUTORIALS_ID,
@@ -48,6 +49,7 @@ function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/prompts' || pathname.startsWith('/prompts/')) return PROMPTS_ID;
   if (pathname === '/assets') return ASSETS_ID;
   if (pathname === '/connects') return CONNECTS_ID;
+  if (pathname === '/publish') return PUBLISH_ID;
   if (pathname === '/tutorials' || pathname.startsWith('/tutorials/')) return TUTORIALS_ID;
   return search.get('f') ?? ALL_SLIDES_ID;
 }
@@ -85,6 +87,7 @@ export function HomeShell() {
       else if (id === PROMPTS_ID) navigate('/prompts', { replace: true });
       else if (id === ASSETS_ID) navigate('/assets', { replace: true });
       else if (id === CONNECTS_ID) navigate('/connects', { replace: true });
+      else if (id === PUBLISH_ID) navigate('/publish', { replace: true });
       else if (id === TUTORIALS_ID) navigate('/tutorials', { replace: true });
       else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });
       else navigate(`/?f=${encodeURIComponent(id)}`, { replace: true });

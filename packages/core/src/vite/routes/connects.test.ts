@@ -19,12 +19,11 @@ afterEach(async () => {
   await fs.rm(dir, { recursive: true, force: true });
 });
 
-function setupRoute() {
-  let handler: ((req: Readable, res: TestResponse, next: () => void) => Promise<void>) | null =
-    null;
+function setupRoute(): (req: any, res: any, next: any) => Promise<void> {
+  let handler: ((req: any, res: any, next: any) => Promise<void>) | null = null;
   const server = {
     middlewares: {
-      use: (_path: string, routeHandler: typeof handler) => {
+      use: (_path: string, routeHandler: any) => {
         handler = routeHandler;
       },
     },
@@ -73,7 +72,7 @@ describe('Instagram connect routes', () => {
   it('stores valid Business System User tokens without trying to refresh them', async () => {
     const fetcher = vi.fn(async () =>
       Response.json({ id: '17841400000000000', username: 'open_cards' }),
-    );
+    ) as any;
     vi.stubGlobal('fetch', fetcher);
     const handler = setupRoute();
     const response = new TestResponse();
@@ -113,7 +112,7 @@ describe('Instagram connect routes', () => {
   it('rejects a Business token that resolves to a different account', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => Response.json({ id: 'different-account', username: 'other' })),
+      vi.fn(async () => Response.json({ id: 'different-account', username: 'other' })) as any,
     );
     const handler = setupRoute();
     const response = new TestResponse();

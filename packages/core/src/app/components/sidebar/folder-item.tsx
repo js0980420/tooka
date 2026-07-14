@@ -85,6 +85,9 @@ type Row =
     }
   | {
       kind: 'connects';
+    }
+  | {
+      kind: 'publish';
     };
 
 export function FolderItem({
@@ -150,7 +153,9 @@ export function FolderItem({
                 ? { type: 'emoji', value: '✍️' }
                 : row.kind === 'connects'
                   ? { type: 'emoji', value: '🔌' }
-                  : row.folder.icon;
+                  : row.kind === 'publish'
+                    ? { type: 'emoji', value: '🚀' }
+                    : row.folder.icon;
   const label =
     row.kind === 'all'
       ? t.home.slides
@@ -166,7 +171,9 @@ export function FolderItem({
                 ? 'Prompts'
                 : row.kind === 'connects'
                   ? t.home.connects
-                  : row.folder.name;
+                  : row.kind === 'publish'
+                    ? 'Publish'
+                    : row.folder.name;
 
   const commitRename = () => {
     if (row.kind !== 'folder') return;

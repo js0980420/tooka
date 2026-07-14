@@ -5,7 +5,7 @@ describe('validateInstagramConnection', () => {
   it('validates Instagram Login tokens and derives the user ID', async () => {
     const fetcher = vi.fn(async () =>
       Response.json({ user_id: '17841400000000000', username: 'open_cards' }),
-    );
+    ) as any;
 
     await expect(
       validateInstagramConnection('instagram_login', 'IGAA-token', undefined, fetcher),
@@ -23,7 +23,7 @@ describe('validateInstagramConnection', () => {
   it('validates Business System User tokens against the supplied IG user ID', async () => {
     const fetcher = vi.fn(async () =>
       Response.json({ id: '17841400000000000', username: 'open_cards' }),
-    );
+    ) as any;
 
     await expect(
       validateInstagramConnection(
@@ -44,7 +44,7 @@ describe('validateInstagramConnection', () => {
   it('rejects account mismatches', async () => {
     const fetcher = vi.fn(async () =>
       Response.json({ id: 'different-account', username: 'open_cards' }),
-    );
+    ) as any;
 
     await expect(
       validateInstagramConnection(
@@ -57,7 +57,7 @@ describe('validateInstagramConnection', () => {
   });
 
   it('does not call Meta when a Business System User ID is missing', async () => {
-    const fetcher = vi.fn();
+    const fetcher = vi.fn() as any;
 
     await expect(
       validateInstagramConnection('business_system_user', 'EAA-token', undefined, fetcher),
@@ -72,7 +72,7 @@ describe('refreshInstagramLoginToken', () => {
     vi.setSystemTime(new Date('2026-07-14T00:00:00Z'));
     const fetcher = vi.fn(async () =>
       Response.json({ access_token: 'IGAA-refreshed', expires_in: 5_184_000 }),
-    );
+    ) as any;
 
     await expect(refreshInstagramLoginToken('IGAA-token', fetcher)).resolves.toEqual({
       token: 'IGAA-refreshed',
@@ -83,7 +83,7 @@ describe('refreshInstagramLoginToken', () => {
   });
 
   it('returns null when a token type cannot be refreshed', async () => {
-    const fetcher = vi.fn(async () => Response.json({ error: {} }, { status: 400 }));
+    const fetcher = vi.fn(async () => Response.json({ error: {} }, { status: 400 })) as any;
     await expect(refreshInstagramLoginToken('EAA-token', fetcher)).resolves.toBeNull();
   });
 });

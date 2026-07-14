@@ -8,6 +8,7 @@ import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
 import { Presenter } from './routes/presenter';
 import { PromptsPage } from './routes/prompts';
+import { PublishPage } from './routes/publish';
 import { Slide } from './routes/slide';
 import { TemplateDetailPage, TemplatesGalleryPage } from './routes/templates';
 import { TutorialsPage } from './routes/tutorials';
@@ -25,6 +26,7 @@ export function App() {
             <Route path="/connects" element={<ConnectsPage />} />
             <Route path="/tutorials" element={<TutorialsPage />} />
             <Route path="/prompts" element={<PromptsPage />} />
+            <Route path="/publish" element={<PublishPage />} />
           </Route>
         ) : (
           <Route path="/" element={<NotFound />} />
