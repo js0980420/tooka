@@ -460,10 +460,10 @@ const BuildCrisis: Page = () => (
             margin: '16px 0 0',
           }}
         >
-          半路殺出的<span style={{ color: 'var(--osd-accent)' }}>圖床危機</span>
+          圖片自動發文不能直接發，要先存在公開網址<span style={{ color: 'var(--osd-accent)' }}>{''}</span>
         </h2>
       </div>
-      <Point n="1" title="免費圖床一夜全滅" sub="Telegraph、catbox、0x0.st 同期停止匿名上傳" />
+      <Point n="1" title="測試一堆工具都上傳失敗，或是太麻煩" sub="不是要綁定信用卡，就是步驟很多" />
       <Point n="2" title="FB 改二進位直傳" sub="PNG 直接上傳 Meta 伺服器，零外部依賴" />
       <Point n="3" title="IG / Threads 靠 imgbb" sub="一組免費 API key，公開圖床穩定供圖" />
     </div>
