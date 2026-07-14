@@ -15,6 +15,7 @@ export const ALL_SLIDES_ID = '__all__';
 export const DRAFT_ID = 'draft';
 export const THEMES_ID = '__themes__';
 export const ASSETS_ID = '__assets__';
+export const TUTORIALS_ID = '__tutorials__';
 
 export const FOLDER_DND_MIME = 'application/x-folder-id';
 
@@ -159,6 +160,13 @@ export function Sidebar({
             onDropSlide={() => {}}
           />
         )}
+        <FolderItem
+          row={{ kind: 'tutorials' }}
+          count={0}
+          selected={selectedId === TUTORIALS_ID}
+          onSelect={() => onSelect(TUTORIALS_ID)}
+          onDropSlide={() => {}}
+        />
       </div>
 
       <div className="mt-5 flex items-center gap-2 px-4 pb-1.5">

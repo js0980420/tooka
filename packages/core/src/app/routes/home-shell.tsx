@@ -15,7 +15,7 @@ import { useFolders } from '@/lib/folders';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { FolderIconChip } from '../components/sidebar/folder-item';
-import { ALL_SLIDES_ID, ASSETS_ID, Sidebar, THEMES_ID } from '../components/sidebar/sidebar';
+import { ALL_SLIDES_ID, ASSETS_ID, Sidebar, THEMES_ID, TUTORIALS_ID } from '../components/sidebar/sidebar';
 import type { FoldersManifest } from '../lib/sdk';
 import { slideIds } from '../lib/slides';
 import { themes as themeRegistry } from '../lib/themes';
@@ -39,6 +39,7 @@ export type HomeOutletContext = {
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/themes' || pathname.startsWith('/themes/')) return THEMES_ID;
   if (pathname === '/assets') return ASSETS_ID;
+  if (pathname === '/tutorials' || pathname.startsWith('/tutorials/')) return TUTORIALS_ID;
   return search.get('f') ?? ALL_SLIDES_ID;
 }
 
@@ -73,6 +74,7 @@ export function HomeShell() {
     (id: string) => {
       if (id === THEMES_ID) navigate('/themes', { replace: true });
       else if (id === ASSETS_ID) navigate('/assets', { replace: true });
+      else if (id === TUTORIALS_ID) navigate('/tutorials', { replace: true });
       else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });
       else navigate(`/?f=${encodeURIComponent(id)}`, { replace: true });
     },

@@ -230,6 +230,7 @@ const Hook: Page = () => (
           margin: 0,
         }}
       >
+        {/* @slide-comment id="c-e4dc2ec8" ts="2026-07-14T00:52:09.971Z" text="eyJub3RlIjoi5YaN5pS-5aSn5LiA6bueIn0" */}
         實測新建卡片
         <br />
         <span style={{ color: 'var(--osd-accent)' }}>IG 直式圖文卡片</span>

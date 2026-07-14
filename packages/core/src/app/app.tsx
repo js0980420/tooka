@@ -8,6 +8,7 @@ import { HomeShell } from './routes/home-shell';
 import { Presenter } from './routes/presenter';
 import { Slide } from './routes/slide';
 import { ThemeDetailPage, ThemesGalleryPage } from './routes/themes';
+import { TutorialsPage } from './routes/tutorials';
 
 export function App() {
   return (
@@ -19,6 +20,7 @@ export function App() {
             <Route path="/themes" element={<ThemesGalleryPage />} />
             <Route path="/themes/:themeId" element={<ThemeDetailPage />} />
             <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/tutorials" element={<TutorialsPage />} />
           </Route>
         ) : (
           <Route path="/" element={<NotFound />} />

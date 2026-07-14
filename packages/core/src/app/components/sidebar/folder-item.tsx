@@ -76,6 +76,9 @@ type Row =
     }
   | {
       kind: 'assets';
+    }
+  | {
+      kind: 'tutorials';
     };
 
 export function FolderItem({
@@ -135,7 +138,9 @@ export function FolderItem({
           ? { type: 'emoji', value: '🎨' }
           : row.kind === 'assets'
             ? { type: 'emoji', value: '🗂️' }
-            : row.folder.icon;
+            : row.kind === 'tutorials'
+              ? { type: 'emoji', value: '📚' }
+              : row.folder.icon;
   const label =
     row.kind === 'all'
       ? t.home.slides
@@ -145,7 +150,9 @@ export function FolderItem({
           ? t.home.themes
           : row.kind === 'assets'
             ? t.home.assets
-            : row.folder.name;
+            : row.kind === 'tutorials'
+              ? 'Help'
+              : row.folder.name;
 
   const commitRename = () => {
     if (row.kind !== 'folder') return;
