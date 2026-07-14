@@ -9,6 +9,8 @@ export type PngExportVariant = {
   label: string;
   fileSuffix: string;
   previewLabel?: string;
+  /** Center-crop the captured canvas to this size on export (e.g. 1080×1080 for IG square). */
+  crop?: { width: number; height: number };
 };
 
 export type SlideMeta = {

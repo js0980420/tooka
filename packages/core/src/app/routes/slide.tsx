@@ -51,6 +51,7 @@ import { format, useLocale } from '@/lib/use-locale';
 import { useWheelPageNavigation } from '@/lib/use-wheel-page-navigation';
 import { cn } from '@/lib/utils';
 import { CarouselDots } from '../components/carousel-dots';
+import { ExportCropPreview } from '../components/export-crop-preview';
 import { NotesDrawer } from '../components/notes-drawer';
 import { OverviewGrid } from '../components/overview-grid';
 // PDF 匯出暫時停用：恢復時取消下方註解（含 exportPdf handler 與選單項）
@@ -119,6 +120,8 @@ export function Slide() {
   )
     ? previewVariantOverride
     : defaultPreviewVariantId;
+  const previewCrop =
+    pngExportVariants.find((variant) => variant.id === previewVariantId)?.crop ?? null;
   const { applyEdit } = useEditor(slideId ?? '');
 
   const handleCanvasAssetDragOver = useCallback((e: React.DragEvent) => {
@@ -807,6 +810,7 @@ export function Slide() {
                         moduleTransition={slide.transition}
                         disabled={prefersReducedMotion}
                       />
+                      {previewCrop && <ExportCropPreview crop={previewCrop} />}
                     </SlideCanvas>
                     <CarouselDots total={pageCount} current={index} onSelect={goTo} />
                     <InspectOverlay />

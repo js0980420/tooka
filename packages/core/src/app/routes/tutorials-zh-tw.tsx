@@ -14,7 +14,7 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
             💡 這是什麼功能？
           </h3>
           <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-            <code>open-cards</code> 是首個專為 AI 協同開發而生的卡片框架。右上角的{' '}
+            <code>open-cards</code> 是專為 AI 協同開發而設計的卡片框架。右上角的{' '}
             <strong>Inspect</strong> 審查功能讓您直接點擊畫面上的元素來指引 AI
             修改程式碼，無需手動找行數或編輯位置。
           </p>
@@ -89,12 +89,13 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
           </div>
           <div className="rounded-lg border p-4 bg-card">
             <h4 className="font-semibold text-sm flex items-center gap-2">
-              ⬜ 2. 正方尺寸 (安全區邊距)
+              ⬜ 2. 正方尺寸 (1080 × 1080)
             </h4>
             <p className="mt-2 text-[12px] text-muted-foreground leading-relaxed">
-              防裁切選項。整體畫面內容會往中央收縮（自動套用 <strong>0.84</strong>{' '}
-              倍的縮放），左右邊距設定為 <strong>144px</strong>，上下邊距設定為{' '}
-              <strong>220px</strong>。確保核心資訊在 1:1 首頁九宮格預覽時絕不被截斷。
+              匯出時會把 4:5 畫布置中裁切成真正的 <strong>1080 × 1080</strong> 正方形檔案，上傳 IG
+              就是完整的 1:1 貼文。內容自動往中央收縮（
+              <strong>0.84</strong> 倍縮放），左右邊距至少 <strong>144px</strong>
+              ——大於主頁九宮格以 3:4 顯示時左右各裁掉的 135px，重要資訊不會被切。
             </p>
           </div>
         </div>
@@ -103,7 +104,9 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
           <h4 className="text-base font-semibold">如何切換與預覽</h4>
           <p className="text-[13px] text-muted-foreground">
             在卡片編輯器介面右側的下載選單中，您可以隨時在 <strong>長方尺寸</strong> 與{' '}
-            <strong>正方尺寸</strong> 之間點選切換，畫面會即時呈現縮放效果，導出時也會依此尺寸渲染。
+            <strong>正方尺寸</strong>{' '}
+            之間點選切換。切到正方時，會被裁掉的上下區域會壓暗顯示，並以虛線標出主頁格狀檢視的左右安全區；下載的檔案就是
+            1080 × 1080 正方形。
           </p>
         </section>
       </div>

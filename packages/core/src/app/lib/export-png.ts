@@ -110,7 +110,7 @@ export async function exportSlideAsPng(
     const images: Uint8Array[] = [];
     for (let i = 0; i < frames.length; i++) {
       freezeForCapture(frames[i]);
-      const blob = await toBlob(frames[i], {
+      let blob = await toBlob(frames[i], {
         width: CANVAS_WIDTH,
         height: CANVAS_HEIGHT,
         pixelRatio: CAPTURE_PIXEL_RATIO,
@@ -118,6 +118,7 @@ export async function exportSlideAsPng(
         cacheBust: true,
       });
       if (!blob) throw new Error(`failed to capture page ${i + 1}`);
+      if (variant?.crop) blob = await centerCrop(blob, variant.crop.width, variant.crop.height);
       images.push(new Uint8Array(await blob.arrayBuffer()));
       onProgress?.({
         phase: 'processing',
@@ -160,6 +161,33 @@ function freezeForCapture(root: HTMLElement): void {
     el.style.setProperty('animation', 'none', 'important');
     el.style.setProperty('transition', 'none', 'important');
   }
+}
+
+async function centerCrop(png: Blob, width: number, height: number): Promise<Blob> {
+  const bitmap = await createImageBitmap(png);
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('2d canvas context unavailable');
+  ctx.drawImage(
+    bitmap,
+    Math.max(0, (bitmap.width - width) / 2),
+    Math.max(0, (bitmap.height - height) / 2),
+    width,
+    height,
+    0,
+    0,
+    width,
+    height,
+  );
+  bitmap.close();
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('failed to crop capture'))),
+      'image/png',
+    );
+  });
 }
 
 function sleep(ms: number): Promise<void> {
