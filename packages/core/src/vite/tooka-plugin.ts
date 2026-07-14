@@ -3,21 +3,21 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import fg from 'fast-glob';
 import { loadConfigFromFile, normalizePath, type Plugin, type ViteDevServer } from 'vite';
-import type { OpenCardsConfig } from '../config.ts';
+import type { TookaConfig } from '../config.ts';
 
-export type { OpenCardsConfig };
+export type { TookaConfig };
 
-export type OpenCardsPluginOptions = {
+export type TookaPluginOptions = {
   userCwd: string;
-  config: OpenCardsConfig;
+  config: TookaConfig;
   coreVersion: string;
 };
 
-const CONFIG_FILE = 'open-cards.config.ts';
+const CONFIG_FILE = 'tooka.config.ts';
 
-const SLIDES_VMOD = 'virtual:open-cards/slides';
-const CONFIG_VMOD = 'virtual:open-cards/config';
-const FOLDERS_VMOD = 'virtual:open-cards/folders';
+const SLIDES_VMOD = 'virtual:tooka/slides';
+const CONFIG_VMOD = 'virtual:tooka/config';
+const FOLDERS_VMOD = 'virtual:tooka/folders';
 
 type FoldersManifest = {
   folders: unknown[];
@@ -156,7 +156,7 @@ async function generateSlidesModule(
     ? `
 const slideImportTokens = ${importTokens};
 if (import.meta.hot) {
-  import.meta.hot.on('open-cards:slide-changed', (data) => {
+  import.meta.hot.on('tooka:slide-changed', (data) => {
     const ids = Array.isArray(data?.slideIds) ? data.slideIds : data?.slideId ? [data.slideId] : [];
     const token = Date.now();
     for (const id of ids) {
@@ -175,7 +175,7 @@ if (import.meta.hot) {
     })
     .join('\n');
 
-  return `// virtual:open-cards/slides — generated
+  return `// virtual:tooka/slides — generated
 export const slideIds = ${ids};
 export const slideThemes = ${themesJson};
 export const slideCreatedAt = ${createdAtJson};
@@ -191,7 +191,7 @@ ${cases}
 `;
 }
 
-export function openCardsPlugin(opts: OpenCardsPluginOptions): Plugin {
+export function tookaPlugin(opts: TookaPluginOptions): Plugin {
   const { userCwd, config, coreVersion } = opts;
   const slidesDir = config.slidesDir ?? 'slides';
   const slidesRoot = path.resolve(userCwd, slidesDir);
@@ -219,14 +219,14 @@ export function openCardsPlugin(opts: OpenCardsPluginOptions): Plugin {
       pendingSlideChanges.clear();
       server.ws.send({
         type: 'custom',
-        event: 'open-cards:slide-changed',
+        event: 'tooka:slide-changed',
         data: { slideIds },
       });
     }, 100);
   };
 
   return {
-    name: 'open-cards',
+    name: 'tooka',
     config(_c, env) {
       isDev = env.command === 'serve';
       return {
@@ -316,7 +316,7 @@ export function openCardsPlugin(opts: OpenCardsPluginOptions): Plugin {
   };
 }
 
-export async function loadUserConfig(userCwd: string): Promise<OpenCardsConfig> {
+export async function loadUserConfig(userCwd: string): Promise<TookaConfig> {
   const file = path.join(userCwd, CONFIG_FILE);
   if (!existsSync(file)) return {};
   const loaded = await loadConfigFromFile(
@@ -325,5 +325,5 @@ export async function loadUserConfig(userCwd: string): Promise<OpenCardsConfig> 
     userCwd,
     'silent',
   );
-  return (loaded?.config ?? {}) as OpenCardsConfig;
+  return (loaded?.config ?? {}) as TookaConfig;
 }

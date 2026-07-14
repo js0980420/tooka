@@ -15,7 +15,7 @@ import {
 } from './slide-ops.ts';
 
 async function withSlidesRoot<T>(fn: (root: string) => Promise<T>): Promise<T> {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'open-cards-test-'));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'tooka-test-'));
   try {
     return await fn(root);
   } finally {
@@ -151,7 +151,7 @@ describe('updateMetaTitleInSource', () => {
 });
 
 describe('reorderDefaultExportPagesInSource', () => {
-  const withSatisfies = `import type { Page } from '@open-cards/core';
+  const withSatisfies = `import type { Page } from '@tooka/core';
 const A = () => null;
 const B = () => null;
 const C = () => null;
@@ -174,7 +174,7 @@ export default [A, B, C];
     expect(out).not.toBeNull();
     expect(out).toContain('export default [\n  C,\n  A,\n  B,\n] satisfies Page[];');
     // surrounding source untouched
-    expect(out).toContain("import type { Page } from '@open-cards/core';");
+    expect(out).toContain("import type { Page } from '@tooka/core';");
     expect(out).toContain("export const meta = { title: 't' };");
   });
 
@@ -310,7 +310,7 @@ describe('reorderNotesArrayInSource', () => {
 });
 
 describe('removePageFromDefaultExportInSource', () => {
-  const multiline = `import type { Page } from '@open-cards/core';
+  const multiline = `import type { Page } from '@tooka/core';
 const A = () => null;
 const B = () => null;
 const C = () => null;
@@ -366,7 +366,7 @@ export default [A, B, C];
 });
 
 describe('duplicatePageInDefaultExportInSource', () => {
-  const multiline = `import type { Page } from '@open-cards/core';
+  const multiline = `import type { Page } from '@tooka/core';
 const A = () => null;
 const B = () => null;
 const C = () => null;

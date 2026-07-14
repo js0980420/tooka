@@ -3,7 +3,7 @@
 //
 // Consumers opt in via tsconfig:
 //
-//   { "compilerOptions": { "types": ["@open-cards/core/env"] } }
+//   { "compilerOptions": { "types": ["@tooka/core/env"] } }
 
 declare module '*.svg' {
   const src: string;

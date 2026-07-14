@@ -1,4 +1,4 @@
-# open-cards 設計文件
+# tooka 設計文件
 
 日期：2026-07-13
 狀態：已由使用者核准
@@ -23,7 +23,7 @@ Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **a
 | 衍生方式 | Fork 整個 monorepo 再改造 |
 | 品牌系統 | 擴充 open-slide 既有 themes 機制成品牌系統（加語氣、logo 欄位），不另建 runtime 注入層 |
 | PNG 匯出 | 瀏覽器內匯出：改造既有 PPTX 截圖管線（`html-to-image`，零新依賴） |
-| 專案名稱 | open-cards，位於 `~/projects/open-cards` |
+| 專案名稱 | tooka，位於 `~/projects/tooka` |
 
 ## 架構
 
@@ -31,7 +31,7 @@ Fork [open-slide](https://github.com/1weiho/open-slide) monorepo，改造成 **a
 
 - 畫布從 1920×1080 全面改為 **1080×1350（4:5）**：viewer 縮放、inspector、print/export 樣式、skills 文件一致。
 - 使用者面向術語：slide → **card（卡片）**、deck → **carousel（輪播組）**。
-- npm 套件改名 `@open-cards/core`、CLI 指令改為 `open-cards`。
+- npm 套件改名 `@tooka/core`、CLI 指令改為 `tooka`。
 - 內部程式識別字（`os-` 前綴、內部變數名）不強制全改，減少改壞風險。
 
 ### 2. 瘦身（相對 open-slide）

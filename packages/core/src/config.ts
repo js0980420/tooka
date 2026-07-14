@@ -1,12 +1,12 @@
 import type { Locale } from './locale/types';
 
-export type OpenCardsBuildConfig = {
+export type TookaBuildConfig = {
   showSlideBrowser?: boolean;
   showSlideUi?: boolean;
   allowHtmlDownload?: boolean;
 };
 
-export type OpenCardsConfig = {
+export type TookaConfig = {
   base?: string;
   slidesDir?: string;
   themesDir?: string;
@@ -18,5 +18,5 @@ export type OpenCardsConfig = {
    * chooses one (their choice is then remembered locally).
    */
   locale?: Locale;
-  build?: OpenCardsBuildConfig;
+  build?: TookaBuildConfig;
 };

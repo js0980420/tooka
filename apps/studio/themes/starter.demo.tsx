@@ -1,4 +1,4 @@
-import { type Page, useSlidePageNumber } from '@open-cards/core';
+import { type Page, useSlidePageNumber } from '@tooka/core';
 
 const BG = '#111110';
 const TEXT = '#F4F2EE';

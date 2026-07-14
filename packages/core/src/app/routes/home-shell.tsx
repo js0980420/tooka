@@ -2,6 +2,7 @@ import { BookOpen, LayoutGrid, LayoutTemplate, Menu, Rocket } from 'lucide-react
 import { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { TookaMark } from '@/components/brand-mark';
 import { LanguageToggle, TranslationButton } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
@@ -183,7 +184,10 @@ export function HomeShell() {
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-canvas">
         <div className="flex items-center justify-between border-b border-hairline bg-sidebar px-4 py-3 md:hidden">
-          <h1 className="font-heading text-lg font-bold tracking-tight">{t.home.appTitle}</h1>
+          <h1 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
+            <TookaMark className="size-5" />
+            {t.home.appTitle}
+          </h1>
           <div className="-mr-1.5 flex items-center gap-0.5">
             <TranslationButton />
             <LanguageToggle />

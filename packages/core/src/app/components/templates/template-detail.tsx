@@ -14,7 +14,7 @@ import { useTemplateSlide } from './templates-gallery';
 
 type PromptFields = { hook: string; main: string; cta: string; ta: string };
 
-const promptStorageKey = (id: string) => `open-cards:template-prompt:${id}`;
+const promptStorageKey = (id: string) => `tooka:template-prompt:${id}`;
 
 function defaultPrompt(t: Locale): PromptFields {
   return {

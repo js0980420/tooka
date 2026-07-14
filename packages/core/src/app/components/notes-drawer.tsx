@@ -5,7 +5,7 @@ import { useNotes } from '@/lib/inspector/use-notes';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 
-const STORAGE_KEY = 'open-cards:notes-drawer-open';
+const STORAGE_KEY = 'tooka:notes-drawer-open';
 const DRAWER_CONTENT_H = 166;
 
 type Props = {

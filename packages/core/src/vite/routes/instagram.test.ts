@@ -4,14 +4,14 @@ import { refreshInstagramLoginToken, validateInstagramConnection } from './insta
 describe('validateInstagramConnection', () => {
   it('validates Instagram Login tokens and derives the user ID', async () => {
     const fetcher = vi.fn(async () =>
-      Response.json({ user_id: '17841400000000000', username: 'open_cards' }),
+      Response.json({ user_id: '17841400000000000', username: 'tooka' }),
     ) as any;
 
     await expect(
       validateInstagramConnection('instagram_login', 'IGAA-token', undefined, fetcher),
     ).resolves.toEqual({
       ok: true,
-      account: { userId: '17841400000000000', username: 'open_cards' },
+      account: { userId: '17841400000000000', username: 'tooka' },
     });
 
     const url = new URL(String(fetcher.mock.calls[0]?.[0]));
@@ -22,7 +22,7 @@ describe('validateInstagramConnection', () => {
 
   it('validates Business System User tokens against the supplied IG user ID', async () => {
     const fetcher = vi.fn(async () =>
-      Response.json({ id: '17841400000000000', username: 'open_cards' }),
+      Response.json({ id: '17841400000000000', username: 'tooka' }),
     ) as any;
 
     await expect(
@@ -34,7 +34,7 @@ describe('validateInstagramConnection', () => {
       ),
     ).resolves.toEqual({
       ok: true,
-      account: { userId: '17841400000000000', username: 'open_cards' },
+      account: { userId: '17841400000000000', username: 'tooka' },
     });
 
     const url = new URL(String(fetcher.mock.calls[0]?.[0]));
@@ -43,7 +43,7 @@ describe('validateInstagramConnection', () => {
 
   it('rejects account mismatches', async () => {
     const fetcher = vi.fn(async () =>
-      Response.json({ id: 'different-account', username: 'open_cards' }),
+      Response.json({ id: 'different-account', username: 'tooka' }),
     ) as any;
 
     await expect(

@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions & discussion
-    url: https://github.com/1weiho/open-cards/discussions
-    about: Ask a question or share what you're building with open-cards.
+    url: https://github.com/1weiho/tooka/discussions
+    about: Ask a question or share what you're building with tooka.
   - name: Support the project
     url: https://ko-fi.com/D1D11YPUP1
-    about: If open-cards has been useful to you, consider supporting development.
+    about: If tooka has been useful to you, consider supporting development.

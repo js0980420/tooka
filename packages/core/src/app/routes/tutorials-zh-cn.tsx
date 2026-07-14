@@ -14,7 +14,7 @@ export const tutorialArticlesZhCN: TutorialArticle[] = [
             💡 这是什么功能？
           </h3>
           <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-            <code>open-cards</code> 是首个专为 AI 协同开发而生的卡片框架。右上角的{' '}
+            <code>tooka</code> 是首个专为 AI 协同开发而生的卡片框架。右上角的{' '}
             <strong>Inspect</strong> 审查功能让您直接点击画面上的元素来指引 AI
             修改代码，无需手动找行数或编辑位置。
           </p>
@@ -117,7 +117,7 @@ export const tutorialArticlesZhCN: TutorialArticle[] = [
     content: (
       <div className="space-y-6">
         <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-          <code>open-cards</code> 提供了流畅的拖拽上传与定位功能，让您在设计卡片时更像在使用
+          <code>tooka</code> 提供了流畅的拖拽上传与定位功能，让您在设计卡片时更像在使用
           Canva，但背后生成的依然是纯 React 代码。
         </p>
 
@@ -345,7 +345,7 @@ export const tutorialArticlesZhCN: TutorialArticle[] = [
         <section className="space-y-3">
           <h4 className="text-base font-semibold">小提醒</h4>
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            Threads 的长效令牌有效期为 60 天。只要保持 open-cards 定期打开使用，系统会在到期前 10
+            Threads 的长效令牌有效期为 60 天。只要保持 tooka 定期打开使用，系统会在到期前 10
             天内自动帮您更新令牌；若令牌已完全过期，回 Meta 后台重新生成一颗长效令牌，到 Connects
             页面粘贴即可。短效令牌（约 1 小时）无法自动延期，请务必在后台选择长效令牌。
           </p>

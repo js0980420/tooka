@@ -20,7 +20,7 @@ importers:
 
   apps/studio:
     dependencies:
-      '@open-cards/core':
+      '@tooka/core':
         specifier: workspace:*
         version: link:../../packages/core
       react:

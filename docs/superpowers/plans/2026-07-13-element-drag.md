@@ -12,7 +12,7 @@
 
 - 不新增任何依賴。
 - `pnpm check`(biome)提交前必須通過。
-- `packages/core` 有變更 → 需要一個 `@open-cards/core` 的 `minor` changeset,描述一行、現在式。
+- `packages/core` 有變更 → 需要一個 `@tooka/core` 的 `minor` changeset,描述一行、現在式。
 - 預設不寫註解;只在 WHY 不明顯時寫。
 - Git commit 訊息用繁體中文 + Conventional Commits,結尾加 `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`。
 - vitest 環境是 `node`(無 jsdom),單元測試只能測純函式。
@@ -395,7 +395,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ```md
 ---
-'@open-cards/core': minor
+'@tooka/core': minor
 ---
 
 Drag selected elements in inspect mode to reposition them; the offset persists as a `translate` style.

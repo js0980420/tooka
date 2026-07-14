@@ -1,5 +1,5 @@
 ---
-'@open-cards/core': patch
+'@tooka/core': patch
 ---
 
 Keep the batch publish button static while a single-platform publish is running.

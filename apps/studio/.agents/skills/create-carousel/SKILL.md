@@ -1,6 +1,6 @@
 ---
 name: create-carousel
-description: Create, draft, or generate an Instagram-style carousel in open-cards. Use when the user asks to "make a carousel", "carousel about X", "做輪播圖", "IG 貼文圖", create social cards, or add new content under `slides/`. Only author files inside one new carousel folder; do not edit the framework.
+description: Create, draft, or generate an Instagram-style carousel in tooka. Use when the user asks to "make a carousel", "carousel about X", "做輪播圖", "IG 貼文圖", create social cards, or add new content under `slides/`. Only author files inside one new carousel folder; do not edit the framework.
 ---
 
 # Create a carousel

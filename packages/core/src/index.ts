@@ -20,5 +20,5 @@ export type {
   SlideTransition,
   TransitionPhase,
 } from './app/lib/transition.ts';
-export type { OpenCardsConfig } from './config.ts';
+export type { TookaConfig } from './config.ts';
 export type { Locale, Plural } from './locale/types.ts';

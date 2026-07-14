@@ -49,7 +49,7 @@ export async function syncSkills(skillsDir: string, opts: SyncSkillsOptions = {}
 
   if (!existsSync(skillsDir)) {
     throw new Error(
-      `Built-in skills directory missing at ${skillsDir}. The @open-cards/core package may be corrupt — try reinstalling.`,
+      `Built-in skills directory missing at ${skillsDir}. The @tooka/core package may be corrupt — try reinstalling.`,
     );
   }
 

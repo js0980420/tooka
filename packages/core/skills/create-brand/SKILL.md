@@ -1,6 +1,6 @@
 ---
 name: create-brand
-description: Create, draft, author, or extract a reusable brand kit for open-cards. Use when the user asks to "create a brand", "make a brand called X", "build a brand kit", "建品牌", "新品牌風格", extract a brand from an existing carousel, or derive one from visual references. Produces a paired bundle under `themes/`; cards continue to link it through `meta.theme`. Do not use for editing real carousels.
+description: Create, draft, author, or extract a reusable brand kit for tooka. Use when the user asks to "create a brand", "make a brand called X", "build a brand kit", "建品牌", "新品牌風格", extract a brand from an existing carousel, or derive one from visual references. Produces a paired bundle under `themes/`; cards continue to link it through `meta.theme`. Do not use for editing real carousels.
 ---
 
 # Create a brand
@@ -85,7 +85,7 @@ description: <One-line visual and verbal promise>
 Provide paste-ready React for at least `Title` and `Footer`. Use `useSlidePageNumber()` for page numbers instead of props or hardcoded values. Include an Eyebrow or Logo component when the brand requires one.
 
 ```tsx
-import { useSlidePageNumber } from '@open-cards/core';
+import { useSlidePageNumber } from '@tooka/core';
 
 const Footer = () => {
   const { current, total } = useSlidePageNumber();
@@ -118,7 +118,7 @@ If there is no image logo, document a typographic wordmark or account handle ins
 
 Create a self-contained preview module:
 
-- Import `type Page` and `useSlidePageNumber` from `@open-cards/core` as needed.
+- Import `type Page` and `useSlidePageNumber` from `@tooka/core` as needed.
 - Inline the same fixed components and concrete token values from the markdown.
 - Export two or three `Page` components in a default array: Hook, Content, and optionally CTA.
 - Keep every card at the runtime-provided 1080×1350 canvas size with no 16:9 assumptions.

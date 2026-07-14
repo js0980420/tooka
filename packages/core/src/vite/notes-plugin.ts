@@ -164,7 +164,7 @@ export function notesPlugin(opts: NotesPluginOptions): Plugin {
   const RECENT_WRITE_WINDOW_MS = 1500;
 
   return {
-    name: 'open-cards:notes',
+    name: 'tooka:notes',
     apply: 'serve',
     handleHotUpdate(ctx) {
       const ts = recentWrites.get(ctx.file);

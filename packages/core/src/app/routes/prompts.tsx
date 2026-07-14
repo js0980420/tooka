@@ -13,7 +13,7 @@ type PromptItem = {
   isBuiltIn?: boolean;
 };
 
-const STORAGE_KEY = 'open-cards-prompts';
+const STORAGE_KEY = 'tooka-prompts';
 
 function readCustomPrompts(): PromptItem[] {
   try {

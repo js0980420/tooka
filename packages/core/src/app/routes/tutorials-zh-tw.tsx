@@ -14,9 +14,8 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
             💡 這是什麼功能？
           </h3>
           <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-            <code>open-cards</code> 是專為 AI 協同開發而設計的卡片框架。右上角的{' '}
-            <strong>Inspect</strong> 審查功能讓您直接點擊畫面上的元素來指引 AI
-            修改程式碼，無需手動找行數或編輯位置。
+            <code>tooka</code> 是專為 AI 協同開發而設計的卡片框架。右上角的 <strong>Inspect</strong>{' '}
+            審查功能讓您直接點擊畫面上的元素來指引 AI 修改程式碼，無需手動找行數或編輯位置。
           </p>
         </div>
 
@@ -120,7 +119,7 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
     content: (
       <div className="space-y-6">
         <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-          <code>open-cards</code> 提供了流暢的拖曳上傳與定位功能，讓您在設計卡片時更像在使用
+          <code>tooka</code> 提供了流暢的拖曳上傳與定位功能，讓您在設計卡片時更像在使用
           Canva，但背後生成的依然是純 React 程式碼。
         </p>
 
@@ -348,7 +347,7 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
         <section className="space-y-3">
           <h4 className="text-base font-semibold">小提醒</h4>
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            Threads 的長效權杖有效期為 60 天。只要保持 open-cards 定期開啟使用，系統會在到期前 10
+            Threads 的長效權杖有效期為 60 天。只要保持 tooka 定期開啟使用，系統會在到期前 10
             天內自動幫您更新權杖；若權杖已完全過期，回 Meta 後台重新產生一顆長效權杖，到 Connects
             頁面貼上即可。短效權杖（約 1 小時）無法自動延期，請務必在後台選擇長效權杖。
           </p>

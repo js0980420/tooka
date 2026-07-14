@@ -9,8 +9,8 @@ import { currentPlugin } from './current-plugin.ts';
 import { designPlugin } from './design-plugin.ts';
 import { locTagsPlugin } from './loc-tags-plugin.ts';
 import { notesPlugin } from './notes-plugin.ts';
-import { loadUserConfig, type OpenCardsConfig, openCardsPlugin } from './open-cards-plugin.ts';
 import { themesPlugin } from './themes-plugin.ts';
+import { loadUserConfig, type TookaConfig, tookaPlugin } from './tooka-plugin.ts';
 
 function findPackageRoot(fromFile: string): string {
   let dir = path.dirname(fromFile);
@@ -37,7 +37,7 @@ const CORE_VERSION = readCoreVersion();
 
 export type CreateViteConfigOptions = {
   userCwd: string;
-  config?: OpenCardsConfig;
+  config?: TookaConfig;
   mode?: 'serve' | 'build';
 };
 
@@ -61,7 +61,7 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
       locTagsPlugin({ userCwd, slidesDir }),
       react(),
       tailwindcss(),
-      openCardsPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
+      tookaPlugin({ userCwd, config, coreVersion: CORE_VERSION }),
       themesPlugin({ userCwd, config }),
       designPlugin({ userCwd }),
       apiPlugin({ userCwd, slidesDir, assetsDir, coreVersion: CORE_VERSION }),
@@ -95,15 +95,15 @@ export async function createViteConfig(opts: CreateViteConfigOptions): Promise<I
         'class-variance-authority',
         'emoji-picker-react',
       ],
-      // The app source ships inside node_modules/@open-cards/core/src/app, so
+      // The app source ships inside node_modules/@tooka/core/src/app, so
       // Vite's dep scanner traverses it as if it were a third-party dep and
       // tries to bundle our virtual imports with esbuild. Mark them external.
       esbuildOptions: {
         plugins: [
           {
-            name: 'open-cards:virtual-externals',
+            name: 'tooka:virtual-externals',
             setup(build) {
-              build.onResolve({ filter: /^virtual:open-cards\// }, (args) => ({
+              build.onResolve({ filter: /^virtual:tooka\// }, (args) => ({
                 path: args.path,
                 external: true,
               }));

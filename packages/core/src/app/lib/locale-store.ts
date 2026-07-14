@@ -18,7 +18,7 @@ export const LOCALE_OPTIONS: ReadonlyArray<{ id: LocaleId; label: string }> = [
   { id: 'zh-CN', label: '简体中文' },
 ];
 
-const STORAGE_KEY = 'open-cards:locale';
+const STORAGE_KEY = 'tooka:locale';
 
 function isLocaleId(value: string | null): value is LocaleId {
   return value === 'zh-TW' || value === 'en' || value === 'zh-CN';

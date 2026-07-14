@@ -37,10 +37,10 @@ export function useSlideModule(slideId: string) {
         });
       }
     };
-    import.meta.hot.on('open-cards:slide-changed', handler);
+    import.meta.hot.on('tooka:slide-changed', handler);
     return () => {
       cancelled = true;
-      import.meta.hot?.off('open-cards:slide-changed', handler);
+      import.meta.hot?.off('tooka:slide-changed', handler);
     };
   }, [slideId, reload]);
 

@@ -43,7 +43,7 @@ type StepHostContextValue = {
   controlled: boolean;
 };
 
-const GLOBAL_KEY = '__open_cards_step_host_context__';
+const GLOBAL_KEY = '__tooka_step_host_context__';
 type GlobalWithCtx = typeof globalThis & {
   [GLOBAL_KEY]?: Context<StepHostContextValue | null>;
 };

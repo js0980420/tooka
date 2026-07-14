@@ -36,7 +36,7 @@ export const en: Locale = {
   },
 
   home: {
-    appTitle: 'open-cards',
+    appTitle: 'tooka',
     draft: 'Draft',
     duplicate: 'Duplicate',
     templates: 'Templates',
@@ -50,7 +50,7 @@ export const en: Locale = {
     menu: 'Menu',
     newFolder: 'New folder',
     folderName: 'Folder name',
-    updateAvailable: 'open-cards {version} is available',
+    updateAvailable: 'tooka {version} is available',
     updatePackage: 'Update',
     updatingPackage: 'Updating',
     updatePackageDone: 'Updated. Restart the dev server to use the new version.',

@@ -5,7 +5,7 @@
 
 ## 目標
 
-在 open-cards 檢視器的 inspect 模式中,讓使用者以滑鼠拖曳移動已選取的元素,放開後將位移以 `translate` inline style 寫回卡片原始碼(`slides/{id}/index.tsx`)。
+在 tooka 檢視器的 inspect 模式中,讓使用者以滑鼠拖曳移動已選取的元素,放開後將位移以 `translate` inline style 寫回卡片原始碼(`slides/{id}/index.tsx`)。
 
 ## 範圍
 
@@ -52,7 +52,7 @@
 | `packages/core/src/app/lib/inspector/drag.ts`(新增) | 純函式:`parseTranslate`、`composeTranslate`、縮放換算 |
 | `packages/core/src/app/lib/inspector/drag.test.ts`(新增) | 上述純函式的 vitest 單元測試 |
 | `packages/core/src/app/components/inspector/inspect-overlay.tsx` | 拖曳狀態機、即時預覽、Escape 取消 |
-| `.changeset/*.md`(新增) | `@open-cards/core` minor |
+| `.changeset/*.md`(新增) | `@tooka/core` minor |
 
 不動 `edit-ops.ts`(`set-style` 已支援)、不加任何依賴。
 

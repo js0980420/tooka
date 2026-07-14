@@ -1,5 +1,5 @@
 ---
-'@open-cards/core': patch
+'@tooka/core': patch
 ---
 
 Remove the unsupported first-of-its-kind claim from the introductory tutorial.

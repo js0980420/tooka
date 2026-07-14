@@ -1,5 +1,5 @@
 ---
-'@open-cards/core': minor
+'@tooka/core': minor
 ---
 
 Add a Connects page that validates Instagram credentials and derives publishable Facebook Page tokens.

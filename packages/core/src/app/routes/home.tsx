@@ -49,7 +49,7 @@ type SortKey = 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
 const SORT_KEYS: readonly SortKey[] = ['created-desc', 'created-asc', 'title-asc', 'title-desc'];
 
 const DEFAULT_SORT: SortKey = 'created-desc';
-const SORT_STORAGE_KEY = 'open-cards:home-sort';
+const SORT_STORAGE_KEY = 'tooka:home-sort';
 
 function readSortPref(): SortKey {
   if (typeof window === 'undefined') return DEFAULT_SORT;

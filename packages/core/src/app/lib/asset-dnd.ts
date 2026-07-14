@@ -1,4 +1,4 @@
-export const ASSET_DND_TYPE = 'application/x-open-cards-asset';
+export const ASSET_DND_TYPE = 'application/x-tooka-asset';
 
 export type AssetDragPayload = { name: string; scope: 'slide' | 'global' };
 

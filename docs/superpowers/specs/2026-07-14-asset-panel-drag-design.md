@@ -41,7 +41,7 @@
 
 ### 拖曳插入
 
-1. 面板縮圖 `draggable`;`dragstart` 時 `dataTransfer.setData('application/x-open-cards-asset', JSON.stringify({ name, scope }))`,並以縮圖為 drag image。
+1. 面板縮圖 `draggable`;`dragstart` 時 `dataTransfer.setData('application/x-tooka-asset', JSON.stringify({ name, scope }))`,並以縮圖為 drag image。
 2. 卡片畫布(`<main data-inspector-root>`)掛 dragover/drop handler,只認上述自訂 type。
 3. drop 落點判斷:
    - 落在 `ImagePlaceholder` 上 → placeholder 既有 handler 處理,擴充它也認自訂 type(目前只認 `dataTransfer.files`),走 `replace-placeholder-with-image`。
@@ -73,7 +73,7 @@
 | `packages/core/src/editing/edit-ops.ts` | `planInsertImage()`:import + 尾端插入 `<img>` |
 | `packages/core/src/app/components/image-placeholder.tsx` | drop handler 加認自訂 dataTransfer type |
 | `packages/core/src/editing/*.test.ts` | `insert-image` AST 插入單元測試 |
-| `.changeset/*.md`(新增) | `@open-cards/core` minor |
+| `.changeset/*.md`(新增) | `@tooka/core` minor |
 
 ## 錯誤處理
 

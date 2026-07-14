@@ -1,6 +1,6 @@
 ---
 name: card-authoring
-description: Technical reference for writing or editing open-cards carousel cards on the fixed 1080×1350 canvas. Use before modifying any carousel `index.tsx` under `slides/`, including from `create-carousel`, `apply-comments`, or `current-card`; also trigger for requests to edit a card, fix a carousel layout, change card copy, adjust visual style, or understand the card runtime.
+description: Technical reference for writing or editing tooka carousel cards on the fixed 1080×1350 canvas. Use before modifying any carousel `index.tsx` under `slides/`, including from `create-carousel`, `apply-comments`, or `current-card`; also trigger for requests to edit a card, fix a carousel layout, change card copy, adjust visual style, or understand the card runtime.
 ---
 
 # Author carousel cards
@@ -23,7 +23,7 @@ Use this as the source of truth whenever a workflow reaches the point of writing
 ## File contract
 
 ```tsx
-import type { Page, SlideMeta } from '@open-cards/core';
+import type { Page, SlideMeta } from '@tooka/core';
 
 const Hook: Page = () => <div>…</div>;
 const Cta: Page = () => <div>…</div>;
@@ -105,7 +105,7 @@ Brand files remain under `themes/` and carousels keep the `meta.theme` field.
 New carousels should normally expose tweakable runtime tokens:
 
 ```tsx
-import type { DesignSystem, Page } from '@open-cards/core';
+import type { DesignSystem, Page } from '@tooka/core';
 
 export const design: DesignSystem = {
   palette: { bg: '#111110', text: '#f4f2ee', accent: '#f5a623' },
@@ -145,7 +145,7 @@ Prefer the system font stack. If a brand requires a webfont, load its stylesheet
 Use `useSlidePageNumber()` for any visible counter:
 
 ```tsx
-import { useSlidePageNumber } from '@open-cards/core';
+import { useSlidePageNumber } from '@tooka/core';
 
 const Footer = () => {
   const { current, total } = useSlidePageNumber();

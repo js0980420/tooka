@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { detectPackageManager, updateCommandFor } from './update.ts';
 
 async function tempProject(): Promise<string> {
-  return await fs.mkdtemp(path.join(os.tmpdir(), 'open-cards-update-'));
+  return await fs.mkdtemp(path.join(os.tmpdir(), 'tooka-update-'));
 }
 
 describe('update routes helpers', () => {
@@ -46,19 +46,19 @@ describe('update routes helpers', () => {
   it('uses fixed update commands for each package manager', () => {
     expect(updateCommandFor('pnpm')).toEqual({
       cmd: 'pnpm',
-      args: ['add', '@open-cards/core@latest'],
+      args: ['add', '@tooka/core@latest'],
     });
     expect(updateCommandFor('yarn')).toEqual({
       cmd: 'yarn',
-      args: ['add', '@open-cards/core@latest'],
+      args: ['add', '@tooka/core@latest'],
     });
     expect(updateCommandFor('bun')).toEqual({
       cmd: 'bun',
-      args: ['add', '@open-cards/core@latest'],
+      args: ['add', '@tooka/core@latest'],
     });
     expect(updateCommandFor('npm')).toEqual({
       cmd: 'npm',
-      args: ['install', '@open-cards/core@latest'],
+      args: ['install', '@tooka/core@latest'],
     });
   });
 });

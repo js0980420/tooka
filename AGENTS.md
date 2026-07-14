@@ -1,6 +1,6 @@
-# open-cards — Framework Repo Guide
+# tooka — Framework Repo Guide
 
-You are working on the **open-cards framework** — the runtime, CLI, and tooling that ship to npm.
+You are working on the **tooka framework** — the runtime, CLI, and tooling that ship to npm.
 
 (Slide-authoring guidance lives in the `slide-authoring` / `create-slide` skills under `apps/demo/.claude/skills/`. Use those only when editing files inside `apps/demo/slides/`.)
 
@@ -10,9 +10,9 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `@open-cards/core` | Runtime (viewer, present mode, inspector), Vite plugin, `open-cards` dev/build CLI. |
-| `packages/cli` | `@open-cards/cli` | `npx @open-cards/cli init` scaffolder + project template. |
-| `apps/demo` | private | Local consumer of `@open-cards/core` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
+| `packages/core` | `@tooka/core` | Runtime (viewer, present mode, inspector), Vite plugin, `tooka` dev/build CLI. |
+| `packages/cli` | `@tooka/cli` | `npx @tooka/cli init` scaffolder + project template. |
+| `apps/demo` | private | Local consumer of `@tooka/core` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. |
 | `apps/web` | private | Marketing site (Next.js). |
 
 Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `tsconfig` per package.

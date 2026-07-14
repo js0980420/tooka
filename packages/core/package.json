@@ -1,7 +1,7 @@
 {
-  "name": "@open-cards/core",
+  "name": "@tooka/core",
   "version": "0.0.1",
-  "description": "Runtime and CLI for open-cards — write slides in slides/, we handle the rest.",
+  "description": "Runtime and CLI for tooka — write slides in slides/, we handle the rest.",
   "type": "module",
   "exports": {
     ".": {
@@ -21,7 +21,7 @@
     }
   },
   "bin": {
-    "open-cards": "./bin.js"
+    "tooka": "./bin.js"
   },
   "files": [
     "bin.js",
@@ -51,14 +51,14 @@
     "name": "1weiho",
     "url": "https://github.com/1weiho"
   },
-  "homepage": "https://open-cards.dev",
+  "homepage": "https://tooka.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/1weiho/open-cards.git",
+    "url": "git+https://github.com/1weiho/tooka.git",
     "directory": "packages/core"
   },
   "bugs": {
-    "url": "https://github.com/1weiho/open-cards/issues"
+    "url": "https://github.com/1weiho/tooka/issues"
   },
   "publishConfig": {
     "access": "public"

@@ -1,4 +1,4 @@
-import config from 'virtual:open-cards/config';
+import config from 'virtual:tooka/config';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { useLocale } from './lib/use-locale';

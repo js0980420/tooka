@@ -11,7 +11,7 @@ import type { ApiContext } from './context.ts';
 let dir: string;
 
 beforeEach(async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), 'open-cards-connects-'));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), 'tooka-connects-'));
 });
 
 afterEach(async () => {
@@ -71,7 +71,7 @@ function postRequest(body: unknown, url = '/instagram') {
 describe('Instagram connect routes', () => {
   it('stores valid Business System User tokens without trying to refresh them', async () => {
     const fetcher = vi.fn(async () =>
-      Response.json({ id: '17841400000000000', username: 'open_cards' }),
+      Response.json({ id: '17841400000000000', username: 'tooka' }),
     ) as any;
     vi.stubGlobal('fetch', fetcher);
     const handler = setupRoute();
@@ -104,7 +104,7 @@ describe('Instagram connect routes', () => {
     ).resolves.toEqual({
       IG_ACCESS_TOKEN: 'EAA-permanent-token',
       IG_USER_ID: '17841400000000000',
-      IG_USERNAME: 'open_cards',
+      IG_USERNAME: 'tooka',
       IG_TOKEN_SOURCE: 'business_system_user',
     });
   });
@@ -231,7 +231,7 @@ describe('Threads connect routes', () => {
       if (url.includes('refresh_access_token')) {
         return Response.json({ access_token: 'THAA-refreshed', expires_in: 5_184_000 });
       }
-      return Response.json({ id: '9876543210', username: 'open_cards' });
+      return Response.json({ id: '9876543210', username: 'tooka' });
     });
     vi.stubGlobal('fetch', fetcher);
     const handler = setupRoute();
@@ -243,7 +243,7 @@ describe('Threads connect routes', () => {
     const body = JSON.parse(response.body);
     expect(body.threads).toMatchObject({
       userId: '9876543210',
-      username: 'open_cards',
+      username: 'tooka',
       needsReauth: false,
     });
     expect(body.threads.expiresAt).toBeGreaterThan(Date.now());
@@ -252,7 +252,7 @@ describe('Threads connect routes', () => {
     ).resolves.toEqual({
       THREADS_ACCESS_TOKEN: 'THAA-refreshed',
       THREADS_USER_ID: '9876543210',
-      THREADS_USERNAME: 'open_cards',
+      THREADS_USERNAME: 'tooka',
     });
   });
 
@@ -262,7 +262,7 @@ describe('Threads connect routes', () => {
       if (url.includes('refresh_access_token')) {
         return Response.json({ error: {} }, { status: 400 });
       }
-      return Response.json({ id: '9876543210', username: 'open_cards' });
+      return Response.json({ id: '9876543210', username: 'tooka' });
     });
     vi.stubGlobal('fetch', fetcher);
     const handler = setupRoute();
@@ -285,7 +285,7 @@ describe('Threads connect routes', () => {
         return Response.json({ access_token: 'THAA-refreshed', expires_in: 5_184_000 });
       }
       if (url.searchParams.get('access_token') === 'THAA-refreshed') {
-        return Response.json({ id: '9876543210', username: 'open_cards' });
+        return Response.json({ id: '9876543210', username: 'tooka' });
       }
       return Response.json({ error: {} }, { status: 400 });
     });

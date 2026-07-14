@@ -1,4 +1,4 @@
-import config from 'virtual:open-cards/config';
+import config from 'virtual:tooka/config';
 import {
   Check,
   ChevronDown,
@@ -147,7 +147,7 @@ export function Slide() {
       }
       const loc = root?.dataset.slideLoc;
       if (!root || !loc) {
-        console.warn('open-cards: asset drop landed outside a card root');
+        console.warn('tooka: asset drop landed outside a card root');
         return;
       }
       const sep = loc.indexOf(':');
@@ -173,7 +173,7 @@ export function Slide() {
   useEffect(() => {
     if (!import.meta.hot) return;
     if (!slideId || !slide || pageCount === 0) return;
-    import.meta.hot.send('open-cards:current', {
+    import.meta.hot.send('tooka:current', {
       slideId,
       pageIndex: index,
       totalPages: pageCount,
@@ -489,7 +489,7 @@ export function Slide() {
       if (linkCopiedTimerRef.current) clearTimeout(linkCopiedTimerRef.current);
       linkCopiedTimerRef.current = setTimeout(() => setLinkCopied(false), 1200);
     } catch (err) {
-      console.error('[open-cards] copy link failed', err);
+      console.error('[tooka] copy link failed', err);
       toast.error(t.slide.toastCopyLinkFailed);
     }
   };
@@ -516,7 +516,7 @@ export function Slide() {
         toast.custom(() => <PdfProgressToast progress={p} />, { id: toastId, duration: Infinity });
       });
     } catch (err) {
-      console.error('[open-cards] pdf export failed', err);
+      console.error('[tooka] pdf export failed', err);
       toast.error(t.slide.pdfExportFailed, { id: toastId, duration: 4000 });
     } finally {
       setExporting(false);
@@ -550,7 +550,7 @@ export function Slide() {
         variant,
       );
     } catch (err) {
-      console.error('[open-cards] png export failed', err);
+      console.error('[tooka] png export failed', err);
       toast.error(t.slide.pngExportFailed, { id: toastId, duration: 4000 });
     } finally {
       setExporting(false);
@@ -904,7 +904,7 @@ function ExportVariantPreviewToggle({
   );
 }
 
-const RAIL_WIDTH_STORAGE_KEY = 'open-cards:thumbnail-rail-width';
+const RAIL_WIDTH_STORAGE_KEY = 'tooka:thumbnail-rail-width';
 const DEFAULT_RAIL_WIDTH = 264;
 const MIN_RAIL_WIDTH = 200;
 const MAX_RAIL_WIDTH = 480;
@@ -1079,7 +1079,7 @@ function SelectionReporter() {
           text: (selected.anchor.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 120),
         }
       : null;
-    import.meta.hot.send('open-cards:current', { selection });
+    import.meta.hot.send('tooka:current', { selection });
   }, [selected]);
   return null;
 }

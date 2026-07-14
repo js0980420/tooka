@@ -1,5 +1,5 @@
 {
-  "name": "open-cards-monorepo",
+  "name": "tooka-monorepo",
   "private": true,
   "version": "0.0.0",
   "packageManager": "pnpm@10.17.0",
@@ -16,7 +16,7 @@
     "check:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "core": "pnpm --filter @open-cards/core"
+    "core": "pnpm --filter @tooka/core"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.12",

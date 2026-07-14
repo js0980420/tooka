@@ -21,7 +21,7 @@ describe('renderNoteLiteral', () => {
 
 describe('applyNotesEdit / no existing export', () => {
   it('inserts a new notes export padded to the target index', () => {
-    const source = `import type { Page } from '@open-cards/core';\n\nexport default [];\n`;
+    const source = `import type { Page } from '@tooka/core';\n\nexport default [];\n`;
     const result = applyNotesEdit(source, 2, 'hello');
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -57,7 +57,7 @@ describe('applyNotesEdit / no existing export', () => {
 describe('applyNotesEdit / existing export', () => {
   it('updates an existing slot in place', () => {
     const source = [
-      "import type { Page } from '@open-cards/core';",
+      "import type { Page } from '@tooka/core';",
       '',
       'export default [];',
       '',

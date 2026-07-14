@@ -215,11 +215,11 @@ export function useAssets(slideId: string): UseAssetsResult {
         refresh().catch(() => {});
       }
     };
-    import.meta.hot.on('open-cards:assets-changed', assetHandler);
-    import.meta.hot.on('open-cards:slide-changed', slideHandler);
+    import.meta.hot.on('tooka:assets-changed', assetHandler);
+    import.meta.hot.on('tooka:slide-changed', slideHandler);
     return () => {
-      import.meta.hot?.off('open-cards:assets-changed', assetHandler);
-      import.meta.hot?.off('open-cards:slide-changed', slideHandler);
+      import.meta.hot?.off('tooka:assets-changed', assetHandler);
+      import.meta.hot?.off('tooka:slide-changed', slideHandler);
     };
   }, [slideId, refresh]);
 

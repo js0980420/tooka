@@ -66,17 +66,17 @@ function parseSelection(raw: unknown): Selection | null {
 export function currentPlugin(opts: CurrentPluginOptions): Plugin {
   const userCwd = opts.userCwd;
   const slidesDir = opts.slidesDir ?? 'slides';
-  const outDir = path.join(userCwd, 'node_modules', '.open-cards');
+  const outDir = path.join(userCwd, 'node_modules', '.tooka');
   const outFile = path.join(outDir, 'current.json');
   const tmpFile = `${outFile}.tmp`;
 
   let cached: Cached | null = null;
 
   return {
-    name: 'open-cards:current',
+    name: 'tooka:current',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
-      server.ws.on('open-cards:current', async (raw: IncomingPayload) => {
+      server.ws.on('tooka:current', async (raw: IncomingPayload) => {
         const next: Cached = cached
           ? { ...cached }
           : {

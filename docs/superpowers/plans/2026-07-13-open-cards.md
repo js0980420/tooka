@@ -1,14 +1,14 @@
-# open-cards 實作計畫
+# tooka 實作計畫
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 將 open-slide fork 改造成 agent 驅動的 IG 輪播圖工具 open-cards：1080×1350 畫布、品牌系統、IG 式預覽、PNG 匯出。
+**Goal:** 將 open-slide fork 改造成 agent 驅動的 IG 輪播圖工具 tooka：1080×1350 畫布、品牌系統、IG 式預覽、PNG 匯出。
 
 **Architecture:** 整份 monorepo 複製後瘦身（移除 web/cli/changesets），全域改名，把畫布尺寸單一來源化後改為 4:5，將既有 PPTX 截圖管線改造成 PNG 匯出，viewer 加 IG 式導覽，themes 機制擴充為品牌系統，skills 全面改寫為輪播工作流。
 
 **Tech Stack:** pnpm + Turbo monorepo、React 18、Vite、Tailwind 4、html-to-image、fflate、vitest、biome。
 
-**Spec:** `docs/superpowers/specs/2026-07-13-open-cards-design.md`
+**Spec:** `docs/superpowers/specs/2026-07-13-tooka-design.md`
 
 ## Global Constraints
 
@@ -17,10 +17,10 @@
 - 每個 task 結束前 `pnpm check`（biome）、`pnpm typecheck`、`pnpm test` 必須全綠才能 commit。
 - **零新增 npm 依賴**。
 - 畫布固定 **1080×1350**，唯一定義處是 `packages/core/src/app/lib/sdk.ts` 的 `CANVAS_WIDTH` / `CANVAS_HEIGHT`。
-- 全域改名規則：`@open-slide/` → `@open-cards/`、`open-slide` → `open-cards`、`OpenSlide` → `OpenCards`。**保留** `os-` / `osd-` CSS class 與 data-attribute 前綴（內部識別字，與 open-slide 字串無關）。
+- 全域改名規則：`@open-slide/` → `@tooka/`、`open-slide` → `tooka`、`OpenSlide` → `Tooka`。**保留** `os-` / `osd-` CSS class 與 data-attribute 前綴（內部識別字，與 open-slide 字串無關）。
 - 不使用 changesets（已移除），不手動 bump 版本。
 - `packages/core/src/app/components/ui` 是 shadcn 產生且被 biome 忽略 — 不要動。
-- 工作目錄：`/home/js0980420/projects/open-cards`（repo 已 init，含 docs/ 兩個 commit）。來源：`/home/js0980420/projects/open-slide`。
+- 工作目錄：`/home/js0980420/projects/tooka`（repo 已 init，含 docs/ 兩個 commit）。來源：`/home/js0980420/projects/open-slide`。
 
 ---
 
@@ -37,13 +37,13 @@
 ```bash
 cd /home/js0980420/projects/open-slide
 rsync -a --exclude .git --exclude node_modules --exclude dist --exclude .turbo \
-  --exclude 'apps/demo/dist' ./ /home/js0980420/projects/open-cards/
+  --exclude 'apps/demo/dist' ./ /home/js0980420/projects/tooka/
 ```
 
 - [ ] **Step 2: 安裝依賴並確認基準全綠**
 
 ```bash
-cd /home/js0980420/projects/open-cards
+cd /home/js0980420/projects/tooka
 pnpm install
 pnpm typecheck && pnpm test && pnpm check
 ```
@@ -54,7 +54,7 @@ Expected: 三個指令都成功結束（exit 0）。若 check 有格式問題，
 
 ```bash
 git add -A
-git commit -m "chore: 匯入 open-slide 原始碼作為 open-cards 基底"
+git commit -m "chore: 匯入 open-slide 原始碼作為 tooka 基底"
 ```
 
 ---
@@ -71,7 +71,7 @@ git commit -m "chore: 匯入 open-slide 原始碼作為 open-cards 基底"
 - [ ] **Step 1: 刪除目錄與檔案**
 
 ```bash
-cd /home/js0980420/projects/open-cards
+cd /home/js0980420/projects/tooka
 git rm -r -q apps/web packages/cli .changeset .github/workflows/release.yml \
   apps/demo/netlify.toml apps/demo/vercel.json
 ```
@@ -99,21 +99,21 @@ git commit -m "chore: 移除 apps/web、packages/cli 與 changesets 發佈設施
 
 ---
 
-### Task 3: 全域改名 open-slide → open-cards、demo → studio
+### Task 3: 全域改名 open-slide → tooka、demo → studio
 
 **Files:**
-- Rename: `apps/demo/` → `apps/studio/`、`apps/studio/open-slide.config.ts` → `open-cards.config.ts`
+- Rename: `apps/demo/` → `apps/studio/`、`apps/studio/open-slide.config.ts` → `tooka.config.ts`
 - Modify: 所有含 `open-slide` / `OpenSlide` 字串的追蹤檔案（含 `packages/core` 全部、locale、skills、README、CLAUDE.md、turbo/workspace 設定）
 
 **Interfaces:**
-- Produces: 套件名 `@open-cards/core`、bin 名 `open-cards`、config 型別 `OpenCardsConfig`、設定檔名 `open-cards.config.ts`、workspace app 名 `studio`。後續 task 一律使用這些新名稱。
+- Produces: 套件名 `@tooka/core`、bin 名 `tooka`、config 型別 `TookaConfig`、設定檔名 `tooka.config.ts`、workspace app 名 `studio`。後續 task 一律使用這些新名稱。
 
 - [ ] **Step 1: 目錄與檔案改名**
 
 ```bash
-cd /home/js0980420/projects/open-cards
+cd /home/js0980420/projects/tooka
 git mv apps/demo apps/studio
-git mv apps/studio/open-slide.config.ts apps/studio/open-cards.config.ts
+git mv apps/studio/open-slide.config.ts apps/studio/tooka.config.ts
 ```
 
 - [ ] **Step 2: 全域字串替換**
@@ -123,17 +123,17 @@ git mv apps/studio/open-slide.config.ts apps/studio/open-cards.config.ts
 ```bash
 git ls-files -z | grep -zv 'pnpm-lock.yaml' \
   | xargs -0 sh -c 'for f; do [ -L "$f" ] && continue; [ -f "$f" ] || continue; sed -i \
-      -e "s/@open-slide\//@open-cards\//g" \
-      -e "s/open-slide/open-cards/g" \
-      -e "s/OpenSlide/OpenCards/g" "$f"; done' _
+      -e "s/@open-slide\//@tooka\//g" \
+      -e "s/open-slide/tooka/g" \
+      -e "s/OpenSlide/Tooka/g" "$f"; done' _
 ```
 
 （repo 內有多個 tracked symlink——根目錄 `CLAUDE.md`、`.claude/skills/*`、`apps/studio/.claude|.agents/skills/*`——`sed -i` 直接碰它們會出錯或把 symlink 換成一般檔案，所以必須跳過。`apps/studio/.agents/skills/*` 的舊 symlink 目標含 `@open-slide` 路徑，改名後會暫時懸空，Task 8 Step 5 重新 sync 時解決，先不管。）
 
 替換後人工抽查三處確認語意正確：
-1. `packages/core/package.json` — `name` 為 `@open-cards/core`、`bin` 鍵為 `open-cards`；順手把 `description`、`homepage`、`repository`、`bugs`、`author`、`keywords` 改成 open-cards 自己的內容（repository 可先留空字串或移除）。
-2. `apps/studio/package.json` — `name` 改為 `studio`（sed 不會替換 `demo`，手動改），scripts 為 `open-cards dev` 等。
-3. root `package.json` — `name` 改為 `open-cards-monorepo`，`core` script 的 filter 為 `@open-cards/core`；若有 `dev:demo` script 改為 `dev:studio`（filter `studio`）。
+1. `packages/core/package.json` — `name` 為 `@tooka/core`、`bin` 鍵為 `tooka`；順手把 `description`、`homepage`、`repository`、`bugs`、`author`、`keywords` 改成 tooka 自己的內容（repository 可先留空字串或移除）。
+2. `apps/studio/package.json` — `name` 改為 `studio`（sed 不會替換 `demo`，手動改），scripts 為 `tooka dev` 等。
+3. root `package.json` — `name` 改為 `tooka-monorepo`，`core` script 的 filter 為 `@tooka/core`；若有 `dev:demo` script 改為 `dev:studio`（filter `studio`）。
 
 - [ ] **Step 3: 重新安裝（重生 lockfile 名稱）並驗證**
 
@@ -156,7 +156,7 @@ Expected: dev server 啟動、瀏覽器可開首頁（此時還是 16:9 舊示�
 
 ```bash
 git add -A
-git commit -m "chore: 全域改名為 open-cards，demo 應用改名 studio"
+git commit -m "chore: 全域改名為 tooka，demo 應用改名 studio"
 ```
 
 ---
@@ -617,13 +617,13 @@ git commit -m "feat: themes 機制品牌化 — UI 文案改品牌、create-them
 - Modify: `apps/studio/.claude/skills/`、`apps/studio/.agents/skills/`（由 sync 重生）
 
 **Interfaces:**
-- Consumes: Task 7 的品牌檔格式（Voice/Logo 章節）；`open-cards sync`（`packages/core/src/cli/sync.ts`，把 core 的 skills 複製進 consumer 的 `.claude/skills`）。
+- Consumes: Task 7 的品牌檔格式（Voice/Logo 章節）；`tooka sync`（`packages/core/src/cli/sync.ts`，把 core 的 skills 複製進 consumer 的 `.claude/skills`）。
 - Produces: `/create-carousel`、`/card-authoring`、`/current-card`、`/apply-comments` 四個 skill，內容以 IG 輪播為語境。
 
 - [ ] **Step 1: 目錄改名**
 
 ```bash
-cd /home/js0980420/projects/open-cards
+cd /home/js0980420/projects/tooka
 git mv packages/core/skills/create-slide packages/core/skills/create-carousel
 git mv packages/core/skills/slide-authoring packages/core/skills/card-authoring
 git mv packages/core/skills/current-slide packages/core/skills/current-card
@@ -680,14 +680,14 @@ git mv packages/core/skills/current-slide packages/core/skills/current-card
 
 - [ ] **Step 4: 修訂 current-card 與 apply-comments**
 
-- `current-card/SKILL.md`：frontmatter `name: current-card`；文中 deictic 說法改成「這張卡」；`node_modules/.open-cards/current.json` 路徑（Task 3 已全域改名，確認即可）。
+- `current-card/SKILL.md`：frontmatter `name: current-card`；文中 deictic 說法改成「這張卡」；`node_modules/.tooka/current.json` 路徑（Task 3 已全域改名，確認即可）。
 - `apply-comments/SKILL.md`：確認 Task 3 改名後內容一致（`@slide-comment` 標記名是程式契約——先 `grep -rn "slide-comment" packages/core/src` 確認 marker 實名，skill 文件與程式一致即可，不強行改名）。
 
 - [ ] **Step 5: 同步到 studio 並清掉舊副本**
 
 ```bash
 rm -rf apps/studio/.claude/skills apps/studio/.agents/skills
-cd apps/studio && pnpm exec open-cards sync && cd ../..
+cd apps/studio && pnpm exec tooka sync && cd ../..
 git status
 ```
 
@@ -710,13 +710,13 @@ git commit -m "feat: skills 改寫為 IG 輪播工作流（create-carousel、car
 - Create: `apps/studio/themes/starter.md`、`apps/studio/themes/starter.demo.tsx`、`apps/studio/slides/demo-carousel/index.tsx`
 
 **Interfaces:**
-- Consumes: Task 4 的 1080×1350 畫布、Task 7 的品牌檔格式、`Page` / `SlideMeta` 型別與 `useSlidePageNumber`（`@open-cards/core`）。
+- Consumes: Task 4 的 1080×1350 畫布、Task 7 的品牌檔格式、`Page` / `SlideMeta` 型別與 `useSlidePageNumber`（`@tooka/core`）。
 - Produces: 開箱即有一個品牌 + 一組 5 卡示範輪播，dev server 首頁不再是空的。
 
 - [ ] **Step 1: 清空舊內容**
 
 ```bash
-cd /home/js0980420/projects/open-cards
+cd /home/js0980420/projects/tooka
 git rm -r -q apps/studio/slides apps/studio/themes
 mkdir -p apps/studio/slides apps/studio/themes
 ```
@@ -780,7 +780,7 @@ description: 乾淨的深色示範品牌 — 近黑底、單一琥珀強調色�
 `apps/studio/themes/starter.demo.tsx` — 單頁品牌預覽（給 /themes 品牌頁縮圖用），用上表 token 寫一張 Hook 樣式卡：
 
 ```tsx
-import type { Page } from '@open-cards/core';
+import type { Page } from '@tooka/core';
 
 const BG = '#111110';
 const TEXT = '#F4F2EE';
@@ -829,9 +829,9 @@ export default Demo;
 `apps/studio/slides/demo-carousel/index.tsx` — 5 卡：Hook、3 張內容卡、CTA，全部使用 starter 品牌 token。結構（完整檔案，token 常數同 demo.tsx）：
 
 ```tsx
-import type { Page, SlideMeta } from '@open-cards/core';
+import type { Page, SlideMeta } from '@tooka/core';
 
-export const meta: SlideMeta = { title: 'open-cards 是什麼', theme: 'starter' };
+export const meta: SlideMeta = { title: 'tooka 是什麼', theme: 'starter' };
 
 const BG = '#111110';
 const SURFACE = '#1C1B1A';
@@ -862,7 +862,7 @@ const Handle = () => (
 const Hook: Page = () => (
   <div style={{ ...frame, justifyContent: 'center' }}>
     <div style={{ fontSize: 24, letterSpacing: '0.15em', color: ACCENT, fontWeight: 500 }}>
-      OPEN-CARDS
+      TOOKA
     </div>
     <h1 style={{ fontSize: 96, lineHeight: 1.1, letterSpacing: '-0.02em', fontWeight: 700, margin: '28px 0 0' }}>
       用一句話，
@@ -956,7 +956,7 @@ git commit -m "feat: 新增 starter 示範品牌與 demo-carousel 示範輪播�
 - [ ] **Step 2: 重寫 CLAUDE.md 與 AGENTS.md**
 
 `CLAUDE.md` 以原檔為骨架改寫：
-- Layout 表只剩 `packages/core`（`@open-cards/core`）與 `apps/studio`（輪播工作區）。
+- Layout 表只剩 `packages/core`（`@tooka/core`）與 `apps/studio`（輪播工作區）。
 - Workflow 指令不變（dev/build/typecheck/check/test）。
 - Hard rules：biome 必須過；**刪除 changeset 相關規則**；不隨意加依賴；shadcn ui 目錄不動；註解準則保留。
 - 加一條：畫布固定 1080×1350，唯一定義在 `packages/core/src/app/lib/sdk.ts`。

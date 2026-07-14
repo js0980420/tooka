@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "open-cards dev --host",
-    "build": "open-cards build",
-    "preview": "open-cards preview"
+    "dev": "tooka dev --host",
+    "build": "tooka build",
+    "preview": "tooka preview"
   },
   "dependencies": {
-    "@open-cards/core": "workspace:*",
+    "@tooka/core": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

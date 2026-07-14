@@ -14,10 +14,9 @@ export const tutorialArticlesEn: TutorialArticle[] = [
             💡 What is this?
           </h3>
           <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-            <code>open-cards</code> is the first card framework built for AI-assisted development.
-            The <strong>Inspect</strong> tool in the top right lets you click any element on the
-            canvas to point your AI at the code to change — no hunting for line numbers or edit
-            locations.
+            <code>tooka</code> is the first card framework built for AI-assisted development. The{' '}
+            <strong>Inspect</strong> tool in the top right lets you click any element on the canvas
+            to point your AI at the code to change — no hunting for line numbers or edit locations.
           </p>
         </div>
 
@@ -120,8 +119,8 @@ export const tutorialArticlesEn: TutorialArticle[] = [
     content: (
       <div className="space-y-6">
         <p className="text-[13.5px] leading-relaxed text-muted-foreground">
-          <code>open-cards</code> offers smooth drag-to-upload and positioning, so designing cards
-          feels more like Canva — while everything generated underneath stays plain React code.
+          <code>tooka</code> offers smooth drag-to-upload and positioning, so designing cards feels
+          more like Canva — while everything generated underneath stays plain React code.
         </p>
 
         <div className="space-y-4">
@@ -351,10 +350,10 @@ export const tutorialArticlesEn: TutorialArticle[] = [
         <section className="space-y-3">
           <h4 className="text-base font-semibold">Good to know</h4>
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            Threads long-lived tokens last 60 days. As long as you open open-cards regularly, the
-            token renews itself within 10 days of expiry. If it fully expires, generate a new
-            long-lived token in the Meta dashboard and paste it on the Connects page. Short-lived
-            tokens (about 1 hour) cannot be auto-renewed — always pick the long-lived option.
+            Threads long-lived tokens last 60 days. As long as you open tooka regularly, the token
+            renews itself within 10 days of expiry. If it fully expires, generate a new long-lived
+            token in the Meta dashboard and paste it on the Connects page. Short-lived tokens (about
+            1 hour) cannot be auto-renewed — always pick the long-lived option.
           </p>
         </section>
       </div>

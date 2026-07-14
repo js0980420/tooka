@@ -249,7 +249,7 @@ function ensureDesignSystemImport(
   ast: AstNode,
 ): { source: string; offsetShift: number } {
   const imports = findImports(ast);
-  const coreImport = imports.find((imp) => imp.source === '@open-cards/core');
+  const coreImport = imports.find((imp) => imp.source === '@tooka/core');
   if (coreImport) {
     const hasDesignSystem = coreImport.specifiers.some((spec) => {
       if (spec.type !== 'ImportSpecifier') return false;
@@ -271,8 +271,8 @@ function ensureDesignSystemImport(
     return { source: next, offsetShift: insertText.length };
   }
 
-  // No @open-cards/core import — add one after the last import (or at top).
-  const stmt = `import type { DesignSystem } from '@open-cards/core';\n`;
+  // No @tooka/core import — add one after the last import (or at top).
+  const stmt = `import type { DesignSystem } from '@tooka/core';\n`;
   if (imports.length > 0) {
     const last = imports[imports.length - 1];
     const insertAt = last.node.end;
@@ -337,7 +337,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
   const slidesDir = opts.slidesDir ?? 'slides';
 
   return {
-    name: 'open-cards:design',
+    name: 'tooka:design',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
       server.middlewares.use('/__design', async (req, res, next) => {

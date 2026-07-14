@@ -1,4 +1,4 @@
-import buildManifest from 'virtual:open-cards/folders';
+import buildManifest from 'virtual:tooka/folders';
 import { useCallback, useEffect, useState } from 'react';
 import type { Folder, FolderIcon, FoldersManifest } from './sdk';
 
@@ -142,9 +142,9 @@ export function useFolders(): UseFoldersResult {
     const handler = () => {
       refresh().catch(() => {});
     };
-    import.meta.hot.on('open-cards:files-changed', handler);
+    import.meta.hot.on('tooka:files-changed', handler);
     return () => {
-      import.meta.hot?.off('open-cards:files-changed', handler);
+      import.meta.hot?.off('tooka:files-changed', handler);
     };
   }, [refresh]);
 

@@ -36,7 +36,7 @@ async function startServer(opts: DevOptions): Promise<void> {
 
   const address = server.httpServer?.address();
   if (process.send && address && typeof address === 'object') {
-    process.send({ type: 'open-cards:listening', port: address.port });
+    process.send({ type: 'tooka:listening', port: address.port });
   }
 }
 
@@ -63,7 +63,7 @@ function supervise(opts: DevOptions): void {
       if (typeof message !== 'object' || message === null) return;
       const { type, port: reportedPort } = message as { type?: unknown; port?: unknown };
       // remember the resolved port so restarts land on the same address
-      if (type === 'open-cards:listening' && typeof reportedPort === 'number') {
+      if (type === 'tooka:listening' && typeof reportedPort === 'number') {
         port = reportedPort;
       }
     });
@@ -103,7 +103,7 @@ function devArgs(opts: DevOptions): string[] {
 function resolveDevEntry(userCwd: string): string {
   // resolved on every spawn so a restart after an in-app update follows the
   // node_modules symlink to the newly installed version
-  const installed = path.join(userCwd, 'node_modules', '@open-cards', 'core', 'bin.js');
+  const installed = path.join(userCwd, 'node_modules', '@tooka', 'core', 'bin.js');
   if (existsSync(installed)) return installed;
   return process.argv[1] as string;
 }

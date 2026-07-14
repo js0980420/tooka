@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { TookaMark } from '@/components/brand-mark';
 import { LanguageToggle, TranslationButton } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -127,7 +128,10 @@ export function Sidebar({
   return (
     <aside className="relative flex h-full w-[16.5rem] shrink-0 flex-col border-r border-hairline bg-sidebar text-sidebar-foreground">
       <div className="flex items-center justify-between px-4 pt-5 pb-4">
-        <h1 className="font-heading text-lg font-bold tracking-tight">{t.home.appTitle}</h1>
+        <h1 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
+          <TookaMark className="size-5" />
+          {t.home.appTitle}
+        </h1>
         <div className="-mr-1.5 flex items-center">
           <TranslationButton />
           <LanguageToggle />

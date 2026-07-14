@@ -53,7 +53,7 @@ description: A clean dark brand with near-black surfaces, one amber accent, and 
 Use the same footer on every card. It applies the account-handle logo rule and reads the page number from the runtime.
 
 ```tsx
-import { useSlidePageNumber } from '@open-cards/core';
+import { useSlidePageNumber } from '@tooka/core';
 
 const Footer = () => {
   const { current, total } = useSlidePageNumber();

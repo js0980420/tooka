@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest a new capability for open-cards.
+description: Suggest a new capability for tooka.
 title: "[Feature]: "
 labels: ["request"]
 body:
@@ -7,7 +7,7 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What are you trying to do that open-cards makes hard or impossible today?
+      description: What are you trying to do that tooka makes hard or impossible today?
     validations:
       required: true
   - type: textarea
@@ -28,8 +28,8 @@ body:
       label: Which package would this affect?
       multiple: true
       options:
-        - "@open-cards/core (runtime, inspector, present mode, CLI)"
-        - "@open-cards/cli (scaffolder / template)"
+        - "@tooka/core (runtime, inspector, present mode, CLI)"
+        - "@tooka/cli (scaffolder / template)"
         - Agent skills (create-slide, slide-authoring, apply-comments)
         - Docs / marketing site
         - Not sure

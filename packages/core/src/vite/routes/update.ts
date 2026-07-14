@@ -6,13 +6,13 @@ import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json } from './context.ts';
 
 // GET /__update-check  → { current, latest, outdated }
-//   Compares the running @open-cards/core version against the npm `latest`
+//   Compares the running @tooka/core version against the npm `latest`
 //   dist-tag. Network/parse failures degrade to { latest: null, outdated: false }.
 // POST /__update-package → { packageManager, command, latest, message }
-//   Installs @open-cards/core@latest with the detected package manager, then
-//   runs `open-cards sync:skills`.
+//   Installs @tooka/core@latest with the detected package manager, then
+//   runs `tooka sync:skills`.
 
-const PKG = '@open-cards/core';
+const PKG = '@tooka/core';
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const COMMAND_TIMEOUT_MS = 300_000;
 
@@ -100,8 +100,8 @@ export function updateCommandFor(packageManager: PackageManager): CommandSpec {
   }
 }
 
-function localOpenCardsCommand(cwd: string): CommandSpec {
-  const bin = process.platform === 'win32' ? 'open-cards.cmd' : 'open-cards';
+function localTookaCommand(cwd: string): CommandSpec {
+  const bin = process.platform === 'win32' ? 'tooka.cmd' : 'tooka';
   return { cmd: path.join(cwd, 'node_modules', '.bin', bin), args: ['sync:skills'] };
 }
 
@@ -146,7 +146,7 @@ async function runCommand(spec: CommandSpec, cwd: string): Promise<void> {
 async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const packageManager = await detectPackageManager(ctx.userCwd);
   const updateCommand = updateCommandFor(packageManager);
-  const syncCommand = localOpenCardsCommand(ctx.userCwd);
+  const syncCommand = localTookaCommand(ctx.userCwd);
 
   await runCommand(updateCommand, ctx.userCwd);
   await runCommand(syncCommand, ctx.userCwd);
@@ -155,9 +155,9 @@ async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
   const latest = await fetchLatest(Date.now());
   return {
     packageManager,
-    command: `${formatCommand(updateCommand)} && open-cards sync:skills`,
+    command: `${formatCommand(updateCommand)} && tooka sync:skills`,
     latest,
-    message: 'Updated @open-cards/core and synced skills.',
+    message: 'Updated @tooka/core and synced skills.',
   };
 }
 

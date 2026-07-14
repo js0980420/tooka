@@ -1,6 +1,6 @@
 ---
 name: current-card
-description: Resolve the carousel, current card, and optional selected element in the open-cards dev viewer. Use whenever the user says "this card", "this carousel", "this element", "the card I'm on", "這張卡", or otherwise refers to visible card content without naming it. Re-read `node_modules/.open-cards/current.json` at the start of every such turn because viewer position changes between turns.
+description: Resolve the carousel, current card, and optional selected element in the tooka dev viewer. Use whenever the user says "this card", "this carousel", "this element", "the card I'm on", "這張卡", or otherwise refers to visible card content without naming it. Re-read `node_modules/.tooka/current.json` at the start of every such turn because viewer position changes between turns.
 ---
 
 # Resolve the current card
@@ -8,7 +8,7 @@ description: Resolve the carousel, current card, and optional selected element i
 Before asking which carousel or card the user means, read the live viewer cursor:
 
 ```
-node_modules/.open-cards/current.json
+node_modules/.tooka/current.json
 ```
 
 Treat it as a live cursor, never as durable conversation context. Read it again at the start of every deictic turn, including follow-ups such as "make this bigger", "also fix this one", or "continue here".

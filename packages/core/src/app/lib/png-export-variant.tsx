@@ -1,13 +1,13 @@
 import { type Context, createContext, type ReactNode, useContext } from 'react';
 
 const globalStore = globalThis as typeof globalThis & {
-  __openCardsPngExportVariantContext?: Context<string | null>;
+  __tookaPngExportVariantContext?: Context<string | null>;
 };
 
 // The app and authored slides can load separate core module instances in dev.
 const PngExportVariantContext =
-  globalStore.__openCardsPngExportVariantContext ?? createContext<string | null>(null);
-globalStore.__openCardsPngExportVariantContext = PngExportVariantContext;
+  globalStore.__tookaPngExportVariantContext ?? createContext<string | null>(null);
+globalStore.__tookaPngExportVariantContext = PngExportVariantContext;
 
 export function PngExportVariantProvider({
   children,

@@ -4,12 +4,12 @@ import { refreshThreadsToken, validateThreadsConnection } from './threads.ts';
 describe('validateThreadsConnection', () => {
   it('validates Threads tokens and derives the account', async () => {
     const fetcher = vi.fn(async (_input: RequestInfo | URL) =>
-      Response.json({ id: '9876543210', username: 'open_cards' }),
+      Response.json({ id: '9876543210', username: 'tooka' }),
     );
 
     await expect(validateThreadsConnection('THAA-token', fetcher)).resolves.toEqual({
       ok: true,
-      account: { userId: '9876543210', username: 'open_cards' },
+      account: { userId: '9876543210', username: 'tooka' },
     });
 
     const url = new URL(String(fetcher.mock.calls[0]?.[0]));

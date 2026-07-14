@@ -1,4 +1,4 @@
-declare module 'virtual:open-cards/slides' {
+declare module 'virtual:tooka/slides' {
   import type { SlideModule } from './lib/sdk';
   export const slideIds: string[];
   export const slideThemes: Record<string, string>;
@@ -7,7 +7,7 @@ declare module 'virtual:open-cards/slides' {
   export function loadSlide(id: string): Promise<SlideModule>;
 }
 
-declare module 'virtual:open-cards/config' {
+declare module 'virtual:tooka/config' {
   import type { Locale } from '../locale/types';
 
   const config: {
@@ -25,14 +25,14 @@ declare module 'virtual:open-cards/config' {
   export default config;
 }
 
-declare module 'virtual:open-cards/folders' {
+declare module 'virtual:tooka/folders' {
   import type { FoldersManifest } from './lib/sdk';
 
   const manifest: FoldersManifest;
   export default manifest;
 }
 
-declare module 'virtual:open-cards/themes' {
+declare module 'virtual:tooka/themes' {
   import type { DesignSystem } from './lib/design';
   import type { Page } from './lib/sdk';
 

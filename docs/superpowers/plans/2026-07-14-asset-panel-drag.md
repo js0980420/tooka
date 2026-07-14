@@ -17,7 +17,7 @@
 - 不新增任何依賴。
 - 預設不寫註解；只在 WHY 非顯而易見時寫（見 repo CLAUDE.md）。
 - Git commit 使用繁體中文、Conventional Commits 格式。
-- 所有指令在 repo root（`/home/js0980420/projects/open-cards`）執行。
+- 所有指令在 repo root（`/home/js0980420/projects/tooka`）執行。
 
 ## 現有程式碼關鍵事實（實作前先讀這段）
 
@@ -230,7 +230,7 @@ git commit -m "feat: 新增 insert-image EditOp 於卡片插入圖片元素"
 **Interfaces:**
 - Consumes: `canvasScale` from `./drag`。
 - Produces（Task 3、4、5 依賴）:
-  - `ASSET_DND_TYPE: string`（`'application/x-open-cards-asset'`）
+  - `ASSET_DND_TYPE: string`（`'application/x-tooka-asset'`）
   - `type AssetScope = 'slide' | 'global'`
   - `type AssetDragPayload = { name: string; scope: AssetScope }`
   - `writeAssetDrag(dt: DataTransfer, payload: AssetDragPayload): void`
@@ -339,7 +339,7 @@ Expected: FAIL — 模組不存在。
 ```ts
 import { canvasScale } from './drag';
 
-export const ASSET_DND_TYPE = 'application/x-open-cards-asset';
+export const ASSET_DND_TYPE = 'application/x-tooka-asset';
 
 export type AssetScope = 'slide' | 'global';
 
@@ -621,7 +621,7 @@ const [assetsOpen, setAssetsOpen] = useState(false);
   useEffect(() => {
     if (!import.meta.hot) return;
     if (!slideId || !slide || pageCount === 0) return;
-    import.meta.hot.send('open-cards:current', {
+    import.meta.hot.send('tooka:current', {
       slideId,
       pageIndex: index,
       totalPages: pageCount,
@@ -741,7 +741,7 @@ export function useAssetDrop(slideId: string) {
       const root = findCardRoot(e.clientX, e.clientY);
       const loc = parseSlideLoc(root?.dataset.slideLoc);
       if (!root || !loc) {
-        console.warn('[open-cards] asset drop ignored: no slide root at drop point');
+        console.warn('[tooka] asset drop ignored: no slide root at drop point');
         return;
       }
       const coords = dropPointToCardCoords(
@@ -935,7 +935,7 @@ git commit -m "feat: 支援從 asset 面板拖曳圖片插入卡片"
 
 ```md
 ---
-'@open-cards/core': minor
+'@tooka/core': minor
 ---
 
 Add a Canva-style left asset panel with drag-to-insert images onto the card.

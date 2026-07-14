@@ -1,18 +1,18 @@
-<img width="1280" height="640" alt="open-cards github cover" src="./assets/cover.jpg" />
+<img width="1280" height="640" alt="tooka github cover" src="./assets/cover.jpg" />
 
-# open-cards
+# tooka
 
-**The card-carousel framework built for agents.** Describe your cards in natural language — your coding agent writes the React. open-cards handles the canvas, scaling, navigation, hot reload, and present mode so the agent can focus on content.
+**The card-carousel framework built for agents.** Describe your cards in natural language — your coding agent writes the React. tooka handles the canvas, scaling, navigation, hot reload, and present mode so the agent can focus on content.
 
 Every card renders into a fixed **1080 × 1350** canvas. Pages are arbitrary React components, not a constrained DSL.
 
 ```bash
-npx @open-cards/cli init my-cards
+npx @tooka/cli init my-cards
 ```
 
-## Why open-cards
+## Why tooka
 
-Cards are visual code. Agents are great at writing code. open-cards is the missing runtime that turns "make cards about X" into a polished, presentable card carousel — without you ever leaving the chat.
+Cards are visual code. Agents are great at writing code. tooka is the missing runtime that turns "make cards about X" into a polished, presentable card carousel — without you ever leaving the chat.
 
 ## Highlights
 
@@ -54,7 +54,7 @@ Outputs a plain static build — one-click deploy to Vercel, Cloudflare Pages, Z
 ## Get started
 
 ```bash
-npx @open-cards/cli init my-cards
+npx @tooka/cli init my-cards
 cd my-cards
 pnpm dev
 ```

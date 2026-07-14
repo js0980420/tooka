@@ -1,6 +1,6 @@
-# open-cards workspace
+# tooka workspace
 
-Slides as React components. Each slide lives under `slides/<id>/index.tsx` and default-exports an array of page components. The `@open-cards/core` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
+Slides as React components. Each slide lives under `slides/<id>/index.tsx` and default-exports an array of page components. The `@tooka/core` runtime handles layout, scaling, navigation, thumbnails, and fullscreen play mode — you just write the pages.
 
 ## Getting started
 
@@ -27,7 +27,7 @@ Not sure whether an image fits the canvas? Open the **Assets** page, upload it, 
 
 ```tsx
 // slides/my-slide/index.tsx
-import type { Page, SlideMeta } from '@open-cards/core';
+import type { Page, SlideMeta } from '@tooka/core';
 
 const Cover: Page = () => (
   <div style={{ width: '100%', height: '100%' }}>Hello</div>
@@ -53,16 +53,16 @@ This workspace ships with Claude Code skills preconfigured under `.claude/skills
 
 ## Config
 
-Optional `open-cards.config.ts` at the workspace root:
+Optional `tooka.config.ts` at the workspace root:
 
 ```ts
-import type { OpenCardsConfig } from '@open-cards/core';
+import type { TookaConfig } from '@tooka/core';
 
-const openCardsConfig: OpenCardsConfig = {
+const tookaConfig: TookaConfig = {
   port: 5173,
 };
 
-export default openCardsConfig;
+export default tookaConfig;
 ```
 
 Supported fields: `slidesDir`, `port`.

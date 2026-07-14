@@ -1,11 +1,11 @@
 ---
 name: apply-comments
-description: Apply pending @slide-comment markers written by the open-cards card inspector. Use when the user asks to "apply comments", "process card comments", "apply the inspector comments", or references markers left inside a carousel's `slides/{id}/index.tsx`.
+description: Apply pending @slide-comment markers written by the tooka card inspector. Use when the user asks to "apply comments", "process card comments", "apply the inspector comments", or references markers left inside a carousel's `slides/{id}/index.tsx`.
 ---
 
 # Apply card comments
 
-The open-cards editor lets the user click a rendered card element and attach a textual comment. Each comment is persisted as an in-source JSX marker inside `slides/<slideId>/index.tsx`.
+The tooka editor lets the user click a rendered card element and attach a textual comment. Each comment is persisted as an in-source JSX marker inside `slides/<slideId>/index.tsx`.
 
 Your job: read those markers, perform the described edits, and delete the markers.
 
@@ -78,6 +78,6 @@ You can run this inline via `node -e '...'` if you need to inspect a payload; ot
 
 ## Do not
 
-- Do not touch `package.json`, `open-cards.config.ts`, or files outside `slides/`.
+- Do not touch `package.json`, `tooka.config.ts`, or files outside `slides/`.
 - Do not add dependencies.
 - Do not re-introduce markers or leave `TODO` breadcrumbs — the user already has a record in git.

@@ -4,7 +4,7 @@ import {
   loadSlide as load,
   slideTemplates as templates,
   slideThemes as themes,
-} from 'virtual:open-cards/slides';
+} from 'virtual:tooka/slides';
 import type { SlideModule } from './sdk';
 
 export const slideIds: string[] = ids;
