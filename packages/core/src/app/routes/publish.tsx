@@ -1,14 +1,11 @@
 import {
   AlertCircle,
-  Camera,
   CheckCircle2,
   ChevronDown,
   FileText,
-  Globe,
   ImageIcon,
   RefreshCw,
   Send,
-  Share2,
   Sparkles,
 } from 'lucide-react';
 import { createElement, useEffect, useRef, useState } from 'react';
@@ -18,6 +15,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
 import { designToCssVars } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
 import { PngExportVariantProvider } from '../lib/png-export-variant';
@@ -445,9 +443,7 @@ export function PublishPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex size-7 items-center justify-center rounded-full bg-blue-500 text-white">
-                      <Share2 className="size-4" />
-                    </div>
+                    <FacebookIcon className="size-7" />
                     <span className="text-[13.5px] font-bold text-foreground">Facebook Page</span>
                   </div>
                   <input
@@ -496,9 +492,7 @@ export function PublishPage() {
                 <div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 text-white">
-                        <Camera className="size-4" />
-                      </div>
+                      <InstagramIcon className="size-7" />
                       <span className="text-[13.5px] font-bold text-foreground">Instagram</span>
                     </div>
                     <input
@@ -611,7 +605,7 @@ export function PublishPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="flex size-7 items-center justify-center rounded-full bg-foreground text-background">
-                      <Globe className="size-4" />
+                      <ThreadsIcon className="size-4" />
                     </div>
                     <span className="text-[13.5px] font-bold text-foreground">Threads</span>
                   </div>
@@ -707,9 +701,9 @@ export function PublishPage() {
                 <div key={platform} className="py-4 first:pt-0 last:pb-0 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold capitalize flex items-center gap-1.5 text-[13px]">
-                      {platform === 'facebook' && <Share2 className="size-4 text-blue-500" />}
-                      {platform === 'instagram' && <Camera className="size-4 text-pink-500" />}
-                      {platform === 'threads' && <Globe className="size-4 text-foreground" />}
+                      {platform === 'facebook' && <FacebookIcon className="size-4" />}
+                      {platform === 'instagram' && <InstagramIcon className="size-4" />}
+                      {platform === 'threads' && <ThreadsIcon className="size-4 text-foreground" />}
                       {platform}
                     </span>
                     <span

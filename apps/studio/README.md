@@ -11,7 +11,7 @@ pnpm dev
 
 Then open the dev server and create a new slide at `slides/<your-slide>/index.tsx`.
 
-The workspace ships with two cards: **Blank canvas** (`slides/blank/`), an empty 1080 × 1350 page — drop an image straight onto it to place it on the canvas — and **demo-carousel**, a finished example to learn from.
+The workspace ships with the **demo-carousel** card, a finished example to learn from.
 
 Not sure whether an image fits the canvas? Open the **Assets** page, upload it, and click the preview: the *Canvas fit* view overlays it on the 1080 × 1350 frame at true relative scale and tells you if the aspect ratio matches.
 

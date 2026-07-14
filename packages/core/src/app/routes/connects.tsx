@@ -1,14 +1,4 @@
-import {
-  AtSign,
-  Camera,
-  Eye,
-  EyeOff,
-  KeyRound,
-  RefreshCw,
-  Share2,
-  ShieldAlert,
-  Unplug,
-} from 'lucide-react';
+import { Eye, EyeOff, KeyRound, RefreshCw, ShieldAlert, Unplug } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -18,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
 import { FolderIconChip } from '../components/sidebar/folder-item';
 
 type InstagramTokenSource = 'instagram_login' | 'business_system_user';
@@ -237,8 +228,8 @@ function InstagramCard({ initialStatus }: { initialStatus: InstagramStatus | nul
   return (
     <section className="rounded-[10px] border border-hairline bg-card p-5 shadow-edge">
       <div className="flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-[8px] bg-brand/10 text-brand">
-          <Camera className="size-5" />
+        <div className="flex size-9 items-center justify-center rounded-[8px] bg-muted/60">
+          <InstagramIcon className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-heading text-[15px] font-semibold tracking-tight">
@@ -569,8 +560,8 @@ function FacebookPageCard({ initialStatus }: { initialStatus: FacebookStatus | n
   return (
     <section className="rounded-[10px] border border-hairline bg-card p-5 shadow-edge">
       <div className="flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-[8px] bg-brand/10 text-brand">
-          <Share2 className="size-5" />
+        <div className="flex size-9 items-center justify-center rounded-[8px] bg-muted/60">
+          <FacebookIcon className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-heading text-[15px] font-semibold tracking-tight">
@@ -823,8 +814,8 @@ function ThreadsCard({ initialStatus }: { initialStatus: ThreadsStatus | null })
   return (
     <section className="rounded-[10px] border border-hairline bg-card p-5 shadow-edge">
       <div className="flex items-center gap-3">
-        <div className="flex size-9 items-center justify-center rounded-[8px] bg-brand/10 text-brand">
-          <AtSign className="size-5" />
+        <div className="flex size-9 items-center justify-center rounded-[8px] bg-muted/60 text-foreground">
+          <ThreadsIcon className="size-5" />
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="font-heading text-[15px] font-semibold tracking-tight">
