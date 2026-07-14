@@ -1,63 +1,117 @@
-import { AtSign, Move, Share2, Sliders, Smartphone } from 'lucide-react';
+import { AtSign, Bot, Camera, Move, Share2, Smartphone, Users } from 'lucide-react';
 import type { TutorialArticle } from './tutorials-article';
 
 export const tutorialArticlesZhTW: TutorialArticle[] = [
   {
-    id: 'inspect',
-    title: '使用 Inspect 與 AI 協同修改',
-    icon: Sliders,
-    category: '核心功能',
+    id: 'ai-card-workflow',
+    title: '用 AI Agent 生圖卡並一鍵發布',
+    icon: Bot,
+    category: '快速入門',
     content: (
       <div className="space-y-6">
         <div className="rounded-xl border border-brand/20 bg-brand/5 p-5">
           <h3 className="text-brand font-semibold text-base flex items-center gap-2">
-            💡 這是什麼功能？
+            從一句提示詞，到三個社群平台
           </h3>
           <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
-            <code>tooka</code> 是專為 AI 協同開發而設計的卡片框架。右上角的 <strong>Inspect</strong>{' '}
-            審查功能讓您直接點擊畫面上的元素來指引 AI 修改程式碼，無需手動找行數或編輯位置。
+            <code>tooka</code> 讓您直接對 AI Agent 下提示詞產生整組圖卡。您可以先參考教學提供的
+            提示詞範例，再依品牌、主題與受眾手動微調；完成後連接 Instagram、Facebook 與 Threads 三大
+            Meta API，就能一次發布到所有已選平台。
           </p>
         </div>
 
         <section className="space-y-4">
-          <h4 className="text-base font-semibold">三步協作閉環 (The Loop)</h4>
-          <div className="grid gap-4 sm:grid-cols-3 text-[12.5px]">
+          <div>
+            <h4 className="text-base font-semibold">第一次製作，照這四步走</h4>
+            <p className="mt-1 text-[12.5px] text-muted-foreground">
+              不需要先學設計工具，也不必從空白提示詞開始。
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 text-[12.5px]">
             <div className="rounded-lg border bg-card p-4">
               <span className="font-mono text-brand font-bold">STEP 1</span>
-              <h5 className="font-medium mt-1">開啟 Inspect</h5>
+              <h5 className="font-medium mt-1">挑一段教學提示詞</h5>
               <p className="text-muted-foreground mt-1 leading-normal text-[11.5px]">
-                點擊編輯器右上角的 <strong>Inspect</strong>{' '}
-                按鈕，綠框會跟隨並選取滑鼠滑過的卡片元素。
+                到「提示詞」頁選擇最接近需求的範例並複製。範例已包含圖卡頁數、內容結構、版面與視覺風格，
+                可以直接作為起點。
               </p>
             </div>
             <div className="rounded-lg border bg-card p-4">
               <span className="font-mono text-brand font-bold">STEP 2</span>
-              <h5 className="font-medium mt-1">點擊留言</h5>
+              <h5 className="font-medium mt-1">交給 AI Agent 生圖卡</h5>
               <p className="text-muted-foreground mt-1 leading-normal text-[11.5px]">
-                點擊想要修改的元素，留下一句修改意見（例如：
-                <em>「把字體放大並改成 Mint Green 色」</em>）並儲存。
+                將提示詞貼給支援專案操作的 AI Agent。Agent 會依指示建立多頁圖卡，完成後可立即在
+                tooka 預覽完整輪播效果。
               </p>
             </div>
             <div className="rounded-lg border bg-card p-4">
               <span className="font-mono text-brand font-bold">STEP 3</span>
-              <h5 className="font-medium mt-1">讓 AI 自動套用</h5>
+              <h5 className="font-medium mt-1">手動微調提示詞</h5>
               <p className="text-muted-foreground mt-1 leading-normal text-[11.5px]">
-                在對話框中對 AI 助理說 <strong>「幫我套用留言修改」</strong>，AI
-                會自動去讀取原始碼中的標記並修改 React 程式碼！
+                把範例中的主題、文案、色彩或圖片描述換成自己的內容。若只想改某個元素，可用 Inspect
+                點選後留下修改提示，再請 Agent 套用留言。
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <span className="font-mono text-brand font-bold">STEP 4</span>
+              <h5 className="font-medium mt-1">連接 Meta API 一鍵發布</h5>
+              <p className="text-muted-foreground mt-1 leading-normal text-[11.5px]">
+                在 Connects 完成三個平台的 API
+                設定，進入「發布」勾選目標平台、確認貼文文案，按一次即可同步發布圖卡。
               </p>
             </div>
           </div>
         </section>
 
         <section className="space-y-3">
-          <h4 className="text-base font-semibold">原始碼中的運作機制</h4>
-          <p className="text-[13px] text-muted-foreground leading-relaxed">
-            當您保存留言時，系統會在卡片檔案中自動插入隱藏的註解標籤。您的 AI
-            代理人讀取這些標籤後即可精確對齊目標元素進行代碼重構：
-          </p>
+          <h4 className="text-base font-semibold">可以直接貼給 Agent 的提示詞</h4>
           <pre className="rounded-lg bg-muted p-4 font-mono text-[12px] text-foreground overflow-x-auto border">
-            {`{/* @slide-comment id="c-xxxx" ts="2026-07-14T00:00:00Z" text="..." */}`}
+            {`請為「自由工作者如何建立個人品牌」製作 6 張 IG 輪播圖卡。
+第一張用一句有張力的問題作為封面；中間四張各講一個可執行步驟；
+最後一張整理重點並加入收藏、分享的行動呼籲。
+使用溫暖米白底、深墨綠文字與橘紅色重點，版面簡潔、適合手機閱讀。`}
           </pre>
+          <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+            先替換引號內的主題，再調整頁數、受眾、語氣、配色與行動呼籲。描述越具體，Agent
+            越容易產出接近預期的初稿；不確定怎麼寫時，直接沿用範例也可以。
+          </p>
+          <a
+            href="/prompts"
+            className="inline-flex rounded-lg border border-brand/25 bg-brand/5 px-3.5 py-2 text-[12.5px] font-semibold text-brand transition-colors hover:bg-brand/10"
+          >
+            查看更多提示詞範例
+          </a>
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">一次串接三大 Meta API</h4>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border bg-card p-4">
+              <Camera className="size-4 text-brand" />
+              <h5 className="mt-2 text-sm font-semibold">Instagram</h5>
+              <p className="mt-1 text-[11.5px] leading-normal text-muted-foreground">
+                透過 Instagram Graph API 發布多頁輪播圖卡。
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <Users className="size-4 text-brand" />
+              <h5 className="mt-2 text-sm font-semibold">Facebook</h5>
+              <p className="mt-1 text-[11.5px] leading-normal text-muted-foreground">
+                透過 Facebook Graph API 發布粉絲專頁多圖貼文。
+              </p>
+            </div>
+            <div className="rounded-lg border bg-card p-4">
+              <AtSign className="size-4 text-brand" />
+              <h5 className="mt-2 text-sm font-semibold">Threads</h5>
+              <p className="mt-1 text-[11.5px] leading-normal text-muted-foreground">
+                透過 Threads API 發布圖卡與貼文文字。
+              </p>
+            </div>
+          </div>
+          <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+            API 只需在 Connects 設定一次。之後每組圖卡都能在發布頁自由勾選平台，不必重複上傳圖片或
+            複製貼文內容；若尚未申請權杖，可繼續閱讀後面的 Instagram 與 Threads API 教學。
+          </p>
         </section>
       </div>
     ),
