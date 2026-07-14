@@ -180,6 +180,7 @@ export function PublishPage() {
   const [commonText, setCommonText] = useState('');
 
   const [publishingPlatforms, setPublishingPlatforms] = useState<PublishPlatform[]>([]);
+  const [batchPublishing, setBatchPublishing] = useState(false);
   const [results, setResults] = useState<Partial<Record<PublishPlatform, PublishResult>>>({});
   const [captureStatus, setCaptureStatus] = useState<'idle' | 'capturing' | 'done'>('idle');
 
@@ -670,9 +671,16 @@ export function PublishPage() {
             disabled={
               isPublishing || captureStatus === 'capturing' || selectedPlatforms.length === 0
             }
-            onClick={() => handlePublish(selectedPlatforms)}
+            onClick={async () => {
+              setBatchPublishing(true);
+              try {
+                await handlePublish(selectedPlatforms);
+              } finally {
+                setBatchPublishing(false);
+              }
+            }}
           >
-            {isPublishing || captureStatus === 'capturing' ? (
+            {batchPublishing ? (
               <>
                 <RefreshCw className="size-4 animate-spin" />
                 {captureStatus === 'capturing' ? '擷取圖卡中...' : '正在同時發布...'}
