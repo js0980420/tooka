@@ -4,7 +4,7 @@
     {
       "label": "studio dev server",
       "type": "shell",
-      "command": "ss -tln | grep -q ':5173 ' || pnpm dev:studio",
+      "command": "[ -s \"$HOME/.nvm/nvm.sh\" ] && . \"$HOME/.nvm/nvm.sh\"; ss -tln | grep -q ':5173 ' || pnpm dev:studio",
       "isBackground": true,
       "runOptions": { "runOn": "folderOpen" },
       "presentation": {

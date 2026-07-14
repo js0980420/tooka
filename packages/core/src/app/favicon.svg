@@ -1,15 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32">
-  <defs>
-    <linearGradient id="tooka-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2B5CE6" />
-      <stop offset="100%" stop-color="#64FFDA" />
-    </linearGradient>
-    <linearGradient id="tooka-grad-2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1A3B8B" />
-      <stop offset="100%" stop-color="#2B5CE6" />
-    </linearGradient>
-  </defs>
-  <rect x="4" y="5.5" width="12" height="15" rx="2.5" transform="rotate(-12 10 13)" fill="url(#tooka-grad-2)" opacity="0.5"/>
-  <rect x="8.5" y="3.5" width="12" height="15" rx="2.5" fill="url(#tooka-grad-1)"/>
+  <rect x="4" y="5.5" width="12" height="15" rx="2.5" transform="rotate(-12 10 13)" fill="#de3b3d" opacity="0.4"/>
+  <rect x="8.5" y="3.5" width="12" height="15" rx="2.5" fill="#de3b3d"/>
   <path d="M14.5 7.4c0 2.2-1.4 3.6-3.6 3.6 2.2 0 3.6 1.4 3.6 3.6 0-2.2 1.4-3.6 3.6-3.6-2.2 0-3.6-1.4-3.6-3.6Z" fill="#ffffff"/>
 </svg>
