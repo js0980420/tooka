@@ -41,6 +41,7 @@ export const en: Locale = {
     duplicate: 'Duplicate',
     templates: 'Templates',
     assets: 'Assets',
+    connects: 'Connects',
     folders: 'Folders',
     slides: 'Cards',
     menu: 'Menu',
@@ -436,6 +437,29 @@ export const en: Locale = {
     statusSaving: 'Saving…',
     statusSaved: 'Saved',
     statusError: 'Save failed: {msg}',
+  },
+
+  connects: {
+    title: 'Connects',
+    subtitle: 'Connect external services. Credentials stay on your machine.',
+    instagramTitle: 'Instagram API',
+    instagramDesc:
+      'Fill in your Instagram Graph API access token and account ID to enable auto-publishing carousels.',
+    tokenLabel: 'Access Token',
+    userIdLabel: 'IG User ID',
+    tokenPlaceholder: 'EAAG…',
+    userIdPlaceholder: '17841400000000000',
+    connected: 'Connected',
+    notConnected: 'Not connected',
+    savedTokenLabel: 'Saved token',
+    save: 'Save',
+    saving: 'Saving',
+    toastSaved: 'Saved to .env in your project',
+    toastSaveFailed: 'Could not save credentials.',
+    toastInvalid: 'Values must have no spaces or line breaks.',
+    envNote:
+      'Credentials are written to the .env file in your project root and .env is added to .gitignore — they never leave this machine or enter version control.',
+    tutorialLink: 'How to apply for the Instagram API',
   },
 
   templates: {

@@ -40,6 +40,7 @@ export const ja: Locale = {
     draft: '下書き',
     duplicate: '複製',
     templates: 'テンプレート',
+    connects: 'Connects',
     assets: 'アセット',
     folders: 'フォルダ',
     slides: 'Cards',
@@ -439,6 +440,29 @@ export const ja: Locale = {
     statusSaving: '保存中…',
     statusSaved: '保存済み',
     statusError: '保存に失敗しました: {msg}',
+  },
+
+  connects: {
+    title: 'Connects',
+    subtitle: '外部サービスと連携します。認証情報はこの端末から出ません。',
+    instagramTitle: 'Instagram API',
+    instagramDesc:
+      'Instagram Graph API のアクセストークンとアカウント ID を入力すると、カルーセルの自動投稿が使えます。',
+    tokenLabel: 'Access Token',
+    userIdLabel: 'IG User ID',
+    tokenPlaceholder: 'EAAG…',
+    userIdPlaceholder: '17841400000000000',
+    connected: '接続済み',
+    notConnected: '未接続',
+    savedTokenLabel: '保存済みトークン',
+    save: '保存',
+    saving: '保存中',
+    toastSaved: 'プロジェクトの .env に書き込みました',
+    toastSaveFailed: '認証情報を保存できませんでした。',
+    toastInvalid: '空白や改行は使えません。',
+    envNote:
+      '認証情報はプロジェクト直下の .env に書き込まれ、.env は .gitignore に自動追加されます — この端末の外には出ず、バージョン管理にも入りません。',
+    tutorialLink: 'Instagram API の申請方法',
   },
 
   templates: {

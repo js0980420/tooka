@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Copy, Plus, Trash2, Edit3, Check, Save } from 'lucide-react';
+import { Check, Copy, Edit3, Plus, Save, Sparkles, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -17,36 +17,41 @@ const BUILT_IN_PROMPTS: PromptItem[] = [
     title: '圖卡 1：科技風封面 (Hook)',
     category: '開源圖卡實例',
     isBuiltIn: true,
-    content: '幫我設計一張 IG 圖卡封面，標題是「我開發了一個開源圖文卡片工具」，副標題為「這篇輪播圖就是用這個工具做的」，風格採用現代科技風，主色調為深藍色，加上一個 Canva 式拖曳和防 IG 裁切的標籤按鈕。'
+    content:
+      '幫我設計一張 IG 圖卡封面，標題是「我開發了一個開源圖文卡片工具」，副標題為「這篇輪播圖就是用這個工具做的」，風格採用現代科技風，主色調為深藍色，加上一個 Canva 式拖曳和防 IG 裁切的標籤按鈕。',
   },
   {
     id: 'carousel-p2',
     title: '圖卡 2：功能痛點與介紹 (Describe)',
     category: '開源圖卡實例',
     isBuiltIn: true,
-    content: '幫我建立一張功能介紹卡。大標題為「解決 AI 生圖隨機性太高、容易跑版痛點」，下方列出三個圓圈數字點，標題與子說明分別是：「1. 元素可自由拖曳，像 Canva 一樣 (直接拖動元素，微調位置與留白)」、「2. 防 IG 裁切，提供安全區域 (提供 IG 尺寸，上下左右適度留白)」、「3. 固定視覺風格，維持品牌一致性 (固定視覺風格，保持品牌一致性)」。'
+    content:
+      '幫我建立一張功能介紹卡。大標題為「解決 AI 生圖隨機性太高、容易跑版痛點」，下方列出三個圓圈數字點，標題與子說明分別是：「1. 元素可自由拖曳，像 Canva 一樣 (直接拖動元素，微調位置與留白)」、「2. 防 IG 裁切，提供安全區域 (提供 IG 尺寸，上下左右適度留白)」、「3. 固定視覺風格，維持品牌一致性 (固定視覺風格，保持品牌一致性)」。',
   },
   {
     id: 'carousel-p3',
     title: '圖卡 3：自然語言修圖功能 (Refine)',
     category: '開源圖卡實例',
     isBuiltIn: true,
-    content: '建立一張介紹修圖功能的卡片，大標題是「用自然語言修圖」，副標題是「不只拖曳，開口說就能改」，下方有兩個介紹點：「1. 整張卡下提示詞 (一句話調整整體版面與風格)」、「2. 選取元素再下提示詞 (只針對選中的區塊，精準修改)」。'
+    content:
+      '建立一張介紹修圖功能的卡片，大標題是「用自然語言修圖」，副標題是「不只拖曳，開口說就能改」，下方有兩個介紹點：「1. 整張卡下提示詞 (一句話調整整體版面與風格)」、「2. 選取元素再下提示詞 (只針對選中的區塊，精準修改)」。',
   },
   {
     id: 'carousel-p4',
     title: '圖卡 4：下載版型規格說明 (Export)',
     category: '開源圖卡實例',
     isBuiltIn: true,
-    content: '幫我設計一張規格說明卡。標題為「下載時，選對版型」，副標題為「兩種都是 4:5，差別在重要資訊的安全距離」。下方用兩個卡片框展示規格：「IG 直式 (左右 72px、上下 60px)」與「IG 正方 (左右至少 144px、上下 220px)」，並在底部附上一句警示語「為什麼？4:5 置中裁成正方形時，上下各會少 135px」。'
+    content:
+      '幫我設計一張規格說明卡。標題為「下載時，選對版型」，副標題為「兩種都是 4:5，差別在重要資訊的安全距離」。下方用兩個卡片框展示規格：「IG 直式 (左右 72px、上下 60px)」與「IG 正方 (左右至少 144px、上下 220px)」，並在底部附上一句警示語「為什麼？4:5 置中裁成正方形時，上下各會少 135px」。',
   },
   {
     id: 'carousel-p5',
     title: '圖卡 5：互動與留言引流 (Cta)',
     category: '開源圖卡實例',
     isBuiltIn: true,
-    content: '建立一張結尾 CTA 卡片。中間有一個白色圓角底框作為焦點，底框上方有一個藍色膠囊標籤寫著「GET LINK」，底框內大標題是「底下留言圖文卡片」，副標題是「我把工具連結傳給你」。'
-  }
+    content:
+      '建立一張結尾 CTA 卡片。中間有一個白色圓角底框作為焦點，底框上方有一個藍色膠囊標籤寫著「GET LINK」，底框內大標題是「底下留言圖文卡片」，副標題是「我把工具連結傳給你」。',
+  },
 ];
 
 export function PromptsPage() {
@@ -100,7 +105,7 @@ export function PromptsPage() {
       const updated = prompts.map((p) =>
         p.id === editingId
           ? { ...p, title: formTitle, category: formCategory, content: formContent }
-          : p
+          : p,
       );
       saveToStorage(updated);
       setEditingId(null);
@@ -181,10 +186,10 @@ export function PromptsPage() {
                       setIsAdding(false);
                     }}
                     className={cn(
-                      "group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[12.5px] font-medium transition-colors text-left",
+                      'group flex w-full items-center justify-between rounded-lg px-3 py-2 text-[12.5px] font-medium transition-colors text-left',
                       active
-                        ? "bg-brand/10 text-brand"
-                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                        ? 'bg-brand/10 text-brand'
+                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                     )}
                   >
                     <div className="truncate pr-2">
@@ -229,7 +234,9 @@ export function PromptsPage() {
               </h2>
               <form onSubmit={handleCreateOrUpdate} className="space-y-4 text-[13px]">
                 <div className="space-y-1">
-                  <label htmlFor="p-title" className="font-semibold text-muted-foreground">標題名稱</label>
+                  <label htmlFor="p-title" className="font-semibold text-muted-foreground">
+                    標題名稱
+                  </label>
                   <input
                     id="p-title"
                     type="text"
@@ -241,7 +248,9 @@ export function PromptsPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="p-category" className="font-semibold text-muted-foreground">分類</label>
+                  <label htmlFor="p-category" className="font-semibold text-muted-foreground">
+                    分類
+                  </label>
                   <input
                     id="p-category"
                     type="text"
@@ -252,7 +261,9 @@ export function PromptsPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="p-content" className="font-semibold text-muted-foreground">提示詞內容</label>
+                  <label htmlFor="p-content" className="font-semibold text-muted-foreground">
+                    提示詞內容
+                  </label>
                   <textarea
                     id="p-content"
                     required
@@ -272,11 +283,7 @@ export function PromptsPage() {
                   >
                     取消
                   </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="gap-1.5"
-                  >
+                  <Button type="submit" size="sm" className="gap-1.5">
                     <Save className="size-4" />
                     儲存
                   </Button>
@@ -321,7 +328,8 @@ export function PromptsPage() {
               <div className="rounded-lg border border-brand/15 bg-brand/5 p-4 text-[12px] text-muted-foreground leading-normal space-y-1.5">
                 <span className="font-bold text-brand block">💡 使用技巧：</span>
                 <p>
-                  點擊右上角的複製按鈕後，您可以在與 AI 助理對話時直接貼上此段提示詞，並根據需要修改其中的文字（例如卡片主題、標題文字、或主色調等），即可快速產出精美的圖文卡片原始碼。
+                  點擊右上角的複製按鈕後，您可以在與 AI
+                  助理對話時直接貼上此段提示詞，並根據需要修改其中的文字（例如卡片主題、標題文字、或主色調等），即可快速產出精美的圖文卡片原始碼。
                 </p>
               </div>
             </div>

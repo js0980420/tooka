@@ -82,6 +82,9 @@ type Row =
     }
   | {
       kind: 'prompts';
+    }
+  | {
+      kind: 'connects';
     };
 
 export function FolderItem({
@@ -145,7 +148,9 @@ export function FolderItem({
               ? { type: 'emoji', value: '📚' }
               : row.kind === 'prompts'
                 ? { type: 'emoji', value: '✍️' }
-                : row.folder.icon;
+                : row.kind === 'connects'
+                  ? { type: 'emoji', value: '🔌' }
+                  : row.folder.icon;
   const label =
     row.kind === 'all'
       ? t.home.slides
@@ -159,7 +164,9 @@ export function FolderItem({
               ? 'Help'
               : row.kind === 'prompts'
                 ? 'Prompts'
-                : row.folder.name;
+                : row.kind === 'connects'
+                  ? t.home.connects
+                  : row.folder.name;
 
   const commitRename = () => {
     if (row.kind !== 'folder') return;

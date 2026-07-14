@@ -3,13 +3,14 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from './components/ui/sonner';
 import { useLocale } from './lib/use-locale';
 import { AssetsPage } from './routes/assets';
+import { ConnectsPage } from './routes/connects';
 import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
 import { Presenter } from './routes/presenter';
+import { PromptsPage } from './routes/prompts';
 import { Slide } from './routes/slide';
 import { TemplateDetailPage, TemplatesGalleryPage } from './routes/templates';
 import { TutorialsPage } from './routes/tutorials';
-import { PromptsPage } from './routes/prompts';
 
 export function App() {
   return (
@@ -21,6 +22,7 @@ export function App() {
             <Route path="/templates" element={<TemplatesGalleryPage />} />
             <Route path="/templates/:templateId" element={<TemplateDetailPage />} />
             <Route path="/assets" element={<AssetsPage />} />
+            <Route path="/connects" element={<ConnectsPage />} />
             <Route path="/tutorials" element={<TutorialsPage />} />
             <Route path="/prompts" element={<PromptsPage />} />
           </Route>

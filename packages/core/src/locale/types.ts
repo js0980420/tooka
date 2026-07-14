@@ -41,6 +41,7 @@ export type Locale = {
     duplicate: string;
     templates: string;
     assets: string;
+    connects: string;
     folders: string;
     slides: string;
     menu: string;
@@ -468,6 +469,27 @@ export type Locale = {
     statusSaved: string;
     /** template: "Save failed: {msg}" */
     statusError: string;
+  };
+
+  connects: {
+    title: string;
+    subtitle: string;
+    instagramTitle: string;
+    instagramDesc: string;
+    tokenLabel: string;
+    userIdLabel: string;
+    tokenPlaceholder: string;
+    userIdPlaceholder: string;
+    connected: string;
+    notConnected: string;
+    savedTokenLabel: string;
+    save: string;
+    saving: string;
+    toastSaved: string;
+    toastSaveFailed: string;
+    toastInvalid: string;
+    envNote: string;
+    tutorialLink: string;
   };
 
   templates: {

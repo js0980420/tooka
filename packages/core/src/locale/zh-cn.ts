@@ -40,6 +40,7 @@ export const zhCN: Locale = {
     draft: '草稿',
     duplicate: '复制',
     templates: '模板',
+    connects: 'Connects',
     assets: '素材',
     folders: '文件夹',
     slides: 'Cards',
@@ -435,6 +436,28 @@ export const zhCN: Locale = {
     statusSaving: '保存中…',
     statusSaved: '已保存',
     statusError: '保存失败：{msg}',
+  },
+
+  connects: {
+    title: 'Connects',
+    subtitle: '连接外部服务。凭证只会留在你的电脑上。',
+    instagramTitle: 'Instagram API',
+    instagramDesc: '填入 Instagram Graph API 的 Access Token 与账号 ID，即可自动发布轮播图。',
+    tokenLabel: 'Access Token',
+    userIdLabel: 'IG User ID',
+    tokenPlaceholder: 'EAAG…',
+    userIdPlaceholder: '17841400000000000',
+    connected: '已连接',
+    notConnected: '尚未连接',
+    savedTokenLabel: '已保存的 Token',
+    save: '保存',
+    saving: '保存中',
+    toastSaved: '已写入项目的 .env',
+    toastSaveFailed: '无法保存凭证。',
+    toastInvalid: '内容不能包含空格或换行。',
+    envNote:
+      '凭证会写入项目根目录的 .env，且 .env 会自动加入 .gitignore — 不会离开这台电脑，也不会进入版本控制。',
+    tutorialLink: '如何申请 Instagram API',
   },
 
   templates: {

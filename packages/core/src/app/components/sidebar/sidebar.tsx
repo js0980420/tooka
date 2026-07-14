@@ -16,6 +16,7 @@ export const DRAFT_ID = 'draft';
 export const TEMPLATES_ID = '__templates__';
 export const PROMPTS_ID = '__prompts__';
 export const ASSETS_ID = '__assets__';
+export const CONNECTS_ID = '__connects__';
 export const TUTORIALS_ID = '__tutorials__';
 
 export const FOLDER_DND_MIME = 'application/x-folder-id';
@@ -165,6 +166,15 @@ export function Sidebar({
             count={assetsCount}
             selected={selectedId === ASSETS_ID}
             onSelect={() => onSelect(ASSETS_ID)}
+            onDropSlide={() => {}}
+          />
+        )}
+        {import.meta.env.DEV && (
+          <FolderItem
+            row={{ kind: 'connects' }}
+            count={0}
+            selected={selectedId === CONNECTS_ID}
+            onSelect={() => onSelect(CONNECTS_ID)}
             onDropSlide={() => {}}
           />
         )}

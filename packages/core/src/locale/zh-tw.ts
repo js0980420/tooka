@@ -40,6 +40,7 @@ export const zhTW: Locale = {
     draft: '草稿',
     duplicate: '複製',
     templates: '模板',
+    connects: 'Connects',
     assets: '素材',
     folders: '資料夾',
     slides: 'Cards',
@@ -435,6 +436,28 @@ export const zhTW: Locale = {
     statusSaving: '儲存中…',
     statusSaved: '已儲存',
     statusError: '儲存失敗：{msg}',
+  },
+
+  connects: {
+    title: 'Connects',
+    subtitle: '連接外部服務。憑證只會留在你的電腦上。',
+    instagramTitle: 'Instagram API',
+    instagramDesc: '填入 Instagram Graph API 的 Access Token 與帳號 ID，即可自動發佈輪播圖。',
+    tokenLabel: 'Access Token',
+    userIdLabel: 'IG User ID',
+    tokenPlaceholder: 'EAAG…',
+    userIdPlaceholder: '17841400000000000',
+    connected: '已連接',
+    notConnected: '尚未連接',
+    savedTokenLabel: '已儲存的 Token',
+    save: '儲存',
+    saving: '儲存中',
+    toastSaved: '已寫入專案的 .env',
+    toastSaveFailed: '無法儲存憑證。',
+    toastInvalid: '內容不能包含空格或換行。',
+    envNote:
+      '憑證會寫入專案根目錄的 .env，且 .env 會自動加入 .gitignore — 不會離開這台電腦，也不會進入版本控制。',
+    tutorialLink: '如何申請 Instagram API',
   },
 
   templates: {
