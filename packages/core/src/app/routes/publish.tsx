@@ -4,7 +4,9 @@ import {
   ChevronDown,
   FileText,
   ImageIcon,
+  Plug,
   RefreshCw,
+  Rocket,
   Send,
   Sparkles,
 } from 'lucide-react';
@@ -357,25 +359,25 @@ export function PublishPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-background p-6 text-foreground">
-      <div className="mx-auto max-w-4xl space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex h-6 items-center justify-center rounded-full bg-brand/10 px-2.5 text-[11px] font-semibold text-brand">
-              {t.publish.eyebrow}
-            </span>
-            <PageTabs
-              tabs={[
-                { label: t.home.publish, path: '/publish' },
-                { label: t.home.connects, path: '/connects' },
-              ]}
-            />
-          </div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight mt-1">{t.publish.title}</h1>
-          <p className="text-[13px] text-muted-foreground">{t.publish.subtitle}</p>
+    <div className="max-w-4xl text-foreground">
+      <header className="mb-8 md:mb-12">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Rocket className="size-5 text-brand" />
+          <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">
+            {t.publish.title}
+          </h1>
+          <PageTabs
+            className="ml-auto"
+            tabs={[
+              { label: t.home.publish, path: '/publish', icon: Rocket },
+              { label: t.home.connects, path: '/connects', icon: Plug },
+            ]}
+          />
         </div>
+        <p className="mt-2 text-[13px] text-muted-foreground">{t.publish.subtitle}</p>
+      </header>
 
+      <div className="flex flex-col gap-6">
         {/* Card and Sync Tools */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
           {/* Card Selection */}

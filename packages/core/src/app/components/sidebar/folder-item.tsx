@@ -1,4 +1,13 @@
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import {
+  BookOpen,
+  LayoutGrid,
+  LayoutTemplate,
+  MoreHorizontal,
+  Pencil,
+  PencilLine,
+  Rocket,
+  Trash2,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
   DropdownMenu,
@@ -13,6 +22,14 @@ import { cn } from '@/lib/utils';
 import { IconPicker } from './icon-picker';
 
 export const SLIDE_DND_MIME = 'application/x-slide-id';
+
+const BUILTIN_ICONS = {
+  all: LayoutGrid,
+  draft: PencilLine,
+  templates: LayoutTemplate,
+  publish: Rocket,
+  tutorials: BookOpen,
+} as const;
 
 function useSlideDragActive() {
   const [active, setActive] = useState(false);
@@ -129,18 +146,7 @@ export function FolderItem({
     onDropSlide(slideId);
   };
 
-  const icon: FolderIcon =
-    row.kind === 'all'
-      ? { type: 'emoji', value: '🎴' }
-      : row.kind === 'draft'
-        ? { type: 'emoji', value: '📝' }
-        : row.kind === 'templates'
-          ? { type: 'emoji', value: '🎨' }
-          : row.kind === 'tutorials'
-            ? { type: 'emoji', value: '📚' }
-            : row.kind === 'publish'
-              ? { type: 'emoji', value: '🚀' }
-              : row.folder.icon;
+  const BuiltinIcon = row.kind === 'folder' ? null : BUILTIN_ICONS[row.kind];
   const label =
     row.kind === 'all'
       ? t.home.slides
@@ -188,7 +194,7 @@ export function FolderItem({
                 aria-label={t.home.changeIcon}
                 onClick={(e) => e.stopPropagation()}
               >
-                <FolderIconChip icon={icon} />
+                <FolderIconChip icon={row.folder.icon} />
               </button>
             }
           />
@@ -203,7 +209,11 @@ export function FolderItem({
           aria-label={label}
           className="flex size-5 shrink-0 items-center justify-center"
         >
-          <FolderIconChip icon={icon} />
+          {BuiltinIcon ? (
+            <BuiltinIcon className="size-4" />
+          ) : (
+            row.kind === 'folder' && <FolderIconChip icon={row.folder.icon} />
+          )}
         </button>
       )}
 

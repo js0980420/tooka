@@ -1,42 +1,36 @@
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { zhTW } from '../../locale/zh-tw';
 import { PageTabs } from '../components/page-tabs';
-import type { TutorialArticle } from './tutorials-article';
-import { tutorialArticlesEn } from './tutorials-en';
-import { tutorialArticlesZhCN } from './tutorials-zh-cn';
 import { tutorialArticlesZhTW } from './tutorials-zh-tw';
 
-const ARTICLES: Record<string, TutorialArticle[]> = {
-  'zh-TW': tutorialArticlesZhTW,
-  en: tutorialArticlesEn,
-  'zh-CN': tutorialArticlesZhCN,
-};
-
 export function TutorialsPage() {
-  const t = useLocale();
   const [activeId, setActiveId] = useState('inspect');
 
-  const articles = ARTICLES[t.id] ?? tutorialArticlesZhTW;
+  const t = zhTW;
+  const articles = tutorialArticlesZhTW;
   const currentArticle = articles.find((a) => a.id === activeId) ?? articles[0];
   const ActiveIcon = currentArticle.icon;
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-hairline px-6 py-4 md:py-6">
-        <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl flex items-center gap-2.5">
+      <header className="mb-8 md:mb-12">
+        <div className="flex flex-wrap items-center gap-2.5">
           <BookOpen className="size-5 text-brand" />
-          {t.tutorials.pageTitle}
-        </h1>
-        <PageTabs
-          tabs={[
-            { label: t.home.tutorials, path: '/tutorials' },
-            { label: t.home.prompts, path: '/prompts' },
-          ]}
-        />
-      </div>
-      <div className="flex flex-1 overflow-hidden">
+          <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">
+            {t.tutorials.pageTitle}
+          </h1>
+          <PageTabs
+            className="ml-auto"
+            tabs={[
+              { label: t.home.tutorials, path: '/tutorials', icon: BookOpen },
+              { label: t.home.prompts, path: '/prompts', icon: Sparkles },
+            ]}
+          />
+        </div>
+      </header>
+      <div className="flex flex-1 overflow-hidden border-t border-hairline">
         <div className="w-64 shrink-0 border-r border-hairline bg-card/30 overflow-y-auto p-4 space-y-4">
           <div>
             <span className="eyebrow text-xs tracking-wider opacity-60 px-3">

@@ -1,4 +1,4 @@
-import { Eye, EyeOff, KeyRound, RefreshCw, ShieldAlert, Unplug } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Plug, RefreshCw, Rocket, ShieldAlert, Unplug } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -10,7 +10,6 @@ import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
 import { PageTabs } from '../components/page-tabs';
-import { FolderIconChip } from '../components/sidebar/folder-item';
 
 type InstagramTokenSource = 'instagram_login' | 'business_system_user';
 
@@ -75,15 +74,15 @@ export function ConnectsPage() {
     <>
       <header className="mb-8 md:mb-12">
         <div className="flex flex-wrap items-center gap-3">
-          <FolderIconChip icon={{ type: 'emoji', value: '🔌' }} className="size-7 text-2xl" />
-          <h1 className="font-heading text-[32px] font-semibold leading-[1.05] tracking-[-0.025em] md:text-[44px]">
+          <Plug className="size-5 text-brand" />
+          <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">
             {t.connects.title}
           </h1>
           <PageTabs
             className="ml-auto"
             tabs={[
-              { label: t.home.publish, path: '/publish' },
-              { label: t.home.connects, path: '/connects' },
+              { label: t.home.publish, path: '/publish', icon: Rocket },
+              { label: t.home.connects, path: '/connects', icon: Plug },
             ]}
           />
         </div>

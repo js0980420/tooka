@@ -1,7 +1,12 @@
+import type { ComponentType } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-export type PageTab = { label: string; path: string };
+export type PageTab = {
+  label: string;
+  path: string;
+  icon?: ComponentType<{ className?: string }>;
+};
 
 export function PageTabs({ tabs, className }: { tabs: PageTab[]; className?: string }) {
   const { pathname } = useLocation();
@@ -19,6 +24,7 @@ export function PageTabs({ tabs, className }: { tabs: PageTab[]; className?: str
     >
       {tabs.map((tab) => {
         const active = isActive(tab.path);
+        const Icon = tab.icon;
         return (
           <button
             key={tab.path}
@@ -28,10 +34,11 @@ export function PageTabs({ tabs, className }: { tabs: PageTab[]; className?: str
               if (!active) navigate(tab.path, { replace: true });
             }}
             className={cn(
-              'h-6 rounded-[5px] px-2.5 text-[12px] font-medium transition-colors',
+              'flex h-6 items-center gap-1.5 rounded-[5px] px-2.5 text-[12px] font-medium transition-colors',
               active ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground',
             )}
           >
+            {Icon && <Icon className="size-3.5" />}
             {tab.label}
           </button>
         );

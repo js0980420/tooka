@@ -1,4 +1,4 @@
-import { Menu } from 'lucide-react';
+import { BookOpen, LayoutGrid, LayoutTemplate, Menu, Rocket } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -13,7 +13,6 @@ import {
 import { useFolders } from '@/lib/folders';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { FolderIconChip } from '../components/sidebar/folder-item';
 import {
   ALL_SLIDES_ID,
   PUBLISH_ID,
@@ -211,7 +210,7 @@ export function HomeShell() {
                       'bg-muted text-foreground',
                   )}
                 >
-                  <FolderIconChip icon={{ type: 'emoji', value: '🎴' }} />
+                  <LayoutGrid className="size-4" />
                   <span className="flex-1 truncate">{t.home.slides}</span>
                   <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
@@ -219,7 +218,7 @@ export function HomeShell() {
                   onClick={() => selectFolder(TEMPLATES_ID)}
                   className={cn(selectedId === TEMPLATES_ID && 'bg-muted text-foreground')}
                 >
-                  <FolderIconChip icon={{ type: 'emoji', value: '🎨' }} />
+                  <LayoutTemplate className="size-4" />
                   <span className="flex-1 truncate">{t.home.templates}</span>
                   <span className="folio">{slideTemplates.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
@@ -228,7 +227,7 @@ export function HomeShell() {
                     onClick={() => selectFolder(PUBLISH_ID)}
                     className={cn(selectedId === PUBLISH_ID && 'bg-muted text-foreground')}
                   >
-                    <FolderIconChip icon={{ type: 'emoji', value: '🚀' }} />
+                    <Rocket className="size-4" />
                     <span className="flex-1 truncate">{t.home.publish}</span>
                   </DropdownMenuItem>
                 )}
@@ -236,7 +235,7 @@ export function HomeShell() {
                   onClick={() => selectFolder(TUTORIALS_ID)}
                   className={cn(selectedId === TUTORIALS_ID && 'bg-muted text-foreground')}
                 >
-                  <FolderIconChip icon={{ type: 'emoji', value: '📚' }} />
+                  <BookOpen className="size-4" />
                   <span className="flex-1 truncate">{t.home.tutorials}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

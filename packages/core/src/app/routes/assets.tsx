@@ -1,3 +1,4 @@
+import { ImageIcon, LayoutGrid } from 'lucide-react';
 import { useLocale } from '@/lib/use-locale';
 import { AssetView } from '../components/asset-view';
 import { PageTabs } from '../components/page-tabs';
@@ -11,8 +12,8 @@ export function AssetsPage() {
         headerTabs={
           <PageTabs
             tabs={[
-              { label: t.home.slides, path: '/' },
-              { label: t.home.assets, path: '/assets' },
+              { label: t.home.slides, path: '/', icon: LayoutGrid },
+              { label: t.home.assets, path: '/assets', icon: ImageIcon },
             ]}
           />
         }

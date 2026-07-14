@@ -5,9 +5,12 @@ import {
   Copy,
   FolderInput,
   FolderPlus,
+  ImageIcon,
+  LayoutGrid,
   MoreHorizontal,
   Palette,
   Pencil,
+  PencilLine,
   Search,
   Trash2,
   X,
@@ -98,10 +101,7 @@ export function Home() {
       : (slidesByFolder[selectedId] ?? []);
 
   const title = selectedFolder?.name ?? (isAll ? t.home.slides : t.home.draft);
-  const headerIcon = selectedFolder?.icon ?? {
-    type: 'emoji' as const,
-    value: isAll ? '🎴' : '📝',
-  };
+  const HeaderIcon = isAll ? LayoutGrid : PencilLine;
 
   const [query, setQuery] = useState('');
   const [sortKey, setSortKey] = useSortPref();
@@ -138,11 +138,13 @@ export function Home() {
   return (
     <>
       <header className="mb-8 md:mb-12">
-        <div className="flex flex-wrap items-center gap-3">
-          <FolderIconChip icon={headerIcon} className="size-7 text-2xl" />
-          <h1 className="font-heading text-[32px] font-semibold leading-[1.05] tracking-[-0.025em] md:text-[44px]">
-            {title}
-          </h1>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {selectedFolder ? (
+            <FolderIconChip icon={selectedFolder.icon} className="size-5 text-lg" />
+          ) : (
+            <HeaderIcon className="size-5 text-brand" />
+          )}
+          <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">{title}</h1>
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -160,7 +162,7 @@ export function Home() {
                 onClick={() => selectFolder(ALL_SLIDES_ID)}
                 className={cn(isAll && 'bg-muted text-foreground')}
               >
-                <FolderIconChip icon={{ type: 'emoji', value: '🎴' }} />
+                <LayoutGrid className="size-4" />
                 <span className="flex-1 truncate">{t.home.slides}</span>
                 <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>
@@ -168,7 +170,7 @@ export function Home() {
                 onClick={() => selectFolder(DRAFT_ID)}
                 className={cn(isDraft && 'bg-muted text-foreground')}
               >
-                <FolderIconChip icon={{ type: 'emoji', value: '📝' }} />
+                <PencilLine className="size-4" />
                 <span className="flex-1 truncate">{t.home.draft}</span>
                 <span className="folio">{draftSlides.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>
@@ -188,7 +190,7 @@ export function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
           {!loading && (
-            <span className="folio ml-1 self-end pb-2">
+            <span className="folio ml-1">
               {(isSearching ? filteredSlides.length : visibleSlides.length)
                 .toString()
                 .padStart(2, '0')}
@@ -203,8 +205,8 @@ export function Home() {
             {import.meta.env.DEV && (
               <PageTabs
                 tabs={[
-                  { label: t.home.slides, path: '/' },
-                  { label: t.home.assets, path: '/assets' },
+                  { label: t.home.slides, path: '/', icon: LayoutGrid },
+                  { label: t.home.assets, path: '/assets', icon: ImageIcon },
                 ]}
               />
             )}

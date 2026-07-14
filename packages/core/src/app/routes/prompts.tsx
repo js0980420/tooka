@@ -1,4 +1,4 @@
-import { Check, Copy, Edit3, Plus, Save, Sparkles, Trash2 } from 'lucide-react';
+import { BookOpen, Check, Copy, Edit3, Plus, Save, Sparkles, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/lib/use-locale';
@@ -118,36 +118,38 @@ export function PromptsPage() {
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
-      <div className="flex items-center justify-between border-b border-hairline px-6 py-4 md:py-6">
-        <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl flex items-center gap-2.5">
+      <header className="mb-8 md:mb-12">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Sparkles className="size-5 text-brand" />
-          {t.prompts.title}
-        </h1>
-        <div className="flex items-center gap-2">
-          <PageTabs
-            tabs={[
-              { label: t.home.tutorials, path: '/tutorials' },
-              { label: t.home.prompts, path: '/prompts' },
-            ]}
-          />
-          <Button
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={() => {
-              setIsAdding(true);
-              setEditingId(null);
-              setFormTitle('');
-              setFormCategory('');
-              setFormContent('');
-            }}
-          >
-            <Plus className="size-4" />
-            {t.prompts.addPrompt}
-          </Button>
+          <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">
+            {t.prompts.title}
+          </h1>
+          <div className="ml-auto flex items-center gap-2">
+            <PageTabs
+              tabs={[
+                { label: t.home.tutorials, path: '/tutorials', icon: BookOpen },
+                { label: t.home.prompts, path: '/prompts', icon: Sparkles },
+              ]}
+            />
+            <Button
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => {
+                setIsAdding(true);
+                setEditingId(null);
+                setFormTitle('');
+                setFormCategory('');
+                setFormContent('');
+              }}
+            >
+              <Plus className="size-4" />
+              {t.prompts.addPrompt}
+            </Button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden border-t border-hairline">
         <div className="w-72 shrink-0 border-r border-hairline bg-card/30 overflow-y-auto p-4 space-y-4">
           <div>
             <span className="eyebrow text-xs tracking-wider opacity-60 px-3">

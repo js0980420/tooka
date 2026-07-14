@@ -1,6 +1,6 @@
+import { LayoutTemplate } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLocale } from '@/lib/use-locale';
-import { FolderIconChip } from '../components/sidebar/folder-item';
 import { TemplateDetail } from '../components/templates/template-detail';
 import { TemplatesGallery } from '../components/templates/templates-gallery';
 import { slideTemplates } from '../lib/slides';
@@ -11,14 +11,12 @@ export function TemplatesGalleryPage() {
   return (
     <>
       <header className="mb-8 md:mb-12">
-        <div className="flex flex-wrap items-center gap-3">
-          <FolderIconChip icon={{ type: 'emoji', value: '🎨' }} className="size-7 text-2xl" />
-          <h1 className="font-heading text-[32px] font-semibold leading-[1.05] tracking-[-0.025em] md:text-[44px]">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <LayoutTemplate className="size-5 text-brand" />
+          <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">
             {t.templates.title}
           </h1>
-          <span className="folio ml-1 self-end pb-2">
-            {slideTemplates.length.toString().padStart(2, '0')}
-          </span>
+          <span className="folio ml-1">{slideTemplates.length.toString().padStart(2, '0')}</span>
         </div>
       </header>
       <TemplatesGallery onOpen={(id) => navigate(`/templates/${encodeURIComponent(id)}`)} />
