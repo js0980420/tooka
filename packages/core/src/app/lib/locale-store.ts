@@ -1,4 +1,3 @@
-import config from 'virtual:open-cards/config';
 import { useSyncExternalStore } from 'react';
 import { en } from '../../locale/en';
 import { ja } from '../../locale/ja';
@@ -23,7 +22,6 @@ export const LOCALE_OPTIONS: ReadonlyArray<{ id: LocaleId; label: string }> = [
 ];
 
 const STORAGE_KEY = 'open-cards:locale';
-const configLocale = config.locale as Locale | undefined;
 
 function isLocaleId(value: string | null): value is LocaleId {
   return value === 'en' || value === 'zh-TW' || value === 'zh-CN' || value === 'ja';
@@ -34,7 +32,7 @@ function readStored(): Locale {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (isLocaleId(stored)) return LOCALES[stored];
   } catch {}
-  return configLocale ?? en;
+  return en;
 }
 
 // A module-level store (rather than React context) so every React root the

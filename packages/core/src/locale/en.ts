@@ -445,6 +445,16 @@ export const en: Locale = {
     instagramTitle: 'Instagram API',
     instagramDesc:
       'Fill in your Instagram Graph API access token and account ID to enable auto-publishing carousels.',
+    facebookTitle: 'Facebook Page API',
+    facebookDesc:
+      'Add a Facebook User or System User token and Page ID to derive a publishable Page token.',
+    facebookTokenLabel: 'User or System User Access Token',
+    facebookTokenPlaceholder: 'EAAG…',
+    facebookTokenHelp:
+      'Requires pages_show_list, pages_read_engagement, and pages_manage_posts permissions.',
+    facebookPageIdLabel: 'Facebook Page ID',
+    facebookPageIdPlaceholder: '123456789012345',
+    facebookPageName: 'Facebook Page',
     tokenSourceLabel: 'Token source',
     businessSystemUser: 'Business permanent token',
     businessSystemUserDesc:
@@ -479,10 +489,18 @@ export const en: Locale = {
     toastInvalidToken: 'The token is invalid or the selected token source is incorrect.',
     toastMissingUserId: 'Business permanent tokens require an IG User ID.',
     toastAccountMismatch: 'The token and IG User ID belong to different Instagram accounts.',
+    toastMissingPageId: 'Facebook Page API requires a Page ID.',
+    toastFacebookInvalidToken: 'The Page access token is invalid or lacks Page publishing access.',
+    toastFacebookMissingPublishPermission:
+      'This account cannot create Page content. Add pages_manage_posts and generate a new token.',
+    toastFacebookAccountMismatch: 'The token and Page ID belong to different Facebook Pages.',
+    toastFacebookConnectionSuccess: 'Connected to Facebook Page {name}.',
+    toastFacebookTestFailed: 'Connection failed. Check the Page ID, access token, and permissions.',
     toastConnectionSuccess: 'Connected to Instagram account @{username}.',
     toastTestFailed: 'Connection failed. Check the token source, account ID, and permissions.',
     toastTestError: 'Could not test the connection.',
     confirmDisconnect: 'Disconnect Instagram and delete the saved credentials?',
+    confirmFacebookDisconnect: 'Disconnect Facebook Page API and delete the saved credentials?',
     toastDisconnected: 'Disconnected Instagram and deleted the credentials.',
     toastDisconnectFailed: 'Could not disconnect Instagram.',
     envNote:

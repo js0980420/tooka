@@ -8,6 +8,7 @@ import {
 } from '../../files/env.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json, readBody } from './context.ts';
+import { validateFacebookPageConnection } from './facebook.ts';
 import {
   type InstagramTokenSource,
   isInstagramTokenSource,
@@ -23,6 +24,11 @@ const IG_EXPIRES_KEY = 'IG_TOKEN_EXPIRES_AT';
 const IG_ENV_KEYS = [IG_TOKEN_KEY, IG_USER_ID_KEY, IG_USERNAME_KEY, IG_SOURCE_KEY, IG_EXPIRES_KEY];
 const DEFAULT_TOKEN_SOURCE: InstagramTokenSource = 'business_system_user';
 const REFRESH_WINDOW_MS = 10 * 24 * 60 * 60 * 1000;
+
+const FB_TOKEN_KEY = 'FB_ACCESS_TOKEN';
+const FB_PAGE_ID_KEY = 'FB_PAGE_ID';
+const FB_PAGE_NAME_KEY = 'FB_PAGE_NAME';
+const FB_ENV_KEYS = [FB_TOKEN_KEY, FB_PAGE_ID_KEY, FB_PAGE_NAME_KEY];
 
 function tokenSource(value: string | undefined): InstagramTokenSource {
   return isInstagramTokenSource(value) ? value : DEFAULT_TOKEN_SOURCE;
@@ -66,6 +72,14 @@ function statusBody(values: Record<string, string>, needsReauth: boolean) {
   };
 }
 
+function facebookStatusBody(values: Record<string, string>) {
+  return {
+    tokenMasked: maskSecret(values[FB_TOKEN_KEY]),
+    pageId: values[FB_PAGE_ID_KEY] ?? null,
+    pageName: values[FB_PAGE_NAME_KEY] ?? null,
+  };
+}
+
 export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): void {
   server.middlewares.use('/__connects', async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
@@ -74,8 +88,72 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
     try {
       if (url.pathname === '/' && method === 'GET') {
         const needsReauth = await refreshStoredInstagramLoginToken(ctx.userCwd);
-        const values = await readEnvValues(ctx.userCwd, IG_ENV_KEYS);
-        return json(res, 200, { instagram: statusBody(values, needsReauth) });
+        const [instagramValues, facebookValues] = await Promise.all([
+          readEnvValues(ctx.userCwd, IG_ENV_KEYS),
+          readEnvValues(ctx.userCwd, FB_ENV_KEYS),
+        ]);
+        return json(res, 200, {
+          instagram: statusBody(instagramValues, needsReauth),
+          facebook: facebookStatusBody(facebookValues),
+        });
+      }
+
+      if (url.pathname === '/facebook' && method === 'POST') {
+        const guard = validateMutationRequest(req, { requireJsonBody: true });
+        if (!guard.ok) return json(res, guard.status, { error: guard.error });
+
+        const body = (await readBody(req)) as { token?: unknown; pageId?: unknown };
+        const existing = await readEnvValues(ctx.userCwd, FB_ENV_KEYS);
+        const submittedToken =
+          body.token === undefined ? existing[FB_TOKEN_KEY] : validateEnvValue(body.token);
+        const submittedPageId =
+          body.pageId === undefined ? existing[FB_PAGE_ID_KEY] : validateEnvValue(body.pageId);
+
+        if (!submittedToken) return json(res, 400, { error: 'invalid_token' });
+        if (!submittedPageId) return json(res, 400, { error: 'missing_page_id' });
+
+        const validation = await validateFacebookPageConnection(submittedPageId, submittedToken);
+        if (!validation.ok) return json(res, 400, { error: validation.error });
+
+        const entries = {
+          [FB_TOKEN_KEY]: validation.page.accessToken,
+          [FB_PAGE_ID_KEY]: validation.page.pageId,
+          [FB_PAGE_NAME_KEY]: validation.page.pageName,
+        };
+        json(res, 200, { facebook: facebookStatusBody(entries) });
+        await ensureEnvGitignored(ctx.userCwd);
+        await upsertEnvValues(ctx.userCwd, entries);
+        return;
+      }
+
+      if (url.pathname === '/facebook/test' && method === 'POST') {
+        const guard = validateMutationRequest(req);
+        if (!guard.ok) return json(res, guard.status, { error: guard.error });
+
+        const values = await readEnvValues(ctx.userCwd, FB_ENV_KEYS);
+        const token = values[FB_TOKEN_KEY];
+        const pageId = values[FB_PAGE_ID_KEY];
+        if (!token || !pageId) return json(res, 400, { error: 'no_credentials' });
+
+        const validation = await validateFacebookPageConnection(pageId, token);
+        if (!validation.ok) return json(res, 400, { error: validation.error });
+        return json(res, 200, {
+          ok: true,
+          pageId: validation.page.pageId,
+          pageName: validation.page.pageName,
+        });
+      }
+
+      if (url.pathname === '/facebook/disconnect' && method === 'POST') {
+        const guard = validateMutationRequest(req);
+        if (!guard.ok) return json(res, guard.status, { error: guard.error });
+
+        await upsertEnvValues(ctx.userCwd, {
+          [FB_TOKEN_KEY]: '',
+          [FB_PAGE_ID_KEY]: '',
+          [FB_PAGE_NAME_KEY]: '',
+        });
+        return json(res, 200, { ok: true });
       }
 
       if (url.pathname === '/instagram' && method === 'POST') {

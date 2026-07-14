@@ -2,6 +2,8 @@ import type { ViteDevServer } from 'vite';
 import { readEnvValues } from '../../files/env.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json, readBody } from './context.ts';
+import { publishFacebookPagePost } from './facebook.ts';
+import { uploadImageToImgbb } from './imgbb.ts';
 
 const IG_TOKEN_KEY = 'IG_ACCESS_TOKEN';
 const IG_USER_ID_KEY = 'IG_USER_ID';
@@ -12,14 +14,7 @@ const FB_PAGE_ID_KEY = 'FB_PAGE_ID';
 const THREADS_TOKEN_KEY = 'THREADS_ACCESS_TOKEN';
 const THREADS_USER_ID_KEY = 'THREADS_USER_ID';
 
-// Beautiful placeholder image URLs that are publicly accessible on the web.
-// Since localhost images cannot be accessed by Meta servers, we use these to make
-// actual publishing requests succeed for dev testing.
-const MOCK_PUBLIC_IMAGES = [
-  'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&q=80',
-  'https://images.unsplash.com/photo-1618005198143-e528346d9a59?w=1080&q=80',
-  'https://images.unsplash.com/photo-1618005135150-a15152502ef0?w=1080&q=80',
-];
+const IMGBB_API_KEY_KEY = 'IMGBB_API_KEY';
 
 export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): void {
   server.middlewares.use('/__publish', async (req, res, next) => {
@@ -31,64 +26,63 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
         const guard = validateMutationRequest(req, { requireJsonBody: true });
         if (!guard.ok) return json(res, guard.status, { error: guard.error });
 
-        const body = (await readBody(req)) as { slideId: string; caption: string };
+        const body = (await readBody(req)) as {
+          slideId: string;
+          caption: string;
+          images: string[];
+        };
         const env = await readEnvValues(ctx.userCwd, [IG_TOKEN_KEY, IG_USER_ID_KEY]);
         const token = env[IG_TOKEN_KEY];
         const userId = env[IG_USER_ID_KEY];
 
-        const payloadPreview = {
-          caption: body.caption,
-          images: MOCK_PUBLIC_IMAGES,
-          targetEndpoint: `https://graph.facebook.com/v20.0/${userId}/media`,
-        };
-
         if (!token || !userId) {
-          // If no token, return mock response with payload preview
           return json(res, 200, {
             ok: true,
             mocked: true,
             platform: 'Instagram',
-            payloadPreview,
-            message: '憑證未設定，已模擬發布封包預覽。',
+            payloadPreview: {
+              caption: body.caption,
+              imageCount: body.images?.length ?? 0,
+              targetEndpoint: `https://graph.facebook.com/v20.0/{user-id}/media`,
+            },
+            message: 'IG 憑證未設定，已模擬發布封包預覽。',
           });
         }
 
         try {
-          // 1. Create container for each image
+          const imageUrls = await resolveImageUrls(body.images, ctx.userCwd);
+
           const containerIds: string[] = [];
-          for (const imgUrl of MOCK_PUBLIC_IMAGES) {
+          for (const imgUrl of imageUrls) {
             const containerRes = await fetch(
               `https://graph.facebook.com/v20.0/${userId}/media?image_url=${encodeURIComponent(imgUrl)}&is_carousel_item=true&access_token=${encodeURIComponent(token)}`,
               { method: 'POST' },
             );
             if (!containerRes.ok) {
               const errText = await containerRes.text();
-              throw new Error(`建立圖片節點失敗: ${containerRes.status} - ${errText}`);
+              throw new Error(`IG container creation failed: ${containerRes.status} - ${errText}`);
             }
             const containerData = (await containerRes.json()) as { id: string };
             containerIds.push(containerData.id);
           }
 
-          // 2. Create Carousel container
           const carouselRes = await fetch(
             `https://graph.facebook.com/v20.0/${userId}/media?media_type=CAROUSEL&caption=${encodeURIComponent(body.caption)}&children=${encodeURIComponent(containerIds.join(','))}&access_token=${encodeURIComponent(token)}`,
             { method: 'POST' },
           );
           if (!carouselRes.ok) {
             const errText = await carouselRes.text();
-            throw new Error(`建立輪播圖失敗: ${carouselRes.status} - ${errText}`);
+            throw new Error(`IG carousel creation failed: ${carouselRes.status} - ${errText}`);
           }
           const carouselData = (await carouselRes.json()) as { id: string };
-          const carouselId = carouselData.id;
 
-          // 3. Publish Carousel
           const publishRes = await fetch(
-            `https://graph.facebook.com/v20.0/${userId}/media_publish?creation_id=${carouselId}&access_token=${encodeURIComponent(token)}`,
+            `https://graph.facebook.com/v20.0/${userId}/media_publish?creation_id=${carouselData.id}&access_token=${encodeURIComponent(token)}`,
             { method: 'POST' },
           );
           if (!publishRes.ok) {
             const errText = await publishRes.text();
-            throw new Error(`發布輪播圖失敗: ${publishRes.status} - ${errText}`);
+            throw new Error(`IG publish failed: ${publishRes.status} - ${errText}`);
           }
           const publishData = (await publishRes.json()) as { id: string };
 
@@ -97,14 +91,12 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
             mocked: false,
             platform: 'Instagram',
             postId: publishData.id,
-            payloadPreview,
-            message: '發布成功！已成功上傳至您的 Instagram 帳號。',
+            message: `Instagram Carousel 發布成功！共 ${imageUrls.length} 張圖卡。`,
           });
         } catch (err) {
           console.error('[Publish Instagram] Error:', err);
           return json(res, 400, {
             error: err instanceof Error ? err.message : 'Instagram API error',
-            payloadPreview,
           });
         }
       }
@@ -113,50 +105,50 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
         const guard = validateMutationRequest(req, { requireJsonBody: true });
         if (!guard.ok) return json(res, guard.status, { error: guard.error });
 
-        const body = (await readBody(req)) as { slideId: string; caption: string };
+        const body = (await readBody(req)) as {
+          slideId: string;
+          caption: string;
+          images: string[];
+        };
         const env = await readEnvValues(ctx.userCwd, [FB_TOKEN_KEY, FB_PAGE_ID_KEY]);
         const token = env[FB_TOKEN_KEY];
         const pageId = env[FB_PAGE_ID_KEY];
-
-        const payloadPreview = {
-          message: body.caption,
-          url: MOCK_PUBLIC_IMAGES[0],
-          targetEndpoint: `https://graph.facebook.com/v20.0/${pageId}/photos`,
-        };
 
         if (!token || !pageId) {
           return json(res, 200, {
             ok: true,
             mocked: true,
             platform: 'Facebook',
-            payloadPreview,
-            message: '憑證未設定，已模擬發布封包預覽。',
+            payloadPreview: {
+              message: body.caption,
+              imageCount: body.images?.length ?? 0,
+              targetEndpoint: `https://graph.facebook.com/v20.0/{page-id}/photos`,
+            },
+            message: 'FB 憑證未設定，已模擬發布封包預覽。',
           });
         }
 
         try {
-          const response = await fetch(
-            `https://graph.facebook.com/v20.0/${pageId}/photos?url=${encodeURIComponent(MOCK_PUBLIC_IMAGES[0])}&message=${encodeURIComponent(body.caption)}&access_token=${encodeURIComponent(token)}`,
-            { method: 'POST' },
+          const { postId } = await publishFacebookPagePost(
+            pageId,
+            token,
+            body.images,
+            body.caption,
           );
-          if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`Facebook API 失敗: ${response.status} - ${errText}`);
-          }
-          const data = (await response.json()) as { id: string };
           return json(res, 200, {
             ok: true,
             mocked: false,
             platform: 'Facebook',
-            postId: data.id,
-            payloadPreview,
-            message: '發布成功！已成功發佈至您的 Facebook 粉絲專頁。',
+            postId,
+            message:
+              body.images.length > 1
+                ? `Facebook 粉專多圖發布成功！共 ${body.images.length} 張圖卡。`
+                : 'Facebook 粉專單張圖片發布成功！',
           });
         } catch (err) {
           console.error('[Publish Facebook] Error:', err);
           return json(res, 400, {
             error: err instanceof Error ? err.message : 'Facebook API error',
-            payloadPreview,
           });
         }
       }
@@ -165,48 +157,93 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
         const guard = validateMutationRequest(req, { requireJsonBody: true });
         if (!guard.ok) return json(res, guard.status, { error: guard.error });
 
-        const body = (await readBody(req)) as { slideId: string; caption: string };
+        const body = (await readBody(req)) as {
+          slideId: string;
+          caption: string;
+          images: string[];
+        };
         const env = await readEnvValues(ctx.userCwd, [THREADS_TOKEN_KEY, THREADS_USER_ID_KEY]);
         const token = env[THREADS_TOKEN_KEY];
         const userId = env[THREADS_USER_ID_KEY];
-
-        const payloadPreview = {
-          media_type: 'IMAGE',
-          image_url: MOCK_PUBLIC_IMAGES[0],
-          text: body.caption,
-          targetEndpoint: `https://graph.threads.net/v1.0/${userId}/threads`,
-        };
 
         if (!token || !userId) {
           return json(res, 200, {
             ok: true,
             mocked: true,
             platform: 'Threads',
-            payloadPreview,
-            message: '憑證未設定，已模擬發布封包預覽。',
+            payloadPreview: {
+              media_type: 'IMAGE',
+              text: body.caption,
+              imageCount: body.images?.length ?? 0,
+              targetEndpoint: `https://graph.threads.net/v1.0/{user-id}/threads`,
+            },
+            message: 'Threads 憑證未設定，已模擬發布封包預覽。',
           });
         }
 
         try {
-          // 1. Create Threads container
-          const createRes = await fetch(
-            `https://graph.threads.net/v1.0/${userId}/threads?media_type=IMAGE&image_url=${encodeURIComponent(MOCK_PUBLIC_IMAGES[0])}&text=${encodeURIComponent(body.caption)}&access_token=${encodeURIComponent(token)}`,
+          const imageUrls = await resolveImageUrls(body.images, ctx.userCwd);
+
+          if (imageUrls.length === 1) {
+            const createRes = await fetch(
+              `https://graph.threads.net/v1.0/${userId}/threads?media_type=IMAGE&image_url=${encodeURIComponent(imageUrls[0])}&text=${encodeURIComponent(body.caption)}&access_token=${encodeURIComponent(token)}`,
+              { method: 'POST' },
+            );
+            if (!createRes.ok) {
+              const errText = await createRes.text();
+              throw new Error(`Threads container failed: ${createRes.status} - ${errText}`);
+            }
+            const createData = (await createRes.json()) as { id: string };
+
+            const publishRes = await fetch(
+              `https://graph.threads.net/v1.0/${userId}/threads_publish?creation_id=${createData.id}&access_token=${encodeURIComponent(token)}`,
+              { method: 'POST' },
+            );
+            if (!publishRes.ok) {
+              const errText = await publishRes.text();
+              throw new Error(`Threads publish failed: ${publishRes.status} - ${errText}`);
+            }
+            const publishData = (await publishRes.json()) as { id: string };
+            return json(res, 200, {
+              ok: true,
+              mocked: false,
+              platform: 'Threads',
+              postId: publishData.id,
+              message: 'Threads 單圖貼文發布成功！',
+            });
+          }
+
+          const childIds: string[] = [];
+          for (const imgUrl of imageUrls) {
+            const childRes = await fetch(
+              `https://graph.threads.net/v1.0/${userId}/threads?media_type=IMAGE&image_url=${encodeURIComponent(imgUrl)}&is_carousel_item=true&access_token=${encodeURIComponent(token)}`,
+              { method: 'POST' },
+            );
+            if (!childRes.ok) {
+              const errText = await childRes.text();
+              throw new Error(`Threads carousel item failed: ${childRes.status} - ${errText}`);
+            }
+            const childData = (await childRes.json()) as { id: string };
+            childIds.push(childData.id);
+          }
+
+          const carouselRes = await fetch(
+            `https://graph.threads.net/v1.0/${userId}/threads?media_type=CAROUSEL&children=${encodeURIComponent(childIds.join(','))}&text=${encodeURIComponent(body.caption)}&access_token=${encodeURIComponent(token)}`,
             { method: 'POST' },
           );
-          if (!createRes.ok) {
-            const errText = await createRes.text();
-            throw new Error(`建立 Threads 貼文失敗: ${createRes.status} - ${errText}`);
+          if (!carouselRes.ok) {
+            const errText = await carouselRes.text();
+            throw new Error(`Threads carousel creation failed: ${carouselRes.status} - ${errText}`);
           }
-          const createData = (await createRes.json()) as { id: string };
+          const carouselData = (await carouselRes.json()) as { id: string };
 
-          // 2. Publish Threads post
           const publishRes = await fetch(
-            `https://graph.threads.net/v1.0/${userId}/threads_publish?creation_id=${createData.id}&access_token=${encodeURIComponent(token)}`,
+            `https://graph.threads.net/v1.0/${userId}/threads_publish?creation_id=${carouselData.id}&access_token=${encodeURIComponent(token)}`,
             { method: 'POST' },
           );
           if (!publishRes.ok) {
             const errText = await publishRes.text();
-            throw new Error(`發布 Threads 貼文失敗: ${publishRes.status} - ${errText}`);
+            throw new Error(`Threads carousel publish failed: ${publishRes.status} - ${errText}`);
           }
           const publishData = (await publishRes.json()) as { id: string };
 
@@ -215,14 +252,12 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
             mocked: false,
             platform: 'Threads',
             postId: publishData.id,
-            payloadPreview,
-            message: '發布成功！已成功上傳至您的 Threads 帳號。',
+            message: `Threads Carousel 發布成功！共 ${imageUrls.length} 張圖卡。`,
           });
         } catch (err) {
           console.error('[Publish Threads] Error:', err);
           return json(res, 400, {
             error: err instanceof Error ? err.message : 'Threads API error',
-            payloadPreview,
           });
         }
       }
@@ -232,4 +267,25 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
       json(res, 500, { error: e instanceof Error ? e.message : 'internal error' });
     }
   });
+}
+
+async function resolveImageUrls(
+  base64Images: string[] | undefined,
+  userCwd: string,
+): Promise<string[]> {
+  if (!base64Images || base64Images.length === 0) {
+    throw new Error('未收到圖卡圖片。請確認前端有正確渲染並擷取圖卡 PNG。');
+  }
+
+  const env = await readEnvValues(userCwd, [IMGBB_API_KEY_KEY]);
+  const apiKey = env[IMGBB_API_KEY_KEY];
+  if (!apiKey) {
+    throw new Error('尚未設定 imgbb 圖床，請在 .env 設定 IMGBB_API_KEY。');
+  }
+
+  const urls: string[] = [];
+  for (const img of base64Images) {
+    urls.push(await uploadImageToImgbb(apiKey, img));
+  }
+  return urls;
 }

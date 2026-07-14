@@ -448,6 +448,16 @@ export const ja: Locale = {
     instagramTitle: 'Instagram API',
     instagramDesc:
       'Instagram Graph API のアクセストークンとアカウント ID を入力すると、カルーセルの自動投稿が使えます。',
+    facebookTitle: 'Facebook Page API',
+    facebookDesc:
+      'Facebook User／System User トークンと Page ID から投稿用 Page トークンを自動取得します。',
+    facebookTokenLabel: 'User／System User Access Token',
+    facebookTokenPlaceholder: 'EAAG…',
+    facebookTokenHelp:
+      'pages_show_list、pages_read_engagement、pages_manage_posts 権限が必要です。',
+    facebookPageIdLabel: 'Facebook Page ID',
+    facebookPageIdPlaceholder: '123456789012345',
+    facebookPageName: 'Facebook ページ',
     tokenSourceLabel: 'トークンの種類',
     businessSystemUser: 'Business 永久トークン',
     businessSystemUserDesc:
@@ -481,10 +491,19 @@ export const ja: Locale = {
     toastInvalidToken: 'トークンが無効か、トークンの種類が正しくありません。',
     toastMissingUserId: 'Business 永久トークンには IG User ID が必要です。',
     toastAccountMismatch: 'トークンと IG User ID が別の Instagram アカウントです。',
+    toastMissingPageId: 'Facebook Page API には Page ID が必要です。',
+    toastFacebookInvalidToken: 'Page アクセストークンが無効か、投稿権限がありません。',
+    toastFacebookMissingPublishPermission:
+      'ページコンテンツを作成できません。pages_manage_posts を追加してトークンを再発行してください。',
+    toastFacebookAccountMismatch: 'トークンと Page ID が別の Facebook ページです。',
+    toastFacebookConnectionSuccess: 'Facebook ページ {name} に接続しました。',
+    toastFacebookTestFailed:
+      '接続に失敗しました。Page ID、アクセストークン、権限を確認してください。',
     toastConnectionSuccess: 'Instagram アカウント @{username} に接続しました。',
     toastTestFailed: '接続に失敗しました。トークンの種類、アカウント ID、権限を確認してください。',
     toastTestError: '接続をテストできませんでした。',
     confirmDisconnect: 'Instagram の接続を解除し、保存済み認証情報を削除しますか？',
+    confirmFacebookDisconnect: 'Facebook Page API の接続を解除し、認証情報を削除しますか？',
     toastDisconnected: 'Instagram の接続を解除し、認証情報を削除しました。',
     toastDisconnectFailed: 'Instagram の接続を解除できませんでした。',
     envNote:

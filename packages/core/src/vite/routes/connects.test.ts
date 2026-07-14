@@ -55,10 +55,10 @@ class TestResponse {
   }
 }
 
-function postRequest(body: unknown) {
+function postRequest(body: unknown, url = '/instagram') {
   return Object.assign(Readable.from([Buffer.from(JSON.stringify(body))]), {
     method: 'POST',
-    url: '/instagram',
+    url,
     headers: {
       host: 'localhost:5173',
       'content-type': 'application/json',
@@ -130,5 +130,96 @@ describe('Instagram connect routes', () => {
     expect(response.statusCode).toBe(400);
     expect(JSON.parse(response.body)).toEqual({ error: 'account_mismatch' });
     await expect(readEnvValues(dir, ['IG_ACCESS_TOKEN'])).resolves.toEqual({});
+  });
+});
+
+describe('Facebook Page connect routes', () => {
+  it('derives and stores a matching Page access token and Page ID', async () => {
+    const fetcher = vi.fn(async () =>
+      Response.json({
+        data: [
+          {
+            access_token: 'EAA-derived-page-token',
+            id: '123456789012345',
+            name: 'Open Cards',
+            tasks: ['CREATE_CONTENT'],
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal('fetch', fetcher);
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(
+      postRequest({ token: 'EAA-page-token', pageId: '123456789012345' }, '/facebook'),
+      response,
+      () => {},
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({
+      facebook: {
+        tokenMasked: '••••oken',
+        pageId: '123456789012345',
+        pageName: 'Open Cards',
+      },
+    });
+    await expect(
+      readEnvValues(dir, ['FB_ACCESS_TOKEN', 'FB_PAGE_ID', 'FB_PAGE_NAME']),
+    ).resolves.toEqual({
+      FB_ACCESS_TOKEN: 'EAA-derived-page-token',
+      FB_PAGE_ID: '123456789012345',
+      FB_PAGE_NAME: 'Open Cards',
+    });
+  });
+
+  it('rejects Facebook credentials without a content creation task', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Response.json({
+          data: [
+            {
+              access_token: 'EAA-derived-page-token',
+              id: '123456789012345',
+              name: 'Open Cards',
+              tasks: ['ANALYZE'],
+            },
+          ],
+        }),
+      ),
+    );
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(
+      postRequest({ token: 'EAA-user-token', pageId: '123456789012345' }, '/facebook'),
+      response,
+      () => {},
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({ error: 'missing_publish_permission' });
+    await expect(readEnvValues(dir, ['FB_ACCESS_TOKEN'])).resolves.toEqual({});
+  });
+
+  it('rejects a token that resolves to a different Page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json({ data: [{ id: '999999999999999', name: 'Another Page' }] })),
+    );
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(
+      postRequest({ token: 'EAA-page-token', pageId: '123456789012345' }, '/facebook'),
+      response,
+      () => {},
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({ error: 'account_mismatch' });
+    await expect(readEnvValues(dir, ['FB_ACCESS_TOKEN'])).resolves.toEqual({});
   });
 });

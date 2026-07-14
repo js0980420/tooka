@@ -1,21 +1,29 @@
 import {
   AlertCircle,
+  Camera,
   CheckCircle2,
   ChevronDown,
-  Camera,
-  Share2,
   FileText,
   Globe,
+  ImageIcon,
   RefreshCw,
   Send,
+  Share2,
   Sparkles,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { createElement, useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Link, useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { slideIds } from '../lib/slides';
+import { designToCssVars } from '../lib/design';
+import { SlidePageProvider } from '../lib/page-context';
+import { PngExportVariantProvider } from '../lib/png-export-variant';
+import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from '../lib/print-ready';
+import type { SlideModule } from '../lib/sdk';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
+import { loadSlide, slideIds } from '../lib/slides';
 import type { HomeOutletContext } from './home-shell';
 
 type PublishResult = {
@@ -27,28 +35,153 @@ type PublishResult = {
   error?: string;
 };
 
+type PublishPlatform = 'facebook' | 'instagram' | 'threads';
+
+const platformLabels: Record<PublishPlatform, string> = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  threads: 'Threads',
+};
+
+const CAPTURE_CLASS = 'os-publish-capture';
+const ANIMATION_TIMEOUT_MS = 15_000;
+const POLL_INTERVAL_MS = 100;
+const FROZEN_PROPS = ['opacity', 'transform', 'filter', 'clip-path'] as const;
+
+async function captureSlideImages(slideId: string): Promise<string[]> {
+  const slide: SlideModule = await loadSlide(slideId);
+  const pages = slide.default ?? [];
+  if (pages.length === 0) throw new Error('此圖卡沒有頁面可供擷取。');
+
+  const container = document.createElement('div');
+  container.className = CAPTURE_CLASS;
+  container.setAttribute('aria-hidden', 'true');
+  Object.assign(container.style, {
+    position: 'fixed',
+    left: '-99999px',
+    top: '0',
+    pointerEvents: 'none',
+  });
+  document.body.appendChild(container);
+
+  const captureStyle = document.createElement('style');
+  captureStyle.textContent = `.${CAPTURE_CLASS} *, .${CAPTURE_CLASS} *::before, .${CAPTURE_CLASS} *::after {
+    animation-delay: -1s !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    animation-fill-mode: forwards !important;
+    transition: none !important;
+  }`;
+  document.head.appendChild(captureStyle);
+
+  const designVars = slide.design ? designToCssVars(slide.design) : null;
+  const reactRoots: ReturnType<typeof createRoot>[] = [];
+  const frames: HTMLElement[] = [];
+
+  for (let i = 0; i < pages.length; i++) {
+    const Page = pages[i];
+    if (!Page) continue;
+    const host = document.createElement('div');
+    host.setAttribute('data-osd-canvas', '');
+    host.style.width = `${CANVAS_WIDTH}px`;
+    host.style.height = `${CANVAS_HEIGHT}px`;
+    host.style.overflow = 'hidden';
+    host.style.background = '#fff';
+    if (designVars) {
+      for (const [k, v] of Object.entries(designVars)) host.style.setProperty(k, v);
+    }
+    container.appendChild(host);
+    frames.push(host);
+    const r = createRoot(host);
+    r.render(
+      createElement(
+        PngExportVariantProvider,
+        { value: null },
+        createElement(SlidePageProvider, { index: i, total: pages.length }, createElement(Page)),
+      ),
+    );
+    reactRoots.push(r);
+  }
+
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    requestAnimationFrame(settle);
+    setTimeout(settle, 50);
+  });
+
+  try {
+    await waitForFonts();
+
+    const deadline = performance.now() + ANIMATION_TIMEOUT_MS;
+    while (performance.now() < deadline) {
+      if (frames.every((f) => isFrameAnimationSettled(f))) break;
+      await new Promise<void>((r) => setTimeout(r, POLL_INTERVAL_MS));
+    }
+    await waitForDataWaitfor(container);
+
+    const { toBlob } = await import('html-to-image');
+    const base64Images: string[] = [];
+
+    for (const frame of frames) {
+      for (const el of frame.querySelectorAll<HTMLElement>('*')) {
+        const cs = getComputedStyle(el);
+        for (const prop of FROZEN_PROPS) {
+          el.style.setProperty(prop, cs.getPropertyValue(prop), 'important');
+        }
+        el.style.setProperty('animation', 'none', 'important');
+        el.style.setProperty('transition', 'none', 'important');
+      }
+
+      const blob = await toBlob(frame, {
+        width: CANVAS_WIDTH,
+        height: CANVAS_HEIGHT,
+        pixelRatio: 1,
+        backgroundColor: '#ffffff',
+        cacheBust: true,
+      });
+      if (!blob) throw new Error('Failed to capture slide page');
+
+      const reader = new FileReader();
+      const b64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      base64Images.push(b64);
+    }
+
+    return base64Images;
+  } finally {
+    for (const r of reactRoots) r.unmount();
+    container.remove();
+    captureStyle.remove();
+  }
+}
+
 export function PublishPage() {
   const { titleMap } = useOutletContext<HomeOutletContext>();
   const [selectedSlideId, setSelectedSlideId] = useState('');
 
-  // Platforms state
   const [fbEnabled, setFbEnabled] = useState(false);
   const [fbCaption, setFbCaption] = useState('');
-
   const [igEnabled, setIgEnabled] = useState(false);
   const [igCaption, setIgCaption] = useState('');
-
   const [threadsEnabled, setThreadsEnabled] = useState(false);
   const [threadsText, setThreadsText] = useState('');
 
-  // Common content sync
   const [commonText, setCommonText] = useState('');
 
-  // Status
-  const [publishing, setPublishing] = useState(false);
-  const [results, setResults] = useState<Record<string, PublishResult>>({});
+  const [publishingPlatforms, setPublishingPlatforms] = useState<PublishPlatform[]>([]);
+  const [results, setResults] = useState<Partial<Record<PublishPlatform, PublishResult>>>({});
+  const [captureStatus, setCaptureStatus] = useState<'idle' | 'capturing' | 'done'>('idle');
 
-  // Sync common text to active platforms
+  const capturedImagesRef = useRef<string[]>([]);
+
   const syncCaptions = () => {
     if (fbEnabled) setFbCaption(commonText);
     if (igEnabled) setIgCaption(commonText);
@@ -62,77 +195,124 @@ export function PublishPage() {
     }
   }, [selectedSlideId]);
 
-  const handlePublish = async () => {
+  const captions: Record<PublishPlatform, string> = {
+    facebook: fbCaption,
+    instagram: igCaption,
+    threads: threadsText,
+  };
+  const selectedPlatforms: PublishPlatform[] = [
+    ...(fbEnabled ? (['facebook'] as const) : []),
+    ...(igEnabled ? (['instagram'] as const) : []),
+    ...(threadsEnabled ? (['threads'] as const) : []),
+  ];
+  const isPublishing = publishingPlatforms.length > 0;
+
+  const publishPlatform = async (
+    platform: PublishPlatform,
+    images: string[],
+  ): Promise<PublishResult> => {
+    try {
+      const res = await fetch(`/__publish/${platform}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          slideId: selectedSlideId,
+          caption: captions[platform].trim(),
+          images,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        return {
+          ok: true,
+          message: data.message || '發布成功！',
+          mocked: data.mocked,
+          postId: data.postId,
+          payloadPreview: data.payloadPreview,
+        };
+      }
+
+      return {
+        ok: false,
+        message: data.error || 'API 呼叫失敗。',
+        payloadPreview: data.payloadPreview,
+        error: data.error,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        message: err instanceof Error ? err.message : '連線錯誤',
+      };
+    }
+  };
+
+  const handlePublish = async (platforms: PublishPlatform[]) => {
     if (!selectedSlideId) {
       toast.error('請先選擇要發布的圖卡組！');
       return;
     }
-
-    const activePlatforms = [];
-    if (fbEnabled) activePlatforms.push('facebook');
-    if (igEnabled) activePlatforms.push('instagram');
-    if (threadsEnabled) activePlatforms.push('threads');
-
-    if (activePlatforms.length === 0) {
+    if (platforms.length === 0) {
       toast.error('請至少選擇一個要發布的平台！');
       return;
     }
-
-    setPublishing(true);
-    setResults({});
-    toast.info('開始進行社群平台發布流程...');
-
-    const newResults: Record<string, PublishResult> = {};
-
-    for (const platform of activePlatforms) {
-      let caption = '';
-      if (platform === 'facebook') caption = fbCaption;
-      if (platform === 'instagram') caption = igCaption;
-      if (platform === 'threads') caption = threadsText;
-
-      try {
-        const res = await fetch(`/__publish/${platform}`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            slideId: selectedSlideId,
-            caption: caption,
-          }),
-        });
-
-        const data = await res.json().catch(() => ({}));
-        if (res.ok && data.ok) {
-          newResults[platform] = {
-            ok: true,
-            message: data.message || '發布成功！',
-            mocked: data.mocked,
-            postId: data.postId,
-            payloadPreview: data.payloadPreview,
-          };
-        } else {
-          newResults[platform] = {
-            ok: false,
-            message: data.error || 'API 呼叫失敗。',
-            payloadPreview: data.payloadPreview,
-            error: data.error,
-          };
-        }
-      } catch (err) {
-        newResults[platform] = {
-          ok: false,
-          message: err instanceof Error ? err.message : '連線錯誤',
-        };
-      }
+    const missingCaptions = platforms.filter((platform) => !captions[platform].trim());
+    if (missingCaptions.length > 0) {
+      toast.error(
+        `請先填寫 ${missingCaptions.map((platform) => platformLabels[platform]).join('、')} 文案！`,
+      );
+      return;
     }
 
-    setResults(newResults);
-    setPublishing(false);
+    setCaptureStatus('capturing');
+    toast.info('正在擷取圖卡為 PNG 圖片…');
 
-    const allSuccess = Object.values(newResults).every((r) => r.ok);
+    let images: string[];
+    try {
+      images = await captureSlideImages(selectedSlideId);
+      capturedImagesRef.current = images;
+      setCaptureStatus('done');
+      toast.success(`圖卡擷取完成！共 ${images.length} 頁，正在上傳並發布…`);
+    } catch (err) {
+      setCaptureStatus('idle');
+      toast.error(`圖卡擷取失敗: ${err instanceof Error ? err.message : '未知錯誤'}`);
+      return;
+    }
+
+    setPublishingPlatforms((current) => [...new Set([...current, ...platforms])]);
+    setResults((current) => {
+      const next = { ...current };
+      for (const platform of platforms) delete next[platform];
+      return next;
+    });
+    toast.info(
+      platforms.length > 1
+        ? `正在同時發布至 ${platforms.length} 個平台...`
+        : `正在發布至 ${platformLabels[platforms[0]]}...`,
+    );
+
+    const entries = await Promise.all(
+      platforms.map(
+        async (platform) => [platform, await publishPlatform(platform, images)] as const,
+      ),
+    );
+    const newResults = Object.fromEntries(entries) as Partial<
+      Record<PublishPlatform, PublishResult>
+    >;
+
+    setResults((current) => ({ ...current, ...newResults }));
+    setPublishingPlatforms((current) =>
+      current.filter((platform) => !platforms.includes(platform)),
+    );
+    setCaptureStatus('idle');
+
+    const allSuccess = entries.every(([, result]) => result.ok);
     if (allSuccess) {
-      toast.success('所選平台發布完成！');
+      toast.success(platforms.length > 1 ? '所選平台皆已發布完成！' : '貼文發布完成！');
     } else {
-      toast.warning('部分平台發布失敗，請至下方查閱詳情。');
+      toast.warning(
+        platforms.length > 1 ? '部分平台發布失敗，請查看發布結果。' : '發布失敗，請查看錯誤詳情。',
+      );
     }
   };
 
@@ -150,7 +330,8 @@ export function PublishPage() {
             Publish (一鍵發文)
           </h1>
           <p className="text-[13px] text-muted-foreground">
-            撰寫貼文文案並連同正在設計的投影片圖卡組，一鍵發布至多個社群平台。
+            撰寫貼文文案並連同正在設計的投影片圖卡組，一鍵發布至多個社群平台。 圖卡會先被擷取為 PNG
+            並上傳至公開圖床，再由 Meta API 讀取發布。
           </p>
         </div>
 
@@ -174,8 +355,20 @@ export function PublishPage() {
               <ChevronDown className="absolute right-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              系統將會渲染該卡片，並連同下方文案一起發布至所選的社群平台。
+              系統會將該圖卡每頁渲染為 PNG，自動上傳至公開圖床後再透過 Meta API 發布。
             </p>
+            {captureStatus === 'capturing' && (
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-brand">
+                <RefreshCw className="size-3 animate-spin" />
+                正在擷取圖卡…
+              </div>
+            )}
+            {captureStatus === 'done' && (
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-green-500">
+                <ImageIcon className="size-3" />
+                擷取完成，共 {capturedImagesRef.current.length} 頁
+              </div>
+            )}
           </div>
 
           {/* Sync caption tool */}
@@ -234,18 +427,30 @@ export function PublishPage() {
                   />
                 </div>
                 <p className="text-[11.5px] text-muted-foreground">
-                  勾選後發布至您的 Facebook 粉絲專頁，支援單圖/多圖貼文。
+                  勾選代表納入一鍵發布，也可只發布此平台。
                 </p>
-                {fbEnabled && (
-                  <Textarea
-                    placeholder="輸入 Facebook 貼文文案..."
-                    value={fbCaption}
-                    onChange={(e) => setFbCaption(e.target.value)}
-                    rows={4}
-                    className="text-[12.5px] bg-background"
-                  />
-                )}
+                <Textarea
+                  placeholder="輸入 Facebook 貼文文案..."
+                  value={fbCaption}
+                  onChange={(e) => setFbCaption(e.target.value)}
+                  rows={4}
+                  className="bg-background text-[12.5px]"
+                />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 w-full text-[12px]"
+                disabled={isPublishing || captureStatus === 'capturing'}
+                onClick={() => handlePublish(['facebook'])}
+              >
+                {publishingPlatforms.includes('facebook') ? (
+                  <RefreshCw data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <Send data-icon="inline-start" />
+                )}
+                {publishingPlatforms.includes('facebook') ? '發布中...' : '只發布 Facebook'}
+              </Button>
             </div>
 
             {/* Instagram */}
@@ -272,18 +477,30 @@ export function PublishPage() {
                   />
                 </div>
                 <p className="text-[11.5px] text-muted-foreground">
-                  以 Carousel (輪播圖) 形式發布您的圖卡組，支援滑動多圖。
+                  勾選代表納入一鍵發布，也可只發布此平台。
                 </p>
-                {igEnabled && (
-                  <Textarea
-                    placeholder="輸入 Instagram 貼文文案..."
-                    value={igCaption}
-                    onChange={(e) => setIgCaption(e.target.value)}
-                    rows={4}
-                    className="text-[12.5px] bg-background"
-                  />
-                )}
+                <Textarea
+                  placeholder="輸入 Instagram 貼文文案..."
+                  value={igCaption}
+                  onChange={(e) => setIgCaption(e.target.value)}
+                  rows={4}
+                  className="bg-background text-[12.5px]"
+                />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 w-full text-[12px]"
+                disabled={isPublishing || captureStatus === 'capturing'}
+                onClick={() => handlePublish(['instagram'])}
+              >
+                {publishingPlatforms.includes('instagram') ? (
+                  <RefreshCw data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <Send data-icon="inline-start" />
+                )}
+                {publishingPlatforms.includes('instagram') ? '發布中...' : '只發布 Instagram'}
+              </Button>
             </div>
 
             {/* Threads */}
@@ -310,18 +527,30 @@ export function PublishPage() {
                   />
                 </div>
                 <p className="text-[11.5px] text-muted-foreground">
-                  勾選後發布至您的 Threads 帳號，支援多媒體串文貼文。
+                  勾選代表納入一鍵發布，也可只發布此平台。
                 </p>
-                {threadsEnabled && (
-                  <Textarea
-                    placeholder="輸入 Threads 串文文案..."
-                    value={threadsText}
-                    onChange={(e) => setThreadsText(e.target.value)}
-                    rows={4}
-                    className="text-[12.5px] bg-background"
-                  />
-                )}
+                <Textarea
+                  placeholder="輸入 Threads 串文文案..."
+                  value={threadsText}
+                  onChange={(e) => setThreadsText(e.target.value)}
+                  rows={4}
+                  className="bg-background text-[12.5px]"
+                />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 w-full text-[12px]"
+                disabled={isPublishing || captureStatus === 'capturing'}
+                onClick={() => handlePublish(['threads'])}
+              >
+                {publishingPlatforms.includes('threads') ? (
+                  <RefreshCw data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <Send data-icon="inline-start" />
+                )}
+                {publishingPlatforms.includes('threads') ? '發布中...' : '只發布 Threads'}
+              </Button>
             </div>
           </div>
         </div>
@@ -336,18 +565,20 @@ export function PublishPage() {
           <Button
             variant="brand"
             className="w-full md:w-auto h-9 gap-1.5 text-[13px] px-5"
-            disabled={publishing || (!fbEnabled && !igEnabled && !threadsEnabled)}
-            onClick={handlePublish}
+            disabled={
+              isPublishing || captureStatus === 'capturing' || selectedPlatforms.length === 0
+            }
+            onClick={() => handlePublish(selectedPlatforms)}
           >
-            {publishing ? (
+            {isPublishing || captureStatus === 'capturing' ? (
               <>
                 <RefreshCw className="size-4 animate-spin" />
-                正在發布貼文...
+                {captureStatus === 'capturing' ? '擷取圖卡中...' : '正在同時發布...'}
               </>
             ) : (
               <>
                 <Send className="size-4" />
-                一鍵發布 (Publish Now)
+                一鍵發布已選平台 ({selectedPlatforms.length})
               </>
             )}
           </Button>
@@ -366,9 +597,7 @@ export function PublishPage() {
                 <div key={platform} className="py-4 first:pt-0 last:pb-0 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold capitalize flex items-center gap-1.5 text-[13px]">
-                      {platform === 'facebook' && (
-                        <Share2 className="size-4 text-blue-500" />
-                      )}
+                      {platform === 'facebook' && <Share2 className="size-4 text-blue-500" />}
                       {platform === 'instagram' && <Camera className="size-4 text-pink-500" />}
                       {platform === 'threads' && <Globe className="size-4 text-foreground" />}
                       {platform}
