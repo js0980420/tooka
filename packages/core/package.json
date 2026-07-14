@@ -1,6 +1,6 @@
 {
   "name": "@open-cards/core",
-  "version": "1.15.2",
+  "version": "0.0.1",
   "description": "Runtime and CLI for open-cards — write slides in slides/, we handle the rest.",
   "type": "module",
   "exports": {
