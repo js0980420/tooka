@@ -16,6 +16,7 @@ import { createRoot } from 'react-dom/client';
 import { Link, useOutletContext } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { designToCssVars } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
@@ -171,8 +172,10 @@ export function PublishPage() {
   const [fbCaption, setFbCaption] = useState('');
   const [igEnabled, setIgEnabled] = useState(false);
   const [igCaption, setIgCaption] = useState('');
+  const [igHashtags, setIgHashtags] = useState<string[]>(['', '', '', '', '']);
   const [threadsEnabled, setThreadsEnabled] = useState(false);
   const [threadsText, setThreadsText] = useState('');
+  const [threadsTopicTag, setThreadsTopicTag] = useState('');
 
   const [commonText, setCommonText] = useState('');
 
@@ -195,9 +198,29 @@ export function PublishPage() {
     }
   }, [selectedSlideId]);
 
+  const handleHashtagChange = (index: number, value: string) => {
+    const cleanValue = value.replace(/^#/, '');
+    setIgHashtags((current) => {
+      const next = [...current];
+      next[index] = cleanValue;
+      return next;
+    });
+  };
+
+  const getIgCaptionWithHashtags = () => {
+    const activeHashtags = igHashtags
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0)
+      .map((tag) => `#${tag}`)
+      .join(' ');
+
+    if (!activeHashtags) return igCaption;
+    return `${igCaption.trim()}\n\n${activeHashtags}`;
+  };
+
   const captions: Record<PublishPlatform, string> = {
     facebook: fbCaption,
-    instagram: igCaption,
+    instagram: getIgCaptionWithHashtags(),
     threads: threadsText,
   };
   const selectedPlatforms: PublishPlatform[] = [
@@ -219,6 +242,9 @@ export function PublishPage() {
           slideId: selectedSlideId,
           caption: captions[platform].trim(),
           images,
+          ...(platform === 'threads' && threadsTopicTag.trim()
+            ? { topicTag: threadsTopicTag.trim().replace(/^#/, '') }
+            : {}),
         }),
       });
 
@@ -261,6 +287,10 @@ export function PublishPage() {
       toast.error(
         `請先填寫 ${missingCaptions.map((platform) => platformLabels[platform]).join('、')} 文案！`,
       );
+      return;
+    }
+    if (platforms.includes('threads') && /[.&]/.test(threadsTopicTag)) {
+      toast.error('Threads 主題標籤不能包含句點（.）或 & 符號！');
       return;
     }
 
@@ -461,31 +491,96 @@ export function PublishPage() {
                   : 'border-hairline bg-card opacity-80 hover:opacity-100'
               }`}
             >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 text-white">
-                      <Camera className="size-4" />
+              <div className="space-y-3 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 text-white">
+                        <Camera className="size-4" />
+                      </div>
+                      <span className="text-[13.5px] font-bold text-foreground">Instagram</span>
                     </div>
-                    <span className="text-[13.5px] font-bold text-foreground">Instagram</span>
+                    <input
+                      type="checkbox"
+                      checked={igEnabled}
+                      onChange={(e) => setIgEnabled(e.target.checked)}
+                      className="size-4.5 rounded border-hairline text-pink-500 focus:ring-pink-500 accent-pink-500 cursor-pointer"
+                    />
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={igEnabled}
-                    onChange={(e) => setIgEnabled(e.target.checked)}
-                    className="size-4.5 rounded border-hairline text-pink-500 focus:ring-pink-500 accent-pink-500 cursor-pointer"
+                  <p className="text-[11.5px] text-muted-foreground mt-3">
+                    勾選代表納入一鍵發布，也可只發布此平台。
+                  </p>
+                  <Textarea
+                    placeholder="輸入 Instagram 貼文文案..."
+                    value={igCaption}
+                    onChange={(e) => setIgCaption(e.target.value)}
+                    rows={4}
+                    className="bg-background text-[12.5px] mt-3"
                   />
                 </div>
-                <p className="text-[11.5px] text-muted-foreground">
-                  勾選代表納入一鍵發布，也可只發布此平台。
-                </p>
-                <Textarea
-                  placeholder="輸入 Instagram 貼文文案..."
-                  value={igCaption}
-                  onChange={(e) => setIgCaption(e.target.value)}
-                  rows={4}
-                  className="bg-background text-[12.5px]"
-                />
+
+                <div className="space-y-1.5 pt-2">
+                  <span className="text-[11px] font-medium text-muted-foreground block">
+                    Hashtags（選填，將自動附加於文案下方）
+                  </span>
+                  <div className="grid grid-cols-5 gap-1">
+                    <div className="relative flex items-center">
+                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
+                        #
+                      </span>
+                      <Input
+                        placeholder="標籤 1"
+                        value={igHashtags[0]}
+                        onChange={(e) => handleHashtagChange(0, e.target.value)}
+                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
+                      />
+                    </div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
+                        #
+                      </span>
+                      <Input
+                        placeholder="標籤 2"
+                        value={igHashtags[1]}
+                        onChange={(e) => handleHashtagChange(1, e.target.value)}
+                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
+                      />
+                    </div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
+                        #
+                      </span>
+                      <Input
+                        placeholder="標籤 3"
+                        value={igHashtags[2]}
+                        onChange={(e) => handleHashtagChange(2, e.target.value)}
+                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
+                      />
+                    </div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
+                        #
+                      </span>
+                      <Input
+                        placeholder="標籤 4"
+                        value={igHashtags[3]}
+                        onChange={(e) => handleHashtagChange(3, e.target.value)}
+                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
+                      />
+                    </div>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
+                        #
+                      </span>
+                      <Input
+                        placeholder="標籤 5"
+                        value={igHashtags[4]}
+                        onChange={(e) => handleHashtagChange(4, e.target.value)}
+                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               <Button
                 variant="outline"
@@ -529,6 +624,13 @@ export function PublishPage() {
                 <p className="text-[11.5px] text-muted-foreground">
                   勾選代表納入一鍵發布，也可只發布此平台。
                 </p>
+                <Input
+                  placeholder="主題標籤（選填，不含 #，每篇限一個）"
+                  value={threadsTopicTag}
+                  maxLength={50}
+                  onChange={(e) => setThreadsTopicTag(e.target.value)}
+                  className="bg-background text-[12.5px]"
+                />
                 <Textarea
                   placeholder="輸入 Threads 串文文案..."
                   value={threadsText}

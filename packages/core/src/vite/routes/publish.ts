@@ -161,7 +161,13 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
           slideId: string;
           caption: string;
           images: string[];
+          topicTag?: string;
         };
+        const topicTag = typeof body.topicTag === 'string' ? body.topicTag.trim() : '';
+        if (topicTag && (topicTag.length > 50 || /[.&]/.test(topicTag))) {
+          return json(res, 400, { error: 'invalid_topic_tag' });
+        }
+        const topicTagParam = topicTag ? `&topic_tag=${encodeURIComponent(topicTag)}` : '';
         const env = await readEnvValues(ctx.userCwd, [THREADS_TOKEN_KEY, THREADS_USER_ID_KEY]);
         const token = env[THREADS_TOKEN_KEY];
         const userId = env[THREADS_USER_ID_KEY];
@@ -174,6 +180,7 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
             payloadPreview: {
               media_type: 'IMAGE',
               text: body.caption,
+              topic_tag: topicTag || undefined,
               imageCount: body.images?.length ?? 0,
               targetEndpoint: `https://graph.threads.net/v1.0/{user-id}/threads`,
             },
@@ -186,7 +193,7 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
 
           if (imageUrls.length === 1) {
             const createRes = await fetch(
-              `https://graph.threads.net/v1.0/${userId}/threads?media_type=IMAGE&image_url=${encodeURIComponent(imageUrls[0])}&text=${encodeURIComponent(body.caption)}&access_token=${encodeURIComponent(token)}`,
+              `https://graph.threads.net/v1.0/${userId}/threads?media_type=IMAGE&image_url=${encodeURIComponent(imageUrls[0])}&text=${encodeURIComponent(body.caption)}${topicTagParam}&access_token=${encodeURIComponent(token)}`,
               { method: 'POST' },
             );
             if (!createRes.ok) {
@@ -228,7 +235,7 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
           }
 
           const carouselRes = await fetch(
-            `https://graph.threads.net/v1.0/${userId}/threads?media_type=CAROUSEL&children=${encodeURIComponent(childIds.join(','))}&text=${encodeURIComponent(body.caption)}&access_token=${encodeURIComponent(token)}`,
+            `https://graph.threads.net/v1.0/${userId}/threads?media_type=CAROUSEL&children=${encodeURIComponent(childIds.join(','))}&text=${encodeURIComponent(body.caption)}${topicTagParam}&access_token=${encodeURIComponent(token)}`,
             { method: 'POST' },
           );
           if (!carouselRes.ok) {
