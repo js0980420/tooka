@@ -79,6 +79,9 @@ type Row =
     }
   | {
       kind: 'tutorials';
+    }
+  | {
+      kind: 'prompts';
     };
 
 export function FolderItem({
@@ -140,7 +143,9 @@ export function FolderItem({
             ? { type: 'emoji', value: '🗂️' }
             : row.kind === 'tutorials'
               ? { type: 'emoji', value: '📚' }
-              : row.folder.icon;
+              : row.kind === 'prompts'
+                ? { type: 'emoji', value: '✍️' }
+                : row.folder.icon;
   const label =
     row.kind === 'all'
       ? t.home.slides
@@ -152,7 +157,9 @@ export function FolderItem({
             ? t.home.assets
             : row.kind === 'tutorials'
               ? 'Help'
-              : row.folder.name;
+              : row.kind === 'prompts'
+                ? 'Prompts'
+                : row.folder.name;
 
   const commitRename = () => {
     if (row.kind !== 'folder') return;

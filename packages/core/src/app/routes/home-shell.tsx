@@ -21,6 +21,7 @@ import {
   Sidebar,
   TEMPLATES_ID,
   TUTORIALS_ID,
+  PROMPTS_ID,
 } from '../components/sidebar/sidebar';
 import type { FoldersManifest } from '../lib/sdk';
 import { slideIds, slideTemplates } from '../lib/slides';
@@ -43,6 +44,7 @@ export type HomeOutletContext = {
 
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/templates' || pathname.startsWith('/templates/')) return TEMPLATES_ID;
+  if (pathname === '/prompts' || pathname.startsWith('/prompts/')) return PROMPTS_ID;
   if (pathname === '/assets') return ASSETS_ID;
   if (pathname === '/tutorials' || pathname.startsWith('/tutorials/')) return TUTORIALS_ID;
   return search.get('f') ?? ALL_SLIDES_ID;
@@ -78,6 +80,7 @@ export function HomeShell() {
   const selectFolder = useCallback(
     (id: string) => {
       if (id === TEMPLATES_ID) navigate('/templates', { replace: true });
+      else if (id === PROMPTS_ID) navigate('/prompts', { replace: true });
       else if (id === ASSETS_ID) navigate('/assets', { replace: true });
       else if (id === TUTORIALS_ID) navigate('/tutorials', { replace: true });
       else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });

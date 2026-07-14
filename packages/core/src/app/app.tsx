@@ -9,6 +9,7 @@ import { Presenter } from './routes/presenter';
 import { Slide } from './routes/slide';
 import { TemplateDetailPage, TemplatesGalleryPage } from './routes/templates';
 import { TutorialsPage } from './routes/tutorials';
+import { PromptsPage } from './routes/prompts';
 
 export function App() {
   return (
@@ -21,6 +22,7 @@ export function App() {
             <Route path="/templates/:templateId" element={<TemplateDetailPage />} />
             <Route path="/assets" element={<AssetsPage />} />
             <Route path="/tutorials" element={<TutorialsPage />} />
+            <Route path="/prompts" element={<PromptsPage />} />
           </Route>
         ) : (
           <Route path="/" element={<NotFound />} />

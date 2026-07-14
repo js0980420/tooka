@@ -14,6 +14,7 @@ import { SidebarFooter } from './sidebar-footer';
 export const ALL_SLIDES_ID = '__all__';
 export const DRAFT_ID = 'draft';
 export const TEMPLATES_ID = '__templates__';
+export const PROMPTS_ID = '__prompts__';
 export const ASSETS_ID = '__assets__';
 export const TUTORIALS_ID = '__tutorials__';
 
@@ -149,6 +150,13 @@ export function Sidebar({
           count={templatesCount}
           selected={selectedId === TEMPLATES_ID}
           onSelect={() => onSelect(TEMPLATES_ID)}
+          onDropSlide={() => {}}
+        />
+        <FolderItem
+          row={{ kind: 'prompts' }}
+          count={0}
+          selected={selectedId === PROMPTS_ID}
+          onSelect={() => onSelect(PROMPTS_ID)}
           onDropSlide={() => {}}
         />
         {import.meta.env.DEV && (
