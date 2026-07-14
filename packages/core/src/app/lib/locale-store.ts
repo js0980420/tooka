@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from 'react';
 import { en } from '../../locale/en';
-import { ja } from '../../locale/ja';
 import type { Locale } from '../../locale/types';
 import { zhCN } from '../../locale/zh-cn';
 import { zhTW } from '../../locale/zh-tw';
@@ -8,23 +7,21 @@ import { zhTW } from '../../locale/zh-tw';
 export type LocaleId = Locale['id'];
 
 const LOCALES: Record<LocaleId, Locale> = {
-  en,
   'zh-TW': zhTW,
+  en,
   'zh-CN': zhCN,
-  ja,
 };
 
 export const LOCALE_OPTIONS: ReadonlyArray<{ id: LocaleId; label: string }> = [
-  { id: 'en', label: 'English' },
   { id: 'zh-TW', label: '繁體中文' },
+  { id: 'en', label: 'English' },
   { id: 'zh-CN', label: '简体中文' },
-  { id: 'ja', label: '日本語' },
 ];
 
 const STORAGE_KEY = 'open-cards:locale';
 
 function isLocaleId(value: string | null): value is LocaleId {
-  return value === 'en' || value === 'zh-TW' || value === 'zh-CN' || value === 'ja';
+  return value === 'zh-TW' || value === 'en' || value === 'zh-CN';
 }
 
 function readStored(): Locale {
@@ -32,7 +29,7 @@ function readStored(): Locale {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (isLocaleId(stored)) return LOCALES[stored];
   } catch {}
-  return en;
+  return zhTW;
 }
 
 // A module-level store (rather than React context) so every React root the

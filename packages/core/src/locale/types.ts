@@ -1,7 +1,7 @@
 export type Plural = { one: string; other: string };
 
 export type Locale = {
-  id: 'en' | 'zh-TW' | 'zh-CN' | 'ja';
+  id: 'zh-TW' | 'en' | 'zh-CN';
 
   common: {
     cancel: string;
@@ -577,5 +577,102 @@ export type Locale = {
     savePrompt: string;
     toastPromptSaved: string;
     savedLocallyNote: string;
+  };
+  publish: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    captureNoPages: string;
+    toastSynced: string;
+    resultSuccess: string;
+    resultApiFailed: string;
+    resultConnectionError: string;
+    toastSelectSlide: string;
+    toastSelectPlatform: string;
+    /** template: "Fill in the {platforms} caption first!" */
+    toastMissingCaptions: string;
+    toastInvalidTopicTag: string;
+    toastCapturing: string;
+    /** template: "Captured {count} pages…" */
+    toastCaptureDone: string;
+    /** template: "Capture failed: {error}" */
+    toastCaptureFailed: string;
+    unknownError: string;
+    /** template: "Publishing to {count} platforms..." */
+    toastPublishingMulti: string;
+    /** template: "Publishing to {platform}..." */
+    toastPublishingSingle: string;
+    toastAllPublished: string;
+    toastOnePublished: string;
+    toastSomeFailed: string;
+    toastPublishFailed: string;
+    stepPickCard: string;
+    pickCardHint: string;
+    capturingCard: string;
+    /** template: "Captured {count} pages" */
+    captureDoneLabel: string;
+    stepSyncText: string;
+    applyToAll: string;
+    commonTextPlaceholder: string;
+    stepEditPlatforms: string;
+    platformToggleHint: string;
+    fbCaptionPlaceholder: string;
+    igCaptionPlaceholder: string;
+    igHashtagsLabel: string;
+    /** template: "Tag {n}" */
+    igHashtagPlaceholder: string;
+    threadsTopicTagPlaceholder: string;
+    threadsCaptionPlaceholder: string;
+    publishing: string;
+    /** template: "Publish {platform} only" */
+    publishOnly: string;
+    manageConnects: string;
+    capturingCards: string;
+    publishingAll: string;
+    /** template: "Publish selected platforms ({count})" */
+    publishAllButton: string;
+    resultsTitle: string;
+    resultSuccessBadge: string;
+    resultFailedBadge: string;
+    mockedNote: string;
+    payloadLabel: string;
+  };
+  prompts: {
+    title: string;
+    addPrompt: string;
+    listHeading: string;
+    editTitle: string;
+    addTitle: string;
+    formTitleLabel: string;
+    formTitlePlaceholder: string;
+    formCategoryLabel: string;
+    formCategoryPlaceholder: string;
+    formContentLabel: string;
+    formContentPlaceholder: string;
+    defaultCategory: string;
+    cancel: string;
+    save: string;
+    builtInBadge: string;
+    copyTitle: string;
+    editAction: string;
+    deleteAction: string;
+    tipsTitle: string;
+    tipsBody: string;
+    emptyState: string;
+    sampleCategory: string;
+    sample1Title: string;
+    sample1Content: string;
+    sample2Title: string;
+    sample2Content: string;
+    sample3Title: string;
+    sample3Content: string;
+    sample4Title: string;
+    sample4Content: string;
+    sample5Title: string;
+    sample5Content: string;
+  };
+  tutorials: {
+    pageTitle: string;
+    categoryLabel: string;
   };
 };
