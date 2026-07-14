@@ -578,6 +578,7 @@ export const meta: SlideMeta = {
   title: 'open-cards 是什麼',
   theme: 'starter',
   createdAt: '2026-07-13T08:03:57.683Z',
+  template: true,
 };
 
 export default [Hook, Describe, Refine, Export, Cta] satisfies Page[];

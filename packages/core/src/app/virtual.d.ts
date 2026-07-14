@@ -3,6 +3,7 @@ declare module 'virtual:open-cards/slides' {
   export const slideIds: string[];
   export const slideThemes: Record<string, string>;
   export const slideCreatedAt: Record<string, number>;
+  export const slideTemplates: string[];
   export function loadSlide(id: string): Promise<SlideModule>;
 }
 

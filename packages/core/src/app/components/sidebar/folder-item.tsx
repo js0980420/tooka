@@ -72,7 +72,7 @@ type Row =
       kind: 'draft';
     }
   | {
-      kind: 'themes';
+      kind: 'templates';
     }
   | {
       kind: 'assets';
@@ -134,7 +134,7 @@ export function FolderItem({
       ? { type: 'emoji', value: '🎴' }
       : row.kind === 'draft'
         ? { type: 'emoji', value: '📝' }
-        : row.kind === 'themes'
+        : row.kind === 'templates'
           ? { type: 'emoji', value: '🎨' }
           : row.kind === 'assets'
             ? { type: 'emoji', value: '🗂️' }
@@ -146,8 +146,8 @@ export function FolderItem({
       ? t.home.slides
       : row.kind === 'draft'
         ? t.home.draft
-        : row.kind === 'themes'
-          ? t.home.themes
+        : row.kind === 'templates'
+          ? t.home.templates
           : row.kind === 'assets'
             ? t.home.assets
             : row.kind === 'tutorials'

@@ -65,11 +65,12 @@ function toId(absFile: string, slidesRoot: string): string {
 
 const META_THEME_RE = /(?:^|[\s,{])theme\s*:\s*['"]([^'"]+)['"]/;
 const META_CREATED_AT_RE = /(?:^|[\s,{])createdAt\s*:\s*['"]([^'"]+)['"]/;
+const META_TEMPLATE_RE = /(?:^|[\s,{])template\s*:\s*true\b/;
 
-type ExtractedMeta = { theme: string | null; createdAt: string | null };
+type ExtractedMeta = { theme: string | null; createdAt: string | null; template: boolean };
 
 function extractMeta(src: string): ExtractedMeta {
-  const empty: ExtractedMeta = { theme: null, createdAt: null };
+  const empty: ExtractedMeta = { theme: null, createdAt: null, template: false };
   const metaStart = src.search(/export\s+const\s+meta\b/);
   if (metaStart === -1) return empty;
   const eqIdx = src.indexOf('=', metaStart);
@@ -96,6 +97,7 @@ function extractMeta(src: string): ExtractedMeta {
   return {
     theme: themeMatch ? themeMatch[1] : null,
     createdAt: createdAtMatch ? createdAtMatch[1] : null,
+    template: META_TEMPLATE_RE.test(body),
   };
 }
 
@@ -104,7 +106,7 @@ async function readSlideMeta(abs: string): Promise<ExtractedMeta> {
     const src = await fs.readFile(abs, 'utf8');
     return extractMeta(src);
   } catch {
-    return { theme: null, createdAt: null };
+    return { theme: null, createdAt: null, template: false };
   }
 }
 
@@ -124,7 +126,13 @@ async function generateSlidesModule(
       const id = toId(abs, slidesRoot);
       const importPath = isDev ? `@fs/${normalizePath(abs).replace(/^\/+/, '')}` : abs;
       const meta = await readSlideMeta(abs);
-      return { id, importPath, theme: meta.theme, createdAt: parseCreatedAtMs(meta.createdAt) };
+      return {
+        id,
+        importPath,
+        theme: meta.theme,
+        createdAt: parseCreatedAtMs(meta.createdAt),
+        template: meta.template,
+      };
     }),
   );
 
@@ -137,6 +145,12 @@ async function generateSlidesModule(
   }
   const themesJson = JSON.stringify(themesMap);
   const createdAtJson = JSON.stringify(createdAtMap);
+  const templatesJson = JSON.stringify(
+    entries
+      .filter((e) => e.template)
+      .map((e) => e.id)
+      .sort(),
+  );
   const importTokens = JSON.stringify(Object.fromEntries(entries.map((e) => [e.id, 0])));
   const devRuntime = isDev
     ? `
@@ -165,6 +179,7 @@ if (import.meta.hot) {
 export const slideIds = ${ids};
 export const slideThemes = ${themesJson};
 export const slideCreatedAt = ${createdAtJson};
+export const slideTemplates = ${templatesJson};
 ${devRuntime}
 
 export async function loadSlide(id) {

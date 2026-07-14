@@ -13,7 +13,7 @@ import { SidebarFooter } from './sidebar-footer';
 
 export const ALL_SLIDES_ID = '__all__';
 export const DRAFT_ID = 'draft';
-export const THEMES_ID = '__themes__';
+export const TEMPLATES_ID = '__templates__';
 export const ASSETS_ID = '__assets__';
 export const TUTORIALS_ID = '__tutorials__';
 
@@ -23,7 +23,7 @@ export function Sidebar({
   folders,
   countFor,
   allCount,
-  themesCount,
+  templatesCount,
   assetsCount,
   selectedId,
   onSelect,
@@ -38,7 +38,7 @@ export function Sidebar({
   folders: Folder[];
   countFor: (folderId: string | null) => number;
   allCount: number;
-  themesCount: number;
+  templatesCount: number;
   assetsCount: number;
   selectedId: string;
   onSelect: (id: string) => void;
@@ -145,10 +145,10 @@ export function Sidebar({
           onDropSlide={() => {}}
         />
         <FolderItem
-          row={{ kind: 'themes' }}
-          count={themesCount}
-          selected={selectedId === THEMES_ID}
-          onSelect={() => onSelect(THEMES_ID)}
+          row={{ kind: 'templates' }}
+          count={templatesCount}
+          selected={selectedId === TEMPLATES_ID}
+          onSelect={() => onSelect(TEMPLATES_ID)}
           onDropSlide={() => {}}
         />
         {import.meta.env.DEV && (

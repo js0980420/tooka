@@ -15,17 +15,22 @@ import { useFolders } from '@/lib/folders';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { FolderIconChip } from '../components/sidebar/folder-item';
-import { ALL_SLIDES_ID, ASSETS_ID, Sidebar, THEMES_ID, TUTORIALS_ID } from '../components/sidebar/sidebar';
+import {
+  ALL_SLIDES_ID,
+  ASSETS_ID,
+  Sidebar,
+  TEMPLATES_ID,
+  TUTORIALS_ID,
+} from '../components/sidebar/sidebar';
 import type { FoldersManifest } from '../lib/sdk';
-import { slideIds } from '../lib/slides';
-import { themes as themeRegistry } from '../lib/themes';
+import { slideIds, slideTemplates } from '../lib/slides';
 
 export type HomeOutletContext = {
   manifest: FoldersManifest;
   loading: boolean;
   draftSlides: string[];
   slidesByFolder: Record<string, string[]>;
-  /** Selected view id: ALL_SLIDES_ID, DRAFT_ID, a folder id, THEMES_ID, or ASSETS_ID. */
+  /** Selected view id: ALL_SLIDES_ID, DRAFT_ID, a folder id, TEMPLATES_ID, or ASSETS_ID. */
   selectedId: string;
   selectFolder: (id: string) => void;
   reportTitle: (slideId: string, title: string) => void;
@@ -37,7 +42,7 @@ export type HomeOutletContext = {
 };
 
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
-  if (pathname === '/themes' || pathname.startsWith('/themes/')) return THEMES_ID;
+  if (pathname === '/templates' || pathname.startsWith('/templates/')) return TEMPLATES_ID;
   if (pathname === '/assets') return ASSETS_ID;
   if (pathname === '/tutorials' || pathname.startsWith('/tutorials/')) return TUTORIALS_ID;
   return search.get('f') ?? ALL_SLIDES_ID;
@@ -72,7 +77,7 @@ export function HomeShell() {
 
   const selectFolder = useCallback(
     (id: string) => {
-      if (id === THEMES_ID) navigate('/themes', { replace: true });
+      if (id === TEMPLATES_ID) navigate('/templates', { replace: true });
       else if (id === ASSETS_ID) navigate('/assets', { replace: true });
       else if (id === TUTORIALS_ID) navigate('/tutorials', { replace: true });
       else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });
@@ -143,7 +148,7 @@ export function HomeShell() {
           folders={manifest.folders}
           countFor={countFor}
           allCount={slideIds.length}
-          themesCount={themeRegistry.length}
+          templatesCount={slideTemplates.length}
           assetsCount={globalAssets.length}
           selectedId={selectedId}
           onSelect={selectFolder}
@@ -194,7 +199,7 @@ export function HomeShell() {
                 <DropdownMenuItem
                   onClick={() => selectFolder(ALL_SLIDES_ID)}
                   className={cn(
-                    selectedId !== THEMES_ID &&
+                    selectedId !== TEMPLATES_ID &&
                       selectedId !== ASSETS_ID &&
                       'bg-muted text-foreground',
                   )}
@@ -204,12 +209,12 @@ export function HomeShell() {
                   <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => selectFolder(THEMES_ID)}
-                  className={cn(selectedId === THEMES_ID && 'bg-muted text-foreground')}
+                  onClick={() => selectFolder(TEMPLATES_ID)}
+                  className={cn(selectedId === TEMPLATES_ID && 'bg-muted text-foreground')}
                 >
                   <FolderIconChip icon={{ type: 'emoji', value: '🎨' }} />
-                  <span className="flex-1 truncate">{t.home.themes}</span>
-                  <span className="folio">{themeRegistry.length.toString().padStart(2, '0')}</span>
+                  <span className="flex-1 truncate">{t.home.templates}</span>
+                  <span className="folio">{slideTemplates.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
                 {import.meta.env.DEV && (
                   <DropdownMenuItem

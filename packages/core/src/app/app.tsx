@@ -7,7 +7,7 @@ import { Home } from './routes/home';
 import { HomeShell } from './routes/home-shell';
 import { Presenter } from './routes/presenter';
 import { Slide } from './routes/slide';
-import { ThemeDetailPage, ThemesGalleryPage } from './routes/themes';
+import { TemplateDetailPage, TemplatesGalleryPage } from './routes/templates';
 import { TutorialsPage } from './routes/tutorials';
 
 export function App() {
@@ -17,8 +17,8 @@ export function App() {
         {config.build.showSlideBrowser ? (
           <Route element={<HomeShell />}>
             <Route path="/" element={<Home />} />
-            <Route path="/themes" element={<ThemesGalleryPage />} />
-            <Route path="/themes/:themeId" element={<ThemeDetailPage />} />
+            <Route path="/templates" element={<TemplatesGalleryPage />} />
+            <Route path="/templates/:templateId" element={<TemplateDetailPage />} />
             <Route path="/assets" element={<AssetsPage />} />
             <Route path="/tutorials" element={<TutorialsPage />} />
           </Route>

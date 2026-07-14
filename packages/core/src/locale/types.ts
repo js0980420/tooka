@@ -39,7 +39,7 @@ export type Locale = {
     appTitle: string;
     draft: string;
     duplicate: string;
-    themes: string;
+    templates: string;
     assets: string;
     folders: string;
     slides: string;
@@ -470,24 +470,39 @@ export type Locale = {
     statusError: string;
   };
 
-  themes: {
+  templates: {
     title: string;
-    noThemesTitle: string;
-    noThemesHintPrefix: string;
-    noThemesHintSuffix: string;
-    noDemoYet: string;
-    noDemoHintPrefix: string;
-    noDemoHintSuffix: string;
+    noTemplatesTitle: string;
+    noTemplatesHintPrefix: string;
+    noTemplatesHintSuffix: string;
+    /** template: "Open template {name}" */
+    openTemplateAria: string;
     backToGallery: string;
+    visualTab: string;
+    promptTab: string;
+    addToCards: string;
+    adding: string;
+    /** template: "Added to cards as {id}" */
+    toastAdded: string;
+    toastAddFailed: string;
     /** template: "page {n}/{total}" */
     pageOf: string;
-    nextPageAria: string;
-    prevPageAria: string;
-    /** template: "Open theme {name}" */
-    openThemeAria: string;
-    usedBy: string;
-    usedByEmpty: string;
-    expandPromptAria: string;
-    collapsePromptAria: string;
+    hookLabel: string;
+    mainLabel: string;
+    ctaLabel: string;
+    taLabel: string;
+    /** template: "…{name}…" — first line of the copied prompt */
+    promptIntro: string;
+    promptDefaultHook: string;
+    promptDefaultMain: string;
+    promptDefaultCta: string;
+    promptDefaultTa: string;
+    copyPrompt: string;
+    toastCopied: string;
+    toastCopyFailed: string;
+    restoreDefaults: string;
+    savePrompt: string;
+    toastPromptSaved: string;
+    savedLocallyNote: string;
   };
 };

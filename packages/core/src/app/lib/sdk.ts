@@ -16,6 +16,8 @@ export type SlideMeta = {
   theme?: string;
   /** ISO 8601 timestamp. Set once at scaffold time; used to sort the slide list. */
   createdAt?: string;
+  /** Marks this deck as a reusable template shown on the Templates page. */
+  template?: boolean;
 };
 
 export type SlideModule = {
