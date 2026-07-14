@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { format, useLocale } from '@/lib/use-locale';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
+import { PageTabs } from '../components/page-tabs';
 import { designToCssVars } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
 import { PngExportVariantProvider } from '../lib/png-export-variant';
@@ -360,10 +361,16 @@ export function PublishPage() {
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
             <span className="flex h-6 items-center justify-center rounded-full bg-brand/10 px-2.5 text-[11px] font-semibold text-brand">
               {t.publish.eyebrow}
             </span>
+            <PageTabs
+              tabs={[
+                { label: t.home.publish, path: '/publish' },
+                { label: t.home.connects, path: '/connects' },
+              ]}
+            />
           </div>
           <h1 className="font-heading text-2xl font-bold tracking-tight mt-1">{t.publish.title}</h1>
           <p className="text-[13px] text-muted-foreground">{t.publish.subtitle}</p>

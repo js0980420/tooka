@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { PageTabs } from '../components/page-tabs';
 
 type PromptItem = {
   id: string;
@@ -122,20 +123,28 @@ export function PromptsPage() {
           <Sparkles className="size-5 text-brand" />
           {t.prompts.title}
         </h1>
-        <Button
-          size="sm"
-          className="h-8 gap-1.5"
-          onClick={() => {
-            setIsAdding(true);
-            setEditingId(null);
-            setFormTitle('');
-            setFormCategory('');
-            setFormContent('');
-          }}
-        >
-          <Plus className="size-4" />
-          {t.prompts.addPrompt}
-        </Button>
+        <div className="flex items-center gap-2">
+          <PageTabs
+            tabs={[
+              { label: t.home.tutorials, path: '/tutorials' },
+              { label: t.home.prompts, path: '/prompts' },
+            ]}
+          />
+          <Button
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => {
+              setIsAdding(true);
+              setEditingId(null);
+              setFormTitle('');
+              setFormCategory('');
+              setFormContent('');
+            }}
+          >
+            <Plus className="size-4" />
+            {t.prompts.addPrompt}
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">

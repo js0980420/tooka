@@ -2,6 +2,7 @@ import { BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { PageTabs } from '../components/page-tabs';
 import type { TutorialArticle } from './tutorials-article';
 import { tutorialArticlesEn } from './tutorials-en';
 import { tutorialArticlesZhCN } from './tutorials-zh-cn';
@@ -28,6 +29,12 @@ export function TutorialsPage() {
           <BookOpen className="size-5 text-brand" />
           {t.tutorials.pageTitle}
         </h1>
+        <PageTabs
+          tabs={[
+            { label: t.home.tutorials, path: '/tutorials' },
+            { label: t.home.prompts, path: '/prompts' },
+          ]}
+        />
       </div>
       <div className="flex flex-1 overflow-hidden">
         <div className="w-64 shrink-0 border-r border-hairline bg-card/30 overflow-y-auto p-4 space-y-4">

@@ -14,9 +14,6 @@ import { SidebarFooter } from './sidebar-footer';
 export const ALL_SLIDES_ID = '__all__';
 export const DRAFT_ID = 'draft';
 export const TEMPLATES_ID = '__templates__';
-export const PROMPTS_ID = '__prompts__';
-export const ASSETS_ID = '__assets__';
-export const CONNECTS_ID = '__connects__';
 export const TUTORIALS_ID = '__tutorials__';
 export const PUBLISH_ID = '__publish__';
 
@@ -27,7 +24,6 @@ export function Sidebar({
   countFor,
   allCount,
   templatesCount,
-  assetsCount,
   selectedId,
   onSelect,
   onCreate,
@@ -42,7 +38,6 @@ export function Sidebar({
   countFor: (folderId: string | null) => number;
   allCount: number;
   templatesCount: number;
-  assetsCount: number;
   selectedId: string;
   onSelect: (id: string) => void;
   onCreate: (name: string, icon: FolderIcon) => Promise<Folder> | undefined;
@@ -155,31 +150,6 @@ export function Sidebar({
           onSelect={() => onSelect(TEMPLATES_ID)}
           onDropSlide={() => {}}
         />
-        <FolderItem
-          row={{ kind: 'prompts' }}
-          count={0}
-          selected={selectedId === PROMPTS_ID}
-          onSelect={() => onSelect(PROMPTS_ID)}
-          onDropSlide={() => {}}
-        />
-        {import.meta.env.DEV && (
-          <FolderItem
-            row={{ kind: 'assets' }}
-            count={assetsCount}
-            selected={selectedId === ASSETS_ID}
-            onSelect={() => onSelect(ASSETS_ID)}
-            onDropSlide={() => {}}
-          />
-        )}
-        {import.meta.env.DEV && (
-          <FolderItem
-            row={{ kind: 'connects' }}
-            count={0}
-            selected={selectedId === CONNECTS_ID}
-            onSelect={() => onSelect(CONNECTS_ID)}
-            onDropSlide={() => {}}
-          />
-        )}
         {import.meta.env.DEV && (
           <FolderItem
             row={{ kind: 'publish' }}

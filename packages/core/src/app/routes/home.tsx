@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { PageTabs } from '../components/page-tabs';
 import { FolderIconChip, SLIDE_DND_MIME } from '../components/sidebar/folder-item';
 import { ALL_SLIDES_ID, DRAFT_ID } from '../components/sidebar/sidebar';
 import { SlideCanvas } from '../components/slide-canvas';
@@ -199,6 +200,14 @@ export function Home() {
             </span>
           )}
           <div className="ml-auto flex w-full items-center gap-2 md:w-auto">
+            {import.meta.env.DEV && (
+              <PageTabs
+                tabs={[
+                  { label: t.home.slides, path: '/' },
+                  { label: t.home.assets, path: '/assets' },
+                ]}
+              />
+            )}
             <SortControl value={sortKey} onChange={setSortKey} />
             <SearchInput value={query} onChange={setQuery} />
           </div>

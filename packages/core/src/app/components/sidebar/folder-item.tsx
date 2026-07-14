@@ -75,16 +75,7 @@ type Row =
       kind: 'templates';
     }
   | {
-      kind: 'assets';
-    }
-  | {
       kind: 'tutorials';
-    }
-  | {
-      kind: 'prompts';
-    }
-  | {
-      kind: 'connects';
     }
   | {
       kind: 'publish';
@@ -145,17 +136,11 @@ export function FolderItem({
         ? { type: 'emoji', value: '📝' }
         : row.kind === 'templates'
           ? { type: 'emoji', value: '🎨' }
-          : row.kind === 'assets'
-            ? { type: 'emoji', value: '🗂️' }
-            : row.kind === 'tutorials'
-              ? { type: 'emoji', value: '📚' }
-              : row.kind === 'prompts'
-                ? { type: 'emoji', value: '✍️' }
-                : row.kind === 'connects'
-                  ? { type: 'emoji', value: '🔌' }
-                  : row.kind === 'publish'
-                    ? { type: 'emoji', value: '🚀' }
-                    : row.folder.icon;
+          : row.kind === 'tutorials'
+            ? { type: 'emoji', value: '📚' }
+            : row.kind === 'publish'
+              ? { type: 'emoji', value: '🚀' }
+              : row.folder.icon;
   const label =
     row.kind === 'all'
       ? t.home.slides
@@ -163,17 +148,11 @@ export function FolderItem({
         ? t.home.draft
         : row.kind === 'templates'
           ? t.home.templates
-          : row.kind === 'assets'
-            ? t.home.assets
-            : row.kind === 'tutorials'
-              ? t.home.tutorials
-              : row.kind === 'prompts'
-                ? t.home.prompts
-                : row.kind === 'connects'
-                  ? t.home.connects
-                  : row.kind === 'publish'
-                    ? t.home.publish
-                    : row.folder.name;
+          : row.kind === 'tutorials'
+            ? t.home.tutorials
+            : row.kind === 'publish'
+              ? t.home.publish
+              : row.folder.name;
 
   const commitRename = () => {
     if (row.kind !== 'folder') return;

@@ -20,7 +20,15 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useDeferredValue,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { toast } from 'sonner';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
@@ -71,7 +79,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/lib/sdk';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 
-type Props = { slideId: string | null };
+type Props = { slideId: string | null; headerTabs?: ReactNode };
 
 type Scope = 'slide' | 'global';
 type ViewMode = 'grid' | 'list';
@@ -162,7 +170,7 @@ type ConflictState = {
   resolve: (decision: 'replace' | 'rename' | 'cancel') => void;
 };
 
-export function AssetView({ slideId }: Props) {
+export function AssetView({ slideId, headerTabs }: Props) {
   const lockedToGlobal = slideId === null;
   const [scope, setScope] = useState<Scope>(lockedToGlobal ? 'global' : 'slide');
   const effectiveSlideId = scope === 'global' || slideId === null ? GLOBAL_SLIDE_ID : slideId;
@@ -350,6 +358,7 @@ export function AssetView({ slideId }: Props) {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
+          {headerTabs}
           <button
             type="button"
             onClick={() => setLogoSearchOpen(true)}

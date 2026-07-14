@@ -10,16 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAssets } from '@/lib/assets';
 import { useFolders } from '@/lib/folders';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { FolderIconChip } from '../components/sidebar/folder-item';
 import {
   ALL_SLIDES_ID,
-  ASSETS_ID,
-  CONNECTS_ID,
-  PROMPTS_ID,
   PUBLISH_ID,
   Sidebar,
   TEMPLATES_ID,
@@ -46,11 +42,16 @@ export type HomeOutletContext = {
 
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/templates' || pathname.startsWith('/templates/')) return TEMPLATES_ID;
-  if (pathname === '/prompts' || pathname.startsWith('/prompts/')) return PROMPTS_ID;
-  if (pathname === '/assets') return ASSETS_ID;
-  if (pathname === '/connects') return CONNECTS_ID;
-  if (pathname === '/publish') return PUBLISH_ID;
-  if (pathname === '/tutorials' || pathname.startsWith('/tutorials/')) return TUTORIALS_ID;
+  if (pathname === '/assets') return ALL_SLIDES_ID;
+  if (pathname === '/connects' || pathname === '/publish') return PUBLISH_ID;
+  if (
+    pathname === '/tutorials' ||
+    pathname.startsWith('/tutorials/') ||
+    pathname === '/prompts' ||
+    pathname.startsWith('/prompts/')
+  ) {
+    return TUTORIALS_ID;
+  }
   return search.get('f') ?? ALL_SLIDES_ID;
 }
 
@@ -84,9 +85,6 @@ export function HomeShell() {
   const selectFolder = useCallback(
     (id: string) => {
       if (id === TEMPLATES_ID) navigate('/templates', { replace: true });
-      else if (id === PROMPTS_ID) navigate('/prompts', { replace: true });
-      else if (id === ASSETS_ID) navigate('/assets', { replace: true });
-      else if (id === CONNECTS_ID) navigate('/connects', { replace: true });
       else if (id === PUBLISH_ID) navigate('/publish', { replace: true });
       else if (id === TUTORIALS_ID) navigate('/tutorials', { replace: true });
       else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });
@@ -95,7 +93,6 @@ export function HomeShell() {
     [navigate],
   );
 
-  const { assets: globalAssets } = useAssets('@global');
   const isAssetsRoute = location.pathname === '/assets';
 
   const { draftSlides, slidesByFolder } = useMemo(() => {
@@ -158,7 +155,6 @@ export function HomeShell() {
           countFor={countFor}
           allCount={slideIds.length}
           templatesCount={slideTemplates.length}
-          assetsCount={globalAssets.length}
           selectedId={selectedId}
           onSelect={selectFolder}
           onCreate={(name, icon) => create(name, icon)}
@@ -210,7 +206,8 @@ export function HomeShell() {
                   onClick={() => selectFolder(ALL_SLIDES_ID)}
                   className={cn(
                     selectedId !== TEMPLATES_ID &&
-                      selectedId !== ASSETS_ID &&
+                      selectedId !== PUBLISH_ID &&
+                      selectedId !== TUTORIALS_ID &&
                       'bg-muted text-foreground',
                   )}
                 >
@@ -228,14 +225,20 @@ export function HomeShell() {
                 </DropdownMenuItem>
                 {import.meta.env.DEV && (
                   <DropdownMenuItem
-                    onClick={() => selectFolder(ASSETS_ID)}
-                    className={cn(selectedId === ASSETS_ID && 'bg-muted text-foreground')}
+                    onClick={() => selectFolder(PUBLISH_ID)}
+                    className={cn(selectedId === PUBLISH_ID && 'bg-muted text-foreground')}
                   >
-                    <FolderIconChip icon={{ type: 'emoji', value: '🗂️' }} />
-                    <span className="flex-1 truncate">{t.home.assets}</span>
-                    <span className="folio">{globalAssets.length.toString().padStart(2, '0')}</span>
+                    <FolderIconChip icon={{ type: 'emoji', value: '🚀' }} />
+                    <span className="flex-1 truncate">{t.home.publish}</span>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                  onClick={() => selectFolder(TUTORIALS_ID)}
+                  className={cn(selectedId === TUTORIALS_ID && 'bg-muted text-foreground')}
+                >
+                  <FolderIconChip icon={{ type: 'emoji', value: '📚' }} />
+                  <span className="flex-1 truncate">{t.home.tutorials}</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

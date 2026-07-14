@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
+import { PageTabs } from '../components/page-tabs';
 import { FolderIconChip } from '../components/sidebar/folder-item';
 
 type InstagramTokenSource = 'instagram_login' | 'business_system_user';
@@ -78,6 +79,13 @@ export function ConnectsPage() {
           <h1 className="font-heading text-[32px] font-semibold leading-[1.05] tracking-[-0.025em] md:text-[44px]">
             {t.connects.title}
           </h1>
+          <PageTabs
+            className="ml-auto"
+            tabs={[
+              { label: t.home.publish, path: '/publish' },
+              { label: t.home.connects, path: '/connects' },
+            ]}
+          />
         </div>
         <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
           {t.connects.subtitle}
