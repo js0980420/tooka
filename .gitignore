@@ -5,5 +5,5 @@ dist
 .vite
 *.tsbuildinfo
 .turbo
-apps/studio/slides/*/assets/
+apps/studio/slides/
 .env
