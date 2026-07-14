@@ -6,7 +6,7 @@ import {
   usePngExportVariant,
   useSlidePageNumber,
 } from '@open-cards/core';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 export const design: DesignSystem = {
   palette: { bg: '#0A192F', text: '#F8F9FA', accent: '#64FFDA' },
@@ -30,8 +30,8 @@ const IG_SAFE_EDGE_INSET_Y = 220;
 const IG_CONTENT_SCALE = 0.84;
 
 export const pngExportVariants = [
-  { id: 'original', label: '下載長方尺寸', fileSuffix: 'original', previewLabel: '長方尺寸' },
-  { id: 'ig', label: '下載正方尺寸', fileSuffix: 'ig', previewLabel: '正方尺寸' },
+  { id: 'original', label: '下載IG直式', fileSuffix: 'original', previewLabel: 'IG直式' },
+  { id: 'ig', label: '下載正方', fileSuffix: 'ig', previewLabel: '正方' },
 ] satisfies PngExportVariant[];
 
 const useSquareSafeLayout = () => {
@@ -67,7 +67,7 @@ const Badge = ({ edgeInsetX, edgeInsetY }: { edgeInsetX: number; edgeInsetY: num
         strokeLinecap="round"
       />
     </svg>
-    @test_carousel.ai
+    open-cards
   </div>
 );
 
@@ -230,10 +230,9 @@ const Hook: Page = () => (
           margin: 0,
         }}
       >
-        {/* @slide-comment id="c-e4dc2ec8" ts="2026-07-14T00:52:09.971Z" text="eyJub3RlIjoi5YaN5pS-5aSn5LiA6bueIn0" */}
-        實測新建卡片
+        AI生圖跑版、視覺不一致、等AI思考超久
         <br />
-        <span style={{ color: 'var(--osd-accent)' }}>IG 直式圖文卡片</span>
+        <span style={{ color: 'var(--osd-accent)' }}>我終於受不了了</span>
       </h1>
       <p
         style={{
@@ -244,18 +243,18 @@ const Hook: Page = () => (
           margin: '40px 0 0',
         }}
       >
-        測試 1080×1350 直式畫布與安全裁切邊距 →
+        一個工程師小編的自救故事 →
       </p>
       <div style={{ display: 'flex', gap: 16, marginTop: 40 }}>
-        <TagPill>直式畫布</TagPill>
-        <TagPill>防裁切安全區</TagPill>
-        <TagPill>暗色系科技風</TagPill>
+        <TagPill>真實痛點</TagPill>
+        <TagPill>全自動發文</TagPill>
+        <TagPill>開源專案</TagPill>
       </div>
     </div>
   </Shell>
 );
 
-const Describe: Page = () => (
+const Pain: Page = () => (
   <Shell>
     <div
       style={{
@@ -263,28 +262,333 @@ const Describe: Page = () => (
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
-        gap: 40,
+        gap: 44,
       }}
     >
       <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          痛點 · THE PAIN
+        </div>
         <h2
           style={{
             fontFamily: 'var(--osd-font-display)',
-            fontSize: 68,
+            fontSize: 64,
             lineHeight: 1.25,
             fontWeight: 900,
-            margin: 0,
+            margin: '16px 0 0',
           }}
         >
-          安全邊距與 <span style={{ color: 'var(--osd-accent)' }}>長寬比例</span>
+          發一篇文，<span style={{ color: 'var(--osd-accent)' }}>要做這麼多事</span>
         </h2>
-        <p style={{ fontSize: 36, lineHeight: 1.5, color: MUTED, margin: '20px 0 0' }}>
-          根據您的需求對調與調整後的最佳安全規範。
-        </p>
       </div>
-      <Point n="1" title="預設為長方尺寸" sub="完整利用 4:5 畫面，邊距 72px / 60px" />
-      <Point n="2" title="可選正方尺寸" sub="整體往中央收縮，確保 IG 預覽不被截斷" />
-      <Point n="3" title="一鍵打包下載" sub="有多張卡片時依然自動打包為單一 ZIP 下載" />
+      <Point n="1" title="做圖一小時" sub="AI生圖隨機性太高，要經常重新生圖等超久" />
+      <Point n="2" title="上傳三次" sub="FB、IG、Threads 各自上傳，發文量多時很多時間" />
+      <Point n="3" title="文案貼三次" sub="Meta三大平台適合的格式不一樣，要寫3種版本的文案" />
+    </div>
+  </Shell>
+);
+
+const Turning: Page = () => (
+  <Shell>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <div
+        style={{
+          fontSize: 25,
+          fontWeight: 700,
+          letterSpacing: '0.15em',
+          color: 'var(--osd-accent)',
+        }}
+      >
+        轉折 · THE IDEA
+      </div>
+      <h1
+        style={{
+          fontFamily: 'var(--osd-font-display)',
+          fontSize: 84,
+          lineHeight: 1.28,
+          letterSpacing: '-0.01em',
+          fontWeight: 900,
+          margin: '32px 0 0',
+        }}
+      >
+        「同樣的事重複第三次，
+        <br />
+        就該把它
+        <span style={{ color: 'var(--osd-accent)' }}>寫成程式</span>。」
+      </h1>
+      <p
+        style={{
+          fontSize: 'var(--osd-size-body)',
+          lineHeight: 1.6,
+          color: MUTED,
+          fontWeight: 500,
+          margin: '40px 0 0',
+        }}
+      >
+        於是我打開編輯器，開始打造 open-cards ——
+        <br />
+        讓「做圖到發文」整條流程，一行指令跑完。
+      </p>
+    </div>
+  </Shell>
+);
+
+const Solution: Page = () => (
+  <Shell>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 44,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          解決方案 · THE FIX
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--osd-font-display)',
+            fontSize: 64,
+            lineHeight: 1.25,
+            fontWeight: 900,
+            margin: '16px 0 0',
+          }}
+        >
+          用 <span style={{ color: 'var(--osd-accent)' }}>React 寫圖卡</span>
+          ，一鍵發三平台
+        </h2>
+      </div>
+      <Point n="1" title="圖卡就是元件" sub="1080×1350 模板，改文案直接重複使用" />
+      <Point n="2" title="預覽即成品" sub="瀏覽器即時渲染，發布時自動擷取成 PNG" />
+      <Point n="3" title="一鍵同步發布" sub="FB / IG / Threads 勾選平台，同時送出" />
+    </div>
+  </Shell>
+);
+
+const BuildApi: Page = () => (
+  <Shell>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 44,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          我做了哪些 · BUILD 01
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--osd-font-display)',
+            fontSize: 64,
+            lineHeight: 1.25,
+            fontWeight: 900,
+            margin: '16px 0 0',
+          }}
+        >
+          把Meta API<span style={{ color: 'var(--osd-accent)' }}>{''}</span>
+          {'的'}
+          <span style={{ color: '#64ffda' }}>繁瑣步驟簡化</span>
+        </h2>
+      </div>
+      <Point n="1" title="自動幫你建立環境變數" sub="Connects 頁貼上 token，自動驗證寫入 .env" />
+      <Point
+        n="2"
+        title="Token 自動續期"
+        sub="發文前先檢查， 10 天內自動刷新，不用手動延長長期權杖"
+      />
+      <Point n="3" title="權限先幫你驗" sub="FB 粉專 Token 自動推導，發文權限先檢查" />
+    </div>
+  </Shell>
+);
+
+const BuildCrisis: Page = () => (
+  <Shell>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 44,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          我做了哪些 · BUILD 02
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--osd-font-display)',
+            fontSize: 64,
+            lineHeight: 1.25,
+            fontWeight: 900,
+            margin: '16px 0 0',
+          }}
+        >
+          半路殺出的<span style={{ color: 'var(--osd-accent)' }}>圖床危機</span>
+        </h2>
+      </div>
+      <Point n="1" title="免費圖床一夜全滅" sub="Telegraph、catbox、0x0.st 同期停止匿名上傳" />
+      <Point n="2" title="FB 改二進位直傳" sub="PNG 直接上傳 Meta 伺服器，零外部依賴" />
+      <Point n="3" title="IG / Threads 靠 imgbb" sub="一組免費 API key，公開圖床穩定供圖" />
+    </div>
+  </Shell>
+);
+
+const BuildSprint: Page = () => (
+  <Shell>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 44,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          我做了哪些 · BUILD 03
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--osd-font-display)',
+            fontSize: 64,
+            lineHeight: 1.25,
+            fontWeight: 900,
+            margin: '16px 0 0',
+          }}
+        >
+          一天 <span style={{ color: 'var(--osd-accent)' }}>29 個 commit</span> 的衝刺
+        </h2>
+      </div>
+      <Point n="1" title="Publish 發文中心" sub="各平台獨立文案，共用文案一鍵同步" />
+      <Point n="2" title="怕 IG 把字裁掉？" sub="雙尺寸匯出內建安全區，4:5 與 1:1 都完整入鏡" />
+      <Point n="3" title="自動發文API申請失敗？" sub="我把流程整個簡化，少掉一些麻煩步驟" />
+    </div>
+  </Shell>
+);
+
+const Why: Page = () => (
+  <Shell>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 44,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          為什麼這樣做 · THE WHY
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--osd-font-display)',
+            fontSize: 64,
+            lineHeight: 1.25,
+            fontWeight: 900,
+            margin: '16px 0 0',
+          }}
+        >
+          為什麼堅持<span style={{ color: 'var(--osd-accent)' }}>用程式寫圖卡</span>？
+        </h2>
+      </div>
+      <Point n="1" title="視覺風格永遠一致" sub="設計系統鎖定色彩與字型，每張卡都是同一個品牌" />
+      <Point n="2" title="排版不用手動對齊" sub="版式寫在元件裡，換文案自動排好不跑版" />
+      <Point n="3" title="一條龍作圖全流程" sub="從文案到整組圖卡打包下載、直接發布，一站完成" />
+    </div>
+  </Shell>
+);
+
+const Teaser: Page = () => (
+  <Shell>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: 44,
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 25,
+            fontWeight: 700,
+            letterSpacing: '0.15em',
+            color: 'var(--osd-accent)',
+          }}
+        >
+          下一步 · COMING NEXT
+        </div>
+        <h2
+          style={{
+            fontFamily: 'var(--osd-font-display)',
+            fontSize: 64,
+            lineHeight: 1.25,
+            fontWeight: 900,
+            margin: '16px 0 0',
+          }}
+        >
+          想要<span style={{ color: 'var(--osd-accent)' }}>保姆級教學</span>嗎？
+        </h2>
+      </div>
+      <Point n="1" title="Meta API 串接全教學" sub="從開發者後台到第一篇自動發文" />
+      <Point n="2" title="圖卡模板設計心法" sub="1080×1350 安全區與版式系統拆解" />
+      <Point n="3" title="排程自動發文" sub="寫好文案，時間到自己發（開發中）" />
     </div>
   </Shell>
 );
@@ -315,7 +619,7 @@ const Cta: Page = () => (
             letterSpacing: '0.14em',
           }}
         >
-          TEST SUCCESS
+          一起聊聊
         </div>
         <h2
           style={{
@@ -325,7 +629,9 @@ const Cta: Page = () => (
             margin: '32px 0 0',
           }}
         >
-          測試成功！
+          你的發文流程裡，
+          <br />
+          最想自動化的是哪一步？
         </h2>
         <p
           style={{
@@ -335,9 +641,9 @@ const Cta: Page = () => (
             margin: '24px 0 0',
           }}
         >
-          請重整開發伺服器，
+          留言聊聊你的痛點 —— open-cards 開源專案，
           <br />
-          即可在首頁看見此直式測試卡片。
+          這張圖卡，就是用它自己發出來的。
         </p>
       </div>
     </div>
@@ -345,9 +651,20 @@ const Cta: Page = () => (
 );
 
 export const meta: SlideMeta = {
-  title: 'IG 直式測試圖文',
+  title: '我如何把發文全自動化',
   theme: 'starter',
-  createdAt: '2026-07-14T06:27:00.000Z',
+  createdAt: '2026-07-14T10:27:43.264Z',
 };
 
-export default [Hook, Describe, Cta] satisfies Page[];
+export default [
+  Hook,
+  Pain,
+  Turning,
+  Solution,
+  BuildApi,
+  BuildCrisis,
+  BuildSprint,
+  Why,
+  Teaser,
+  Cta,
+] satisfies Page[];
