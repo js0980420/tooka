@@ -62,6 +62,13 @@ describe('upsertEnvValues / readEnvValues', () => {
     expect(values).toEqual({ IG_ACCESS_TOKEN: 'tok123', IG_USER_ID: '178414' });
   });
 
+  it('removes keys assigned an empty value', async () => {
+    await upsertEnvValues(dir, { IG_ACCESS_TOKEN: 'tok123', OTHER: 'keep' });
+    await upsertEnvValues(dir, { IG_ACCESS_TOKEN: '' });
+
+    expect(await fs.readFile(path.join(dir, '.env'), 'utf8')).toBe('OTHER=keep\n');
+  });
+
   it('returns empty object when .env is missing', async () => {
     expect(await readEnvValues(dir, ['IG_ACCESS_TOKEN'])).toEqual({});
   });

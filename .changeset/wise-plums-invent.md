@@ -2,4 +2,4 @@
 '@open-cards/core': minor
 ---
 
-Add a Connects page: save Instagram Graph API credentials (access token + user ID) into the project's `.env` from the UI; `.env` is auto-added to `.gitignore` and secrets are returned masked.
+Add a Connects page that validates and stores Instagram Login and Meta Business System User credentials locally.

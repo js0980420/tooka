@@ -1,14 +1,29 @@
-import { Camera, KeyRound } from 'lucide-react';
+import { Camera, Eye, EyeOff, KeyRound, RefreshCw, ShieldAlert, Unplug } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLocale } from '@/lib/use-locale';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { FolderIconChip } from '../components/sidebar/folder-item';
 
-type InstagramStatus = { tokenMasked: string | null; userId: string | null };
+type InstagramTokenSource = 'instagram_login' | 'business_system_user';
+
+type InstagramStatus = {
+  tokenMasked: string | null;
+  userId: string | null;
+  username: string | null;
+  tokenSource: InstagramTokenSource;
+  needsReauth: boolean;
+  expiresAt: number | null;
+};
+
+type ConnectionError = {
+  error?: string;
+};
 
 export function ConnectsPage() {
   const t = useLocale();
@@ -35,16 +50,25 @@ export function ConnectsPage() {
 function InstagramCard() {
   const t = useLocale();
   const [status, setStatus] = useState<InstagramStatus | null>(null);
+  const [tokenSource, setTokenSource] = useState<InstagramTokenSource>('business_system_user');
   const [token, setToken] = useState('');
   const [userId, setUserId] = useState('');
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showToken, setShowToken] = useState(false);
+  const [showUserId, setShowUserId] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     fetch('/__connects')
       .then((res) => (res.ok ? res.json() : null))
       .then((body: { instagram?: InstagramStatus } | null) => {
-        if (!cancelled && body?.instagram) setStatus(body.instagram);
+        if (cancelled || !body?.instagram) return;
+        setStatus(body.instagram);
+        setTokenSource(body.instagram.tokenSource);
+        setUserId(body.instagram.userId ?? '');
       })
       .catch(() => {});
     return () => {
@@ -52,13 +76,39 @@ function InstagramCard() {
     };
   }, []);
 
-  const connected = Boolean(status?.tokenMasked && status?.userId);
+  const connected = Boolean(status?.tokenMasked && status.userId);
+  const needsReauth = Boolean(status?.needsReauth);
+  const sourceChanged = Boolean(status && status.tokenSource !== tokenSource);
+  const requiresNewToken = !status?.tokenMasked || sourceChanged;
+  const saveDisabled =
+    saving ||
+    (requiresNewToken && !token.trim()) ||
+    (tokenSource === 'business_system_user' && !userId.trim());
+
+  const showConnectionError = (error: string | undefined) => {
+    if (error === 'missing_user_id') {
+      toast.error(t.connects.toastMissingUserId);
+      return;
+    }
+    if (error === 'account_mismatch') {
+      toast.error(t.connects.toastAccountMismatch);
+      return;
+    }
+    if (error === 'invalid_token' || error === 'invalid_response') {
+      toast.error(t.connects.toastInvalidToken);
+      return;
+    }
+    toast.error(t.connects.toastInvalid);
+  };
 
   const save = async () => {
-    const payload: { token?: string; userId?: string } = {};
+    const payload: { token?: string; userId?: string; tokenSource: InstagramTokenSource } = {
+      tokenSource,
+    };
     if (token.trim()) payload.token = token.trim();
-    if (userId.trim()) payload.userId = userId.trim();
-    if (!payload.token && !payload.userId) return;
+    if (tokenSource === 'business_system_user' && userId.trim()) {
+      payload.userId = userId.trim();
+    }
 
     setSaving(true);
     try {
@@ -67,20 +117,75 @@ function InstagramCard() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (res.status === 400) {
-        toast.error(t.connects.toastInvalid);
+      const body = (await res.json().catch(() => ({}))) as {
+        instagram?: InstagramStatus;
+      } & ConnectionError;
+      if (!res.ok) {
+        if (res.status === 400) showConnectionError(body.error);
+        else toast.error(t.connects.toastSaveFailed);
         return;
       }
-      if (!res.ok) throw new Error(`POST /__connects/instagram ${res.status}`);
-      const body = (await res.json()) as { instagram?: InstagramStatus };
-      if (body.instagram) setStatus(body.instagram);
+      if (body.instagram) {
+        setStatus(body.instagram);
+        setTokenSource(body.instagram.tokenSource);
+        setUserId(body.instagram.userId ?? '');
+      }
       setToken('');
-      setUserId('');
+      setShowToken(false);
+      setIsEditing(false);
       toast.success(t.connects.toastSaved);
     } catch {
       toast.error(t.connects.toastSaveFailed);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const testConnection = async () => {
+    setTesting(true);
+    try {
+      const res = await fetch('/__connects/instagram/test', { method: 'POST' });
+      const body = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        username?: string;
+      } & ConnectionError;
+      if (res.ok && body.ok && body.username) {
+        setStatus((previous) =>
+          previous ? { ...previous, username: body.username ?? null, needsReauth: false } : null,
+        );
+        toast.success(format(t.connects.toastConnectionSuccess, { username: body.username }));
+        return;
+      }
+      if (body.error === 'invalid_token') {
+        setStatus((previous) => (previous ? { ...previous, needsReauth: true } : null));
+      }
+      toast.error(t.connects.toastTestFailed);
+    } catch {
+      toast.error(t.connects.toastTestError);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const disconnect = async () => {
+    if (!confirm(t.connects.confirmDisconnect)) return;
+    setDisconnecting(true);
+    try {
+      const res = await fetch('/__connects/instagram/disconnect', { method: 'POST' });
+      if (!res.ok) {
+        toast.error(t.connects.toastDisconnectFailed);
+        return;
+      }
+      setStatus(null);
+      setToken('');
+      setUserId('');
+      setTokenSource('business_system_user');
+      setIsEditing(false);
+      toast.success(t.connects.toastDisconnected);
+    } catch {
+      toast.error(t.connects.toastDisconnectFailed);
+    } finally {
+      setDisconnecting(false);
     }
   };
 
@@ -95,14 +200,14 @@ function InstagramCard() {
             {t.connects.instagramTitle}
           </h2>
         </div>
-        <span
-          className={cn(
-            'rounded-full px-2.5 py-0.5 text-[11px] font-medium',
-            connected ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground',
-          )}
-        >
-          {connected ? t.connects.connected : t.connects.notConnected}
-        </span>
+        <Badge variant={needsReauth ? 'destructive' : connected ? 'default' : 'secondary'}>
+          {needsReauth ? <ShieldAlert data-icon="inline-start" /> : null}
+          {needsReauth
+            ? t.connects.needsReauth
+            : connected
+              ? t.connects.connected
+              : t.connects.notConnected}
+        </Badge>
       </div>
 
       <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
@@ -113,54 +218,216 @@ function InstagramCard() {
       </p>
 
       <div className="mt-5 flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="connects-ig-token" className="eyebrow">
-            {t.connects.tokenLabel}
-          </label>
-          <Input
-            id="connects-ig-token"
-            type="password"
-            autoComplete="off"
-            value={token}
-            placeholder={status?.tokenMasked ?? t.connects.tokenPlaceholder}
-            onChange={(e) => setToken(e.target.value)}
-          />
-          {status?.tokenMasked ? (
-            <p className="text-[11px] text-muted-foreground">
-              {t.connects.savedTokenLabel}: <span className="font-mono">{status.tokenMasked}</span>
-            </p>
-          ) : null}
-        </div>
+        {connected && !isEditing ? (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 rounded-lg border border-hairline bg-muted/30 p-4 text-[13px]">
+              <ConnectionDetail label={t.connects.accountUsername}>
+                <span className="font-medium">@{status?.username ?? '—'}</span>
+              </ConnectionDetail>
+              <ConnectionDetail label={t.connects.accountId}>
+                <SecretValue
+                  visible={showUserId}
+                  value={status?.userId ?? ''}
+                  onToggle={() => setShowUserId((value) => !value)}
+                  showLabel={t.connects.showSecret}
+                  hideLabel={t.connects.hideSecret}
+                />
+              </ConnectionDetail>
+              <ConnectionDetail label={t.connects.tokenSourceLabel}>
+                <span className="font-medium">
+                  {status?.tokenSource === 'instagram_login'
+                    ? t.connects.instagramLogin
+                    : t.connects.businessSystemUser}
+                </span>
+              </ConnectionDetail>
+              <ConnectionDetail label={t.connects.tokenStatus}>
+                {needsReauth ? (
+                  <span className="flex items-center gap-1 font-medium text-destructive">
+                    <ShieldAlert className="size-3.5" />
+                    {t.connects.needsReauth}
+                  </span>
+                ) : (
+                  <SecretValue
+                    visible={showToken}
+                    value={status?.tokenMasked ?? ''}
+                    onToggle={() => setShowToken((value) => !value)}
+                    showLabel={t.connects.showSecret}
+                    hideLabel={t.connects.hideSecret}
+                  />
+                )}
+              </ConnectionDetail>
+            </div>
 
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="connects-ig-user-id" className="eyebrow">
-            {t.connects.userIdLabel}
-          </label>
-          <Input
-            id="connects-ig-user-id"
-            autoComplete="off"
-            value={userId}
-            placeholder={status?.userId ?? t.connects.userIdPlaceholder}
-            onChange={(e) => setUserId(e.target.value)}
-          />
-        </div>
+            <div className="flex flex-wrap items-center gap-2.5 pt-1">
+              <Button variant="brand" size="sm" disabled={testing} onClick={testConnection}>
+                <RefreshCw data-icon="inline-start" className={cn(testing && 'animate-spin')} />
+                {testing ? t.connects.testing : t.connects.test}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsEditing(true);
+                  setToken('');
+                }}
+              >
+                <KeyRound data-icon="inline-start" />
+                {t.connects.reconnect}
+              </Button>
+              <Button variant="ghost" size="sm" disabled={disconnecting} onClick={disconnect}>
+                <Unplug data-icon="inline-start" />
+                {t.connects.disconnect}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-2">
+              <span className="eyebrow">{t.connects.tokenSourceLabel}</span>
+              <ToggleGroup
+                variant="outline"
+                value={[tokenSource]}
+                onValueChange={(values) => {
+                  const nextSource = values.find((value) => value !== tokenSource);
+                  if (nextSource === 'business_system_user' || nextSource === 'instagram_login') {
+                    setTokenSource(nextSource);
+                  }
+                }}
+                className="w-full"
+              >
+                <ToggleGroupItem value="business_system_user" className="flex-1">
+                  {t.connects.businessSystemUser}
+                </ToggleGroupItem>
+                <ToggleGroupItem value="instagram_login" className="flex-1">
+                  {t.connects.instagramLogin}
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                {tokenSource === 'business_system_user'
+                  ? t.connects.businessSystemUserDesc
+                  : t.connects.instagramLoginDesc}
+              </p>
+            </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="brand"
-            size="sm"
-            disabled={saving || (!token.trim() && !userId.trim())}
-            onClick={save}
-          >
-            <KeyRound className="size-4" />
-            {saving ? t.connects.saving : t.connects.save}
-          </Button>
-        </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="connects-ig-token" className="eyebrow">
+                {t.connects.tokenLabel}
+              </label>
+              <div className="relative flex items-center">
+                <Input
+                  id="connects-ig-token"
+                  type={showToken ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={token}
+                  placeholder={
+                    tokenSource === 'instagram_login' ? 'IGAA…' : t.connects.tokenPlaceholder
+                  }
+                  onChange={(event) => setToken(event.target.value)}
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken((value) => !value)}
+                  className="absolute right-3 text-muted-foreground hover:text-foreground"
+                  title={showToken ? t.connects.hideSecret : t.connects.showSecret}
+                >
+                  {showToken ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {status?.tokenMasked && !needsReauth ? (
+                <p className="text-[11px] text-muted-foreground">
+                  {t.connects.savedTokenLabel}: <span className="font-mono">••••••••••••</span>
+                </p>
+              ) : null}
+            </div>
+
+            {tokenSource === 'business_system_user' ? (
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="connects-ig-user-id" className="eyebrow">
+                  {t.connects.userIdLabel}
+                </label>
+                <div className="relative flex items-center">
+                  <Input
+                    id="connects-ig-user-id"
+                    type={showUserId ? 'text' : 'password'}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={userId}
+                    placeholder={t.connects.userIdPlaceholder}
+                    onChange={(event) => setUserId(event.target.value)}
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowUserId((value) => !value)}
+                    className="absolute right-3 text-muted-foreground hover:text-foreground"
+                    title={showUserId ? t.connects.hideSecret : t.connects.showSecret}
+                  >
+                    {showUserId ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="rounded-[6px] border border-hairline bg-muted/40 px-3 py-2 text-[11.5px] leading-relaxed text-muted-foreground">
+                {t.connects.userIdDerived}
+              </p>
+            )}
+
+            <div className="flex items-center gap-2 pt-1">
+              <Button variant="brand" size="sm" disabled={saveDisabled} onClick={save}>
+                <KeyRound data-icon="inline-start" />
+                {saving ? t.connects.saving : t.connects.save}
+              </Button>
+              {isEditing ? (
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                  {t.connects.cancel}
+                </Button>
+              ) : null}
+            </div>
+          </>
+        )}
 
         <p className="rounded-[6px] bg-muted/60 px-3 py-2 text-[11.5px] leading-relaxed text-muted-foreground">
           {t.connects.envNote}
         </p>
       </div>
     </section>
+  );
+}
+
+function ConnectionDetail({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="font-semibold text-muted-foreground">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+function SecretValue({
+  visible,
+  value,
+  onToggle,
+  showLabel,
+  hideLabel,
+}: {
+  visible: boolean;
+  value: string;
+  onToggle: () => void;
+  showLabel: string;
+  hideLabel: string;
+}) {
+  return (
+    <span className="flex items-center gap-1.5 font-mono font-medium">
+      {visible ? value : '••••••••••••'}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="text-muted-foreground hover:text-foreground"
+        title={visible ? hideLabel : showLabel}
+      >
+        {visible ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+      </button>
+    </span>
   );
 }
