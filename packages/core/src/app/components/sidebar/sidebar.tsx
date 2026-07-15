@@ -7,6 +7,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Folder, FolderIcon } from '@/lib/sdk';
 import { format, useLocale } from '@/lib/use-locale';
+import { useResizableWidth } from '@/lib/use-resizable-width';
 import { cn } from '@/lib/utils';
 import { FolderIconChip, FolderItem } from './folder-item';
 import { IconPicker, PRESET_COLORS } from './icon-picker';
@@ -19,6 +20,11 @@ export const TUTORIALS_ID = '__tutorials__';
 export const PUBLISH_ID = '__publish__';
 
 export const FOLDER_DND_MIME = 'application/x-folder-id';
+
+const SIDEBAR_WIDTH_STORAGE_KEY = 'tooka:sidebar-width';
+const DEFAULT_SIDEBAR_WIDTH = 320;
+const MIN_SIDEBAR_WIDTH = 260;
+const MAX_SIDEBAR_WIDTH = 460;
 
 export function Sidebar({
   folders,
@@ -73,6 +79,20 @@ export function Sidebar({
   const [iconOpen, setIconOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const t = useLocale();
+  const {
+    width: sidebarWidth,
+    resizing: sidebarResizing,
+    onPointerDown: onSidebarPointerDown,
+    onPointerMove: onSidebarPointerMove,
+    onPointerUp: onSidebarPointerUp,
+    onKeyDown: onSidebarKeyDown,
+    reset: resetSidebarWidth,
+  } = useResizableWidth({
+    storageKey: SIDEBAR_WIDTH_STORAGE_KEY,
+    defaultWidth: DEFAULT_SIDEBAR_WIDTH,
+    min: MIN_SIDEBAR_WIDTH,
+    max: MAX_SIDEBAR_WIDTH,
+  });
 
   const startCreating = () => {
     const color = PRESET_COLORS[folders.length % PRESET_COLORS.length];
@@ -126,10 +146,13 @@ export function Sidebar({
   }, [creating]);
 
   return (
-    <aside className="relative flex h-full w-[16.5rem] shrink-0 flex-col border-r border-hairline bg-sidebar text-sidebar-foreground">
+    <aside
+      className="relative flex h-full shrink-0 flex-col border-r border-hairline bg-sidebar text-sidebar-foreground"
+      style={{ width: sidebarWidth }}
+    >
       <div className="flex items-center justify-between px-4 pt-5 pb-4">
-        <h1 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
-          <TookaMark className="size-5" />
+        <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight">
+          <TookaMark className="size-7" />
           {t.home.appTitle}
         </h1>
         <div className="-mr-1.5 flex items-center">
@@ -140,8 +163,8 @@ export function Sidebar({
       </div>
 
       <section aria-labelledby="sidebar-workflow-heading">
-        <div className="flex items-center gap-2 px-4 pb-1.5">
-          <h2 id="sidebar-workflow-heading" className="eyebrow">
+        <div className="flex items-center gap-2 px-4 pb-2">
+          <h2 id="sidebar-workflow-heading" className="eyebrow text-[13.5px]">
             {t.home.sidebarWorkflow}
           </h2>
           <span className="h-px flex-1 bg-hairline" aria-hidden />
@@ -244,14 +267,14 @@ export function Sidebar({
           (creating ? (
             <div
               data-folder-create
-              className="mt-1 flex items-center gap-2.5 rounded-[5px] border border-dashed border-foreground/30 bg-card px-2 py-[5px]"
+              className="mt-1 flex items-center gap-2.5 rounded-[6px] border border-dashed border-foreground/30 bg-card px-2.5 py-2.5"
             >
               <Popover open={iconOpen} onOpenChange={setIconOpen}>
                 <PopoverTrigger
                   render={
                     <button
                       type="button"
-                      className="flex size-5 shrink-0 items-center justify-center rounded transition-transform hover:scale-110"
+                      className="flex size-7 shrink-0 items-center justify-center rounded transition-transform hover:scale-110"
                       aria-label={t.home.pickIcon}
                     >
                       <FolderIconChip icon={newIcon} />
@@ -273,16 +296,16 @@ export function Sidebar({
                 }}
                 placeholder={t.home.folderName}
                 maxLength={40}
-                className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-muted-foreground/60"
+                className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-muted-foreground/60"
               />
             </div>
           ) : (
             <button
               type="button"
               onClick={startCreating}
-              className="mt-1 flex w-full items-center gap-2 rounded-[5px] px-2 py-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
+              className="mt-1 flex w-full items-center gap-2 rounded-[6px] px-2.5 py-2 text-[14px] text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground"
             >
-              <Plus className="size-3.5" />
+              <Plus className="size-[18px]" />
               <span>{t.home.newFolder}</span>
             </button>
           ))}
@@ -300,8 +323,8 @@ export function Sidebar({
       )}
 
       <section aria-labelledby="sidebar-resources-heading" className="mt-4">
-        <div className="flex items-center gap-2 px-4 pb-1.5">
-          <h2 id="sidebar-resources-heading" className="eyebrow">
+        <div className="flex items-center gap-2 px-4 pb-2">
+          <h2 id="sidebar-resources-heading" className="eyebrow text-[13.5px]">
             {t.home.sidebarResources}
           </h2>
           <span className="h-px flex-1 bg-hairline" aria-hidden />
@@ -317,6 +340,36 @@ export function Sidebar({
       </section>
 
       <SidebarFooter />
+
+      {/* biome-ignore lint/a11y/useSemanticElements: focusable resize handle (splitter pattern), not a static <hr> */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={t.home.resizeSidebar}
+        aria-valuenow={sidebarWidth}
+        aria-valuemin={MIN_SIDEBAR_WIDTH}
+        aria-valuemax={MAX_SIDEBAR_WIDTH}
+        tabIndex={0}
+        onPointerDown={onSidebarPointerDown}
+        onPointerMove={onSidebarPointerMove}
+        onPointerUp={onSidebarPointerUp}
+        onPointerCancel={onSidebarPointerUp}
+        onKeyDown={onSidebarKeyDown}
+        onDoubleClick={resetSidebarWidth}
+        className={cn(
+          'group/resize absolute inset-y-0 right-0 z-20 w-1.5 translate-x-1/2 cursor-col-resize touch-none outline-none',
+          'focus-visible:bg-brand/20',
+        )}
+      >
+        <span
+          aria-hidden
+          className={cn(
+            'pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-brand opacity-0 transition-opacity',
+            'group-hover/resize:opacity-100 group-focus-visible/resize:opacity-100',
+            sidebarResizing && 'opacity-100',
+          )}
+        />
+      </div>
     </aside>
   );
 }

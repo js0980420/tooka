@@ -13,7 +13,7 @@ type UpdateStatus = 'idle' | 'running' | 'done' | 'error';
 const buttonClassName =
   'h-6 w-fit rounded-[5px] border border-background/15 bg-background/8 px-2 text-[11px] text-background shadow-none hover:bg-background/14';
 const contactLinkClassName =
-  'group flex min-h-8 w-full items-center gap-2.5 rounded-[5px] px-2 py-1.5 text-[12.5px] font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
+  'group flex min-h-10 w-full items-center gap-2.5 rounded-[6px] px-2.5 py-2.5 text-[14.5px] font-medium text-foreground/70 transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40';
 
 const LINE_URL = 'https://lin.ee/6CBv54X';
 const SUPPORT_EMAIL = 'js0980420@gmail.com';
@@ -109,22 +109,22 @@ export function SidebarFooter() {
   );
 
   return (
-    <div className="flex flex-col gap-1 px-2 py-2 text-[11px] text-muted-foreground/70 tabular-nums">
-      <div className="flex items-center gap-2 px-2 pb-1.5">
-        <h2 className="eyebrow">{t.home.contactSupport}</h2>
+    <div className="flex flex-col gap-1 px-2 py-2 text-[13px] text-muted-foreground/70 tabular-nums">
+      <div className="flex items-center gap-2 px-2 pb-2">
+        <h2 className="eyebrow text-[13.5px]">{t.home.contactSupport}</h2>
         <span className="h-px flex-1 bg-hairline" aria-hidden />
       </div>
       <a href={LINE_URL} target="_blank" rel="noreferrer" className={contactLinkClassName}>
-        <LineIcon className="size-5 shrink-0 text-[#06C755]" />
+        <LineIcon className="size-7 shrink-0 text-[#06C755]" />
         <span className="min-w-0 flex-1 truncate">{t.home.lineOfficialAccount}</span>
         <ExternalLink
-          className="size-3.5 shrink-0 text-muted-foreground/55 transition-colors group-hover:text-foreground/65"
+          className="size-[18px] shrink-0 text-muted-foreground/55 transition-colors group-hover:text-foreground/65"
           aria-hidden
         />
         <span className="sr-only">{t.home.opensInNewWindow}</span>
       </a>
       <a href={`mailto:${SUPPORT_EMAIL}`} className={contactLinkClassName}>
-        <Mail className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+        <Mail className="size-7 shrink-0 text-muted-foreground" aria-hidden />
         <span className="sr-only">Email: </span>
         <span className="min-w-0 flex-1 truncate">{SUPPORT_EMAIL}</span>
       </a>

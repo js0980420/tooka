@@ -47,6 +47,7 @@ export const zhTW: Locale = {
     tutorials: '教學',
     sidebarWorkflow: '工作流',
     sidebarResources: '資源',
+    resizeSidebar: '調整側邊欄寬度',
     folders: '資料夾',
     slides: '卡片',
     menu: '選單',

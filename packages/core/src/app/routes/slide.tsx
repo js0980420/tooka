@@ -50,6 +50,7 @@ import { useAgentSocketConnected } from '@/lib/use-agent-socket';
 import { useClickPageNavigation } from '@/lib/use-click-page-navigation';
 import { useIsMobile } from '@/lib/use-is-mobile';
 import { format, useLocale } from '@/lib/use-locale';
+import { useResizableWidth } from '@/lib/use-resizable-width';
 import { useWheelPageNavigation } from '@/lib/use-wheel-page-navigation';
 import { cn } from '@/lib/utils';
 import { AddToCardsButton } from '../components/add-to-cards-button';
@@ -918,14 +919,6 @@ const DEFAULT_RAIL_WIDTH = 264;
 const MIN_RAIL_WIDTH = 200;
 const MAX_RAIL_WIDTH = 480;
 
-function readStoredRailWidth(): number {
-  if (typeof window === 'undefined') return DEFAULT_RAIL_WIDTH;
-  const raw = window.localStorage.getItem(RAIL_WIDTH_STORAGE_KEY);
-  const parsed = raw == null ? Number.NaN : Number(raw);
-  if (!Number.isFinite(parsed)) return DEFAULT_RAIL_WIDTH;
-  return Math.min(MAX_RAIL_WIDTH, Math.max(MIN_RAIL_WIDTH, parsed));
-}
-
 function ResizableRail(props: {
   pages: SlideModule['default'];
   design?: SlideModule['design'];
@@ -937,70 +930,13 @@ function ResizableRail(props: {
   onOverview?: () => void;
 }) {
   const t = useLocale();
-  const [width, setWidth] = useState<number>(readStoredRailWidth);
-  const [resizing, setResizing] = useState(false);
-  const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(RAIL_WIDTH_STORAGE_KEY, String(width));
-  }, [width]);
-
-  useEffect(() => {
-    if (!resizing) return;
-    const prev = {
-      cursor: document.body.style.cursor,
-      userSelect: document.body.style.userSelect,
-    };
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    return () => {
-      document.body.style.cursor = prev.cursor;
-      document.body.style.userSelect = prev.userSelect;
-    };
-  }, [resizing]);
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragRef.current = { startX: e.clientX, startWidth: width };
-    setResizing(true);
-  };
-
-  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragRef.current) return;
-    const delta = e.clientX - dragRef.current.startX;
-    const next = Math.min(
-      MAX_RAIL_WIDTH,
-      Math.max(MIN_RAIL_WIDTH, dragRef.current.startWidth + delta),
-    );
-    setWidth(next);
-  };
-
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-    dragRef.current = null;
-    setResizing(false);
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const step = e.shiftKey ? 32 : 8;
-    if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      e.stopPropagation();
-      setWidth((w) => Math.max(MIN_RAIL_WIDTH, w - step));
-    } else if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      e.stopPropagation();
-      setWidth((w) => Math.min(MAX_RAIL_WIDTH, w + step));
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      e.stopPropagation();
-      setWidth(DEFAULT_RAIL_WIDTH);
-    }
-  };
+  const { width, resizing, onPointerDown, onPointerMove, onPointerUp, onKeyDown, reset } =
+    useResizableWidth({
+      storageKey: RAIL_WIDTH_STORAGE_KEY,
+      defaultWidth: DEFAULT_RAIL_WIDTH,
+      min: MIN_RAIL_WIDTH,
+      max: MAX_RAIL_WIDTH,
+    });
 
   return (
     <div className="relative hidden shrink-0 md:block" style={{ width }}>
@@ -1019,7 +955,7 @@ function ResizableRail(props: {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onKeyDown={onKeyDown}
-        onDoubleClick={() => setWidth(DEFAULT_RAIL_WIDTH)}
+        onDoubleClick={reset}
         className={cn(
           'group/resize absolute inset-y-0 right-0 z-20 w-1.5 translate-x-1/2 cursor-col-resize touch-none outline-none',
           'focus-visible:bg-brand/20',

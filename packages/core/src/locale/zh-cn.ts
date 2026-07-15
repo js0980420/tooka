@@ -47,6 +47,7 @@ export const zhCN: Locale = {
     tutorials: '教程',
     sidebarWorkflow: '工作流',
     sidebarResources: '资源',
+    resizeSidebar: '调整侧边栏宽度',
     folders: '文件夹',
     slides: '卡片',
     menu: '菜单',

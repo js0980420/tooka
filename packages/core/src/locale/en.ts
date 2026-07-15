@@ -47,6 +47,7 @@ export const en: Locale = {
     tutorials: 'Help',
     sidebarWorkflow: 'Workflow',
     sidebarResources: 'Resources',
+    resizeSidebar: 'Resize sidebar',
     folders: 'Folders',
     slides: 'Cards',
     menu: 'Menu',

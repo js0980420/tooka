@@ -55,7 +55,7 @@ export function FolderIconChip({ icon, className }: { icon: FolderIcon; classNam
     return (
       <span
         className={cn(
-          'inline-flex size-5 items-center justify-center text-[15px] leading-none',
+          'inline-flex size-7 items-center justify-center text-[19px] leading-none',
           className,
         )}
       >
@@ -66,7 +66,7 @@ export function FolderIconChip({ icon, className }: { icon: FolderIcon; classNam
   return (
     <span
       className={cn(
-        'inline-block size-3 rounded-[3px] ring-1 ring-foreground/15 shadow-[inset_0_1px_0_oklch(1_0_0/0.18)]',
+        'inline-block size-4 rounded-[3px] ring-1 ring-foreground/15 shadow-[inset_0_1px_0_oklch(1_0_0/0.18)]',
         className,
       )}
       style={{ background: icon.value }}
@@ -171,7 +171,7 @@ export function FolderItem({
     // biome-ignore lint/a11y/noStaticElementInteractions: drag-and-drop target wraps interactive children
     <div
       className={cn(
-        'group relative flex items-center gap-2.5 rounded-[5px] px-2 py-[5px] text-[12.5px] transition-colors',
+        'group relative flex items-center gap-2.5 rounded-[6px] px-2.5 py-2.5 text-[15px] transition-colors',
         selected
           ? 'bg-muted text-foreground before:absolute before:inset-y-1.5 before:-left-0.5 before:w-[2px] before:rounded-full before:bg-brand'
           : 'text-foreground/70 hover:bg-muted/60 hover:text-foreground',
@@ -190,7 +190,7 @@ export function FolderItem({
             render={
               <button
                 type="button"
-                className="flex size-5 shrink-0 items-center justify-center rounded transition-transform hover:scale-110"
+                className="flex size-7 shrink-0 items-center justify-center rounded transition-transform hover:scale-110"
                 aria-label={t.home.changeIcon}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -207,10 +207,10 @@ export function FolderItem({
           type="button"
           onClick={onSelect}
           aria-label={label}
-          className="flex size-5 shrink-0 items-center justify-center"
+          className="flex size-7 shrink-0 items-center justify-center"
         >
           {BuiltinIcon ? (
-            <BuiltinIcon className="size-4" />
+            <BuiltinIcon className="size-5" />
           ) : (
             row.kind === 'folder' && <FolderIconChip icon={row.folder.icon} />
           )}
@@ -231,7 +231,7 @@ export function FolderItem({
             }
           }}
           maxLength={40}
-          className="min-w-0 flex-1 rounded-[3px] bg-card px-1 text-[12.5px] outline-none ring-1 ring-foreground/20"
+          className="min-w-0 flex-1 rounded-[3px] bg-card px-1 text-[15px] outline-none ring-1 ring-foreground/20"
         />
       ) : (
         <button type="button" onClick={onSelect} className="min-w-0 flex-1 truncate text-left">
@@ -242,7 +242,7 @@ export function FolderItem({
       {count !== undefined ? (
         <span
           className={cn(
-            'folio ml-auto shrink-0 transition-opacity',
+            'folio ml-auto shrink-0 text-[13px] transition-opacity',
             row.kind === 'folder' &&
               import.meta.env.DEV &&
               'group-hover:opacity-0 group-has-[[aria-expanded=true]]:opacity-0',
@@ -259,10 +259,10 @@ export function FolderItem({
               <button
                 type="button"
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-2 top-1/2 size-5 -translate-y-1/2 rounded opacity-0 transition-opacity hover:bg-foreground/10 group-hover:opacity-100 aria-expanded:opacity-100"
+                className="absolute right-2 top-1/2 size-7 -translate-y-1/2 rounded opacity-0 transition-opacity hover:bg-foreground/10 group-hover:opacity-100 aria-expanded:opacity-100"
                 aria-label={t.home.folderActions}
               >
-                <MoreHorizontal className="mx-auto size-3.5" />
+                <MoreHorizontal className="mx-auto size-[18px]" />
               </button>
             }
           />

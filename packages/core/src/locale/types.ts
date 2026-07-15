@@ -47,6 +47,7 @@ export type Locale = {
     tutorials: string;
     sidebarWorkflow: string;
     sidebarResources: string;
+    resizeSidebar: string;
     folders: string;
     slides: string;
     menu: string;
