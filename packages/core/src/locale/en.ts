@@ -57,6 +57,8 @@ export const en: Locale = {
     updatePackageFailed: 'Update failed. Check the dev server output.',
     restartServer: 'Restart dev server',
     restartingServer: 'Restarting',
+    contactSupport: 'Contact Support',
+    opensInNewWindow: 'Opens in a new window',
     restartServerFailed: 'Restart failed. Restart the dev server manually.',
     changeIcon: 'Change icon',
     iconEmojiTab: 'Emoji',

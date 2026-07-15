@@ -57,6 +57,8 @@ export const zhCN: Locale = {
     updatePackageFailed: '更新失败，请查看 dev server 输出。',
     restartServer: '重启 dev server',
     restartingServer: '重启中',
+    contactSupport: '联系客服',
+    opensInNewWindow: '在新窗口中打开',
     restartServerFailed: '重启失败，请手动重启 dev server。',
     changeIcon: '更换图标',
     iconEmojiTab: 'Emoji',

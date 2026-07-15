@@ -57,6 +57,8 @@ export type Locale = {
     updatePackageFailed: string;
     restartServer: string;
     restartingServer: string;
+    contactSupport: string;
+    opensInNewWindow: string;
     restartServerFailed: string;
     changeIcon: string;
     iconEmojiTab: string;
