@@ -14,6 +14,7 @@ import {
 import { useFolders } from '@/lib/folders';
 import { partitionSlides } from '@/lib/promotion';
 import { format, useLocale } from '@/lib/use-locale';
+import { useUiZoom } from '@/lib/use-ui-zoom';
 import { cn } from '@/lib/utils';
 import {
   ALL_SLIDES_ID,
@@ -76,6 +77,7 @@ export function HomeShell() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const t = useLocale();
+  const { ref: zoomRef, zoom } = useUiZoom<HTMLDivElement>();
 
   const selectedId = pathToSelectedId(location.pathname, searchParams);
 
@@ -146,122 +148,132 @@ export function HomeShell() {
   };
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background text-foreground">
-      <div className="hidden md:block">
-        <Sidebar
-          folders={manifest.folders}
-          countFor={countFor}
-          allCount={promotedSlides.length}
-          templatesCount={slideTemplates.length}
-          selectedId={selectedId}
-          onSelect={selectFolder}
-          onCreate={(name, icon) => create(name, icon)}
-          onRename={(id, name) => update(id, { name })}
-          onChangeIcon={(id, icon) => update(id, { icon })}
-          onDelete={async (id) => {
-            const name = manifest.folders.find((f) => f.id === id)?.name ?? id;
-            if (selectedId === id) selectFolder(ALL_SLIDES_ID);
-            try {
-              await remove(id);
-              toast.success(format(t.home.toastFolderDeleted, { name }));
-            } catch {
-              toast.error(t.home.toastFolderDeleteFailed);
-            }
-          }}
-          onDropToFolder={(folderId, slideId) => moveSlideWithToast(slideId, folderId)}
-          onDropToDraft={(slideId) => moveSlideWithToast(slideId, null)}
-          onReorder={async (ids) => {
-            try {
-              await reorder(ids);
-            } catch {
-              toast.error(t.home.toastFolderReorderFailed);
-            }
-          }}
-        />
-      </div>
-
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-canvas">
-        <div className="flex items-center justify-between border-b border-hairline bg-sidebar px-4 py-3 md:hidden">
-          <h1 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
-            <TookaMark className="size-5" />
-            {t.home.appTitle}
-          </h1>
-          <div className="-mr-1.5 flex items-center gap-0.5">
-            <TranslationButton />
-            <LanguageToggle />
-            <ThemeToggle />
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <button
-                    type="button"
-                    aria-label={t.home.menu}
-                    className="flex size-8 items-center justify-center rounded-[6px] text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
-                  >
-                    <Menu className="size-4" />
-                  </button>
-                }
-              />
-              <DropdownMenuContent align="end" className="min-w-[200px]">
-                <DropdownMenuItem
-                  onClick={() => selectFolder(TEMPLATES_ID)}
-                  className={cn(selectedId === TEMPLATES_ID && 'bg-muted text-foreground')}
-                >
-                  <LayoutTemplate className="size-4" />
-                  <span className="flex-1 truncate">{t.home.templates}</span>
-                  <span className="folio">{slideTemplates.length.toString().padStart(2, '0')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => selectFolder(DRAFT_ID)}
-                  className={cn(selectedId === DRAFT_ID && 'bg-muted text-foreground')}
-                >
-                  <PencilLine className="size-4" />
-                  <span className="flex-1 truncate">{t.home.draft}</span>
-                  <span className="folio">{draftSlides.length.toString().padStart(2, '0')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => selectFolder(ALL_SLIDES_ID)}
-                  className={cn(
-                    selectedId !== TEMPLATES_ID &&
-                      selectedId !== DRAFT_ID &&
-                      selectedId !== PUBLISH_ID &&
-                      selectedId !== TUTORIALS_ID &&
-                      'bg-muted text-foreground',
-                  )}
-                >
-                  <LayoutGrid className="size-4" />
-                  <span className="flex-1 truncate">{t.home.slides}</span>
-                  <span className="folio">{promotedSlides.length.toString().padStart(2, '0')}</span>
-                </DropdownMenuItem>
-                {import.meta.env.DEV && (
-                  <DropdownMenuItem
-                    onClick={() => selectFolder(PUBLISH_ID)}
-                    className={cn(selectedId === PUBLISH_ID && 'bg-muted text-foreground')}
-                  >
-                    <Rocket className="size-4" />
-                    <span className="flex-1 truncate">{t.home.publish}</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  onClick={() => selectFolder(TUTORIALS_ID)}
-                  className={cn(selectedId === TUTORIALS_ID && 'bg-muted text-foreground')}
-                >
-                  <BookOpen className="size-4" />
-                  <span className="flex-1 truncate">{t.home.tutorials}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+    <div className="h-dvh w-full overflow-hidden bg-background">
+      <div
+        ref={zoomRef}
+        style={{ zoom, width: `${100 / zoom}%`, height: `${100 / zoom}%` }}
+        className="flex overflow-hidden text-foreground"
+      >
+        <div className="hidden md:block">
+          <Sidebar
+            folders={manifest.folders}
+            countFor={countFor}
+            allCount={promotedSlides.length}
+            templatesCount={slideTemplates.length}
+            selectedId={selectedId}
+            onSelect={selectFolder}
+            onCreate={(name, icon) => create(name, icon)}
+            onRename={(id, name) => update(id, { name })}
+            onChangeIcon={(id, icon) => update(id, { icon })}
+            onDelete={async (id) => {
+              const name = manifest.folders.find((f) => f.id === id)?.name ?? id;
+              if (selectedId === id) selectFolder(ALL_SLIDES_ID);
+              try {
+                await remove(id);
+                toast.success(format(t.home.toastFolderDeleted, { name }));
+              } catch {
+                toast.error(t.home.toastFolderDeleteFailed);
+              }
+            }}
+            onDropToFolder={(folderId, slideId) => moveSlideWithToast(slideId, folderId)}
+            onDropToDraft={(slideId) => moveSlideWithToast(slideId, null)}
+            onReorder={async (ids) => {
+              try {
+                await reorder(ids);
+              } catch {
+                toast.error(t.home.toastFolderReorderFailed);
+              }
+            }}
+          />
         </div>
 
-        <div
-          className={cn(
-            isAssetsRoute
-              ? 'flex min-h-0 flex-1 flex-col'
-              : 'mx-auto w-full max-w-[1180px] px-5 py-8 md:px-10 md:py-12',
-          )}
-        >
-          <Outlet context={ctx} />
+        <div className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-canvas">
+          <div className="flex items-center justify-between border-b border-hairline bg-sidebar px-4 py-3 md:hidden">
+            <h1 className="flex items-center gap-2 font-heading text-lg font-bold tracking-tight">
+              <TookaMark className="size-5" />
+              {t.home.appTitle}
+            </h1>
+            <div className="-mr-1.5 flex items-center gap-0.5">
+              <TranslationButton />
+              <LanguageToggle />
+              <ThemeToggle />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <button
+                      type="button"
+                      aria-label={t.home.menu}
+                      className="flex size-8 items-center justify-center rounded-[6px] text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+                    >
+                      <Menu className="size-4" />
+                    </button>
+                  }
+                />
+                <DropdownMenuContent align="end" className="min-w-[200px]">
+                  <DropdownMenuItem
+                    onClick={() => selectFolder(TEMPLATES_ID)}
+                    className={cn(selectedId === TEMPLATES_ID && 'bg-muted text-foreground')}
+                  >
+                    <LayoutTemplate className="size-4" />
+                    <span className="flex-1 truncate">{t.home.templates}</span>
+                    <span className="folio">
+                      {slideTemplates.length.toString().padStart(2, '0')}
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => selectFolder(DRAFT_ID)}
+                    className={cn(selectedId === DRAFT_ID && 'bg-muted text-foreground')}
+                  >
+                    <PencilLine className="size-4" />
+                    <span className="flex-1 truncate">{t.home.draft}</span>
+                    <span className="folio">{draftSlides.length.toString().padStart(2, '0')}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => selectFolder(ALL_SLIDES_ID)}
+                    className={cn(
+                      selectedId !== TEMPLATES_ID &&
+                        selectedId !== DRAFT_ID &&
+                        selectedId !== PUBLISH_ID &&
+                        selectedId !== TUTORIALS_ID &&
+                        'bg-muted text-foreground',
+                    )}
+                  >
+                    <LayoutGrid className="size-4" />
+                    <span className="flex-1 truncate">{t.home.slides}</span>
+                    <span className="folio">
+                      {promotedSlides.length.toString().padStart(2, '0')}
+                    </span>
+                  </DropdownMenuItem>
+                  {import.meta.env.DEV && (
+                    <DropdownMenuItem
+                      onClick={() => selectFolder(PUBLISH_ID)}
+                      className={cn(selectedId === PUBLISH_ID && 'bg-muted text-foreground')}
+                    >
+                      <Rocket className="size-4" />
+                      <span className="flex-1 truncate">{t.home.publish}</span>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem
+                    onClick={() => selectFolder(TUTORIALS_ID)}
+                    className={cn(selectedId === TUTORIALS_ID && 'bg-muted text-foreground')}
+                  >
+                    <BookOpen className="size-4" />
+                    <span className="flex-1 truncate">{t.home.tutorials}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          <div
+            className={cn(
+              isAssetsRoute
+                ? 'flex min-h-0 flex-1 flex-col'
+                : 'mx-auto w-full max-w-[1180px] px-5 py-8 md:px-10 md:py-12',
+            )}
+          >
+            <Outlet context={ctx} />
+          </div>
         </div>
       </div>
     </div>

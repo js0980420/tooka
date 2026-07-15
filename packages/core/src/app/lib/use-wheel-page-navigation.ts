@@ -79,13 +79,13 @@ function normalizeDeltaX(event: WheelEvent) {
   return normalizeWheelDelta(event.deltaX, event.deltaMode);
 }
 
-function normalizeWheelDelta(delta: number, deltaMode: number) {
+export function normalizeWheelDelta(delta: number, deltaMode: number) {
   if (deltaMode === WheelEvent.DOM_DELTA_LINE) return delta * 16;
   if (deltaMode === WheelEvent.DOM_DELTA_PAGE) return delta * 800;
   return delta;
 }
 
-function isVisualViewportZoomed() {
+export function isVisualViewportZoomed() {
   if (typeof window === 'undefined') return false;
   const vv = window.visualViewport;
   return vv != null && vv.scale > 1.01;
