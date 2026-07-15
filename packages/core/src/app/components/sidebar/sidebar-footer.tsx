@@ -59,7 +59,7 @@ export function SidebarFooter() {
     };
   }, []);
 
-  const label = `v${config.version}`;
+  const label = `v ${config.version}`;
   const isUpdating = updateStatus === 'running';
   const keepOpen = updateStatus === 'running' || restarting;
 

@@ -1,6 +1,6 @@
 {
   "name": "@tooka/core",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Runtime and CLI for tooka — write slides in slides/, we handle the rest.",
   "type": "module",
   "exports": {

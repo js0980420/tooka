@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { AddToCardsButton } from '../components/add-to-cards-button';
 import { PageTabs } from '../components/page-tabs';
 import { FolderIconChip, SLIDE_DND_MIME } from '../components/sidebar/folder-item';
-import { ALL_SLIDES_ID, DRAFT_ID } from '../components/sidebar/sidebar';
+import { ALL_SLIDES_ID, DRAFT_ID, TEMPLATES_ID } from '../components/sidebar/sidebar';
 import { SlideCanvas } from '../components/slide-canvas';
 import { SlidePageProvider } from '../lib/page-context';
 import { PROMOTED_ID } from '../lib/promotion';
@@ -228,6 +228,7 @@ export function Home() {
           draftCount={draftSlides.length}
           folderName={selectedFolder?.name}
           onGoToDraft={() => selectFolder(DRAFT_ID)}
+          onGoToTemplates={() => selectFolder(TEMPLATES_ID)}
         />
       ) : filteredSlides.length === 0 ? (
         <NoResultsState query={query} onClear={() => setQuery('')} />
@@ -391,12 +392,14 @@ function EmptyState({
   draftCount,
   folderName,
   onGoToDraft,
+  onGoToTemplates,
 }: {
   isAll: boolean;
   isDraft: boolean;
   draftCount: number;
   folderName?: string;
   onGoToDraft: () => void;
+  onGoToTemplates: () => void;
 }) {
   const t = useLocale();
   const folderEmptyTitle = t.home.folderEmptyTitle.replace(
@@ -424,15 +427,14 @@ function EmptyState({
         ) : isAll || isDraft ? (
           <>
             <p className="mt-4 font-heading text-[15px] font-semibold tracking-tight">
-              {t.home.noSlidesYet}
+              {isDraft ? t.home.draftEmptyTitle : t.home.noSlidesYet}
             </p>
             <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-              {t.home.createSlideHintPrefix}
-              <code className="rounded-[4px] bg-muted px-1.5 py-0.5 font-mono text-[11.5px] text-foreground">
-                /create-slide
-              </code>
-              {t.home.createSlideHintSuffix}
+              {t.home.emptyTemplatesHint}
             </p>
+            <Button variant="ghost" size="sm" className="mt-4" onClick={onGoToTemplates}>
+              {t.home.goToTemplates}
+            </Button>
           </>
         ) : (
           <>

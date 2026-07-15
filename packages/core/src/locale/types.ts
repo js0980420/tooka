@@ -78,8 +78,9 @@ export type Locale = {
     nothingMatchesPrefix: string;
     nothingMatchesSuffix: string;
     noSlidesYet: string;
-    createSlideHintPrefix: string;
-    createSlideHintSuffix: string;
+    draftEmptyTitle: string;
+    emptyTemplatesHint: string;
+    goToTemplates: string;
     folderEmptyTitle: string;
     folderEmptyHint: string;
     slideActions: string;
