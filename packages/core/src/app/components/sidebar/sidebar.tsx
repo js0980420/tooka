@@ -139,71 +139,39 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <section aria-labelledby="sidebar-create-heading">
-          <div className="flex items-center gap-2 px-4 pb-1.5">
-            <h2 id="sidebar-create-heading" className="eyebrow">
-              {t.home.sidebarCreate}
-            </h2>
-            <span className="h-px flex-1 bg-hairline" aria-hidden />
-          </div>
-          <div className="px-2">
-            <FolderItem
-              row={{ kind: 'all' }}
-              count={allCount}
-              selected={selectedId === ALL_SLIDES_ID}
-              onSelect={() => onSelect(ALL_SLIDES_ID)}
-              onDropSlide={() => {}}
-            />
-            {import.meta.env.DEV && (
-              <FolderItem
-                row={{ kind: 'publish' }}
-                selected={selectedId === PUBLISH_ID}
-                onSelect={() => onSelect(PUBLISH_ID)}
-                onDropSlide={() => {}}
-              />
-            )}
-          </div>
-        </section>
+      <section aria-labelledby="sidebar-workflow-heading">
+        <div className="flex items-center gap-2 px-4 pb-1.5">
+          <h2 id="sidebar-workflow-heading" className="eyebrow">
+            {t.home.sidebarWorkflow}
+          </h2>
+          <span className="h-px flex-1 bg-hairline" aria-hidden />
+        </div>
+        <div className="px-2">
+          <FolderItem
+            row={{ kind: 'templates' }}
+            count={templatesCount}
+            selected={selectedId === TEMPLATES_ID}
+            onSelect={() => onSelect(TEMPLATES_ID)}
+            onDropSlide={() => {}}
+          />
+          <FolderItem
+            row={{ kind: 'draft' }}
+            count={countFor(null)}
+            selected={selectedId === DRAFT_ID}
+            onSelect={() => onSelect(DRAFT_ID)}
+            onDropSlide={onDropToDraft}
+          />
+          <FolderItem
+            row={{ kind: 'all' }}
+            count={allCount}
+            selected={selectedId === ALL_SLIDES_ID}
+            onSelect={() => onSelect(ALL_SLIDES_ID)}
+            onDropSlide={() => {}}
+          />
+        </div>
+      </section>
 
-        <section aria-labelledby="sidebar-resources-heading">
-          <div className="flex items-center gap-2 px-4 pb-1.5">
-            <h2 id="sidebar-resources-heading" className="eyebrow">
-              {t.home.sidebarResources}
-            </h2>
-            <span className="h-px flex-1 bg-hairline" aria-hidden />
-          </div>
-          <div className="px-2">
-            <FolderItem
-              row={{ kind: 'templates' }}
-              count={templatesCount}
-              selected={selectedId === TEMPLATES_ID}
-              onSelect={() => onSelect(TEMPLATES_ID)}
-              onDropSlide={() => {}}
-            />
-            <FolderItem
-              row={{ kind: 'tutorials' }}
-              selected={selectedId === TUTORIALS_ID}
-              onSelect={() => onSelect(TUTORIALS_ID)}
-              onDropSlide={() => {}}
-            />
-          </div>
-        </section>
-      </div>
-
-      <div className="mt-5 flex items-center gap-2 px-4 pb-1.5">
-        <h2 className="eyebrow">{t.home.folders}</h2>
-        <span className="h-px flex-1 bg-hairline" aria-hidden />
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
-        <FolderItem
-          row={{ kind: 'draft' }}
-          count={countFor(null)}
-          selected={selectedId === DRAFT_ID}
-          onSelect={() => onSelect(DRAFT_ID)}
-          onDropSlide={onDropToDraft}
-        />
+      <div className="ml-6 flex-1 overflow-y-auto border-l border-hairline py-0.5 pl-1 pr-2">
         {folders.map((folder) => {
           const isDropTarget = dropTarget?.id === folder.id;
           const before = isDropTarget && dropTarget.before;
@@ -319,6 +287,34 @@ export function Sidebar({
             </button>
           ))}
       </div>
+
+      {import.meta.env.DEV && (
+        <div className="px-2 pt-1">
+          <FolderItem
+            row={{ kind: 'publish' }}
+            selected={selectedId === PUBLISH_ID}
+            onSelect={() => onSelect(PUBLISH_ID)}
+            onDropSlide={() => {}}
+          />
+        </div>
+      )}
+
+      <section aria-labelledby="sidebar-resources-heading" className="mt-4">
+        <div className="flex items-center gap-2 px-4 pb-1.5">
+          <h2 id="sidebar-resources-heading" className="eyebrow">
+            {t.home.sidebarResources}
+          </h2>
+          <span className="h-px flex-1 bg-hairline" aria-hidden />
+        </div>
+        <div className="px-2 pb-2">
+          <FolderItem
+            row={{ kind: 'tutorials' }}
+            selected={selectedId === TUTORIALS_ID}
+            onSelect={() => onSelect(TUTORIALS_ID)}
+            onDropSlide={() => {}}
+          />
+        </div>
+      </section>
 
       <SidebarFooter />
     </aside>

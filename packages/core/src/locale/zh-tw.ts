@@ -45,7 +45,7 @@ export const zhTW: Locale = {
     prompts: '提示詞',
     publish: '發布',
     tutorials: '教學',
-    sidebarCreate: '創作',
+    sidebarWorkflow: '工作流',
     sidebarResources: '資源',
     folders: '資料夾',
     slides: '卡片',

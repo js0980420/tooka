@@ -1,4 +1,4 @@
-import { BookOpen, LayoutGrid, LayoutTemplate, Menu, Rocket } from 'lucide-react';
+import { BookOpen, LayoutGrid, LayoutTemplate, Menu, PencilLine, Rocket } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import {
   ALL_SLIDES_ID,
+  DRAFT_ID,
   PUBLISH_ID,
   Sidebar,
   TEMPLATES_ID,
@@ -200,9 +201,26 @@ export function HomeShell() {
               />
               <DropdownMenuContent align="end" className="min-w-[200px]">
                 <DropdownMenuItem
+                  onClick={() => selectFolder(TEMPLATES_ID)}
+                  className={cn(selectedId === TEMPLATES_ID && 'bg-muted text-foreground')}
+                >
+                  <LayoutTemplate className="size-4" />
+                  <span className="flex-1 truncate">{t.home.templates}</span>
+                  <span className="folio">{slideTemplates.length.toString().padStart(2, '0')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => selectFolder(DRAFT_ID)}
+                  className={cn(selectedId === DRAFT_ID && 'bg-muted text-foreground')}
+                >
+                  <PencilLine className="size-4" />
+                  <span className="flex-1 truncate">{t.home.draft}</span>
+                  <span className="folio">{draftSlides.length.toString().padStart(2, '0')}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => selectFolder(ALL_SLIDES_ID)}
                   className={cn(
                     selectedId !== TEMPLATES_ID &&
+                      selectedId !== DRAFT_ID &&
                       selectedId !== PUBLISH_ID &&
                       selectedId !== TUTORIALS_ID &&
                       'bg-muted text-foreground',
@@ -211,14 +229,6 @@ export function HomeShell() {
                   <LayoutGrid className="size-4" />
                   <span className="flex-1 truncate">{t.home.slides}</span>
                   <span className="folio">{promotedSlides.length.toString().padStart(2, '0')}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => selectFolder(TEMPLATES_ID)}
-                  className={cn(selectedId === TEMPLATES_ID && 'bg-muted text-foreground')}
-                >
-                  <LayoutTemplate className="size-4" />
-                  <span className="flex-1 truncate">{t.home.templates}</span>
-                  <span className="folio">{slideTemplates.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
                 {import.meta.env.DEV && (
                   <DropdownMenuItem
