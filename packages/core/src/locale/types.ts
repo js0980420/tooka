@@ -111,6 +111,13 @@ export type Locale = {
     toastFolderDeleteFailed: string;
     toastFolderReorderFailed: string;
     pickIcon: string;
+    addToCards: string;
+    /** template: "Added to "{folder}"" */
+    toastPromoted: string;
+    toastPromoteFailed: string;
+    goToDraft: string;
+    allEmptyWithDraftsTitle: string;
+    allEmptyWithDraftsHint: string;
   };
 
   slide: {
@@ -616,6 +623,8 @@ export type Locale = {
     toastPublishFailed: string;
     stepPickCard: string;
     pickCardHint: string;
+    emptyNoCards: string;
+    emptyNoCardsHint: string;
     capturingCard: string;
     /** template: "Captured {count} pages" */
     captureDoneLabel: string;

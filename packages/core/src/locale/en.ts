@@ -107,6 +107,13 @@ export const en: Locale = {
     toastFolderDeleteFailed: 'Failed to delete folder',
     toastFolderReorderFailed: 'Failed to reorder folders',
     pickIcon: 'Pick icon',
+    addToCards: 'Add to cards',
+    toastPromoted: 'Added to "{folder}"',
+    toastPromoteFailed: 'Failed to add to a folder',
+    goToDraft: 'Go to drafts',
+    allEmptyWithDraftsTitle: 'No cards yet',
+    allEmptyWithDraftsHint:
+      'Your drafts are waiting — review one and press "Add to cards" to promote it.',
   },
 
   slide: {
@@ -537,9 +544,9 @@ export const en: Locale = {
     backToGallery: 'Back to templates',
     visualTab: 'Visual reference',
     promptTab: 'Prompt',
-    addToCards: 'Add to cards',
+    addToCards: 'Add to drafts',
     adding: 'Adding',
-    toastAdded: 'Added to cards as "{id}"',
+    toastAdded: 'Added to drafts as "{id}"',
     toastAddFailed: 'Could not add this template to cards.',
     pageOf: 'page {n}/{total}',
     hookLabel: 'Hook (first line)',
@@ -591,6 +598,8 @@ export const en: Locale = {
     stepPickCard: '1. Pick a card deck',
     pickCardHint:
       'Each page of the deck is rendered as a PNG, uploaded to a public image host, and published through the Meta API.',
+    emptyNoCards: 'No cards to publish yet',
+    emptyNoCardsHint: 'Promote a draft with "Add to cards" first.',
     capturingCard: 'Capturing cards…',
     captureDoneLabel: 'Captured {count} pages',
     stepSyncText: '2. Sync captions',
