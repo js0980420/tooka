@@ -60,6 +60,7 @@ export type Locale = {
     restartServer: string;
     restartingServer: string;
     contactSupport: string;
+    lineOfficialAccount: string;
     opensInNewWindow: string;
     restartServerFailed: string;
     changeIcon: string;

@@ -60,6 +60,7 @@ export const zhTW: Locale = {
     restartServer: '重新啟動 dev server',
     restartingServer: '重新啟動中',
     contactSupport: '聯絡客服',
+    lineOfficialAccount: '官方LINE',
     opensInNewWindow: '在新視窗中開啟',
     restartServerFailed: '重新啟動失敗，請手動重新啟動 dev server。',
     changeIcon: '變更圖示',

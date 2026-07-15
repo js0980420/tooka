@@ -110,9 +110,13 @@ export function SidebarFooter() {
 
   return (
     <div className="flex flex-col gap-1 px-2 py-2 text-[11px] text-muted-foreground/70 tabular-nums">
+      <div className="flex items-center gap-2 px-2 pb-1.5">
+        <h2 className="eyebrow">{t.home.contactSupport}</h2>
+        <span className="h-px flex-1 bg-hairline" aria-hidden />
+      </div>
       <a href={LINE_URL} target="_blank" rel="noreferrer" className={contactLinkClassName}>
         <LineIcon className="size-5 shrink-0 text-[#06C755]" />
-        <span className="min-w-0 flex-1 truncate">{t.home.contactSupport}</span>
+        <span className="min-w-0 flex-1 truncate">{t.home.lineOfficialAccount}</span>
         <ExternalLink
           className="size-3.5 shrink-0 text-muted-foreground/55 transition-colors group-hover:text-foreground/65"
           aria-hidden

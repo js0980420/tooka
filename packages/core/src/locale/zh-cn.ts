@@ -60,6 +60,7 @@ export const zhCN: Locale = {
     restartServer: '重启 dev server',
     restartingServer: '重启中',
     contactSupport: '联系客服',
+    lineOfficialAccount: '官方LINE',
     opensInNewWindow: '在新窗口中打开',
     restartServerFailed: '重启失败，请手动重启 dev server。',
     changeIcon: '更换图标',

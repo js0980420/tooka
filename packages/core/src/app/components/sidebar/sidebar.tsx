@@ -320,9 +320,7 @@ export function Sidebar({
           ))}
       </div>
 
-      <div className="border-t border-hairline">
-        <SidebarFooter />
-      </div>
+      <SidebarFooter />
     </aside>
   );
 }

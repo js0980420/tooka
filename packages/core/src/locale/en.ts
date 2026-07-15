@@ -60,6 +60,7 @@ export const en: Locale = {
     restartServer: 'Restart dev server',
     restartingServer: 'Restarting',
     contactSupport: 'Contact Support',
+    lineOfficialAccount: 'Official LINE',
     opensInNewWindow: 'Opens in a new window',
     restartServerFailed: 'Restart failed. Restart the dev server manually.',
     changeIcon: 'Change icon',
