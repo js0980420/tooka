@@ -148,11 +148,11 @@ export function HomeShell() {
   };
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-background">
+    <div className="h-dvh w-full overflow-auto bg-background">
       <div
         ref={zoomRef}
-        style={{ zoom, width: `${100 / zoom}%`, height: `${100 / zoom}%` }}
-        className="flex overflow-hidden text-foreground"
+        style={{ zoom, height: `calc(100dvh / ${zoom})` }}
+        className="flex overflow-hidden bg-background text-foreground"
       >
         <div className="hidden md:block">
           <Sidebar
