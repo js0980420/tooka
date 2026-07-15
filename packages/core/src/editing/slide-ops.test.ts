@@ -6,6 +6,7 @@ import {
   duplicateNotesElementInSource,
   duplicatePageInDefaultExportInSource,
   duplicateSlideDir,
+  removeMetaTemplateFlagInSource,
   removeNotesElementInSource,
   removePageFromDefaultExportInSource,
   reorderDefaultExportPagesInSource,
@@ -90,6 +91,50 @@ describe('duplicateSlideDir', () => {
     await withSlidesRoot(async (root) => {
       expect(await duplicateSlideDir(root, 'missing')).toMatchObject({ ok: false, status: 404 });
     });
+  });
+
+  it('strips template: true so copies do not become templates', async () => {
+    await withSlidesRoot(async (root) => {
+      await fs.mkdir(path.join(root, 'tpl'), { recursive: true });
+      await fs.writeFile(
+        path.join(root, 'tpl', 'index.tsx'),
+        `export const meta = {\n  title: 'Tpl',\n  template: true,\n};\nexport default [];\n`,
+        'utf8',
+      );
+
+      const result = await duplicateSlideDir(root, 'tpl');
+
+      expect(result).toEqual({ ok: true, slideId: 'tpl-copy' });
+      const copied = await fs.readFile(path.join(root, 'tpl-copy', 'index.tsx'), 'utf8');
+      expect(copied).not.toContain('template');
+      expect(copied).toContain(`title: 'Tpl (copy)'`);
+    });
+  });
+});
+
+describe('removeMetaTemplateFlagInSource', () => {
+  it('removes a template property on its own line', () => {
+    const src = `export const meta = {\n  title: 'x',\n  template: true,\n  theme: 's',\n};\nexport default [];\n`;
+    expect(removeMetaTemplateFlagInSource(src)).toBe(
+      `export const meta = {\n  title: 'x',\n  theme: 's',\n};\nexport default [];\n`,
+    );
+  });
+
+  it('removes a trailing template property without a comma', () => {
+    const src = `export const meta = { title: 'x', template: true };\nexport default [];\n`;
+    expect(removeMetaTemplateFlagInSource(src)).toBe(
+      `export const meta = { title: 'x' };\nexport default [];\n`,
+    );
+  });
+
+  it('leaves sources without the flag unchanged', () => {
+    const src = `export const meta = { title: 'x' };\nexport default [];\n`;
+    expect(removeMetaTemplateFlagInSource(src)).toBe(src);
+  });
+
+  it('does not touch template-like text outside meta', () => {
+    const src = `const note = 'template: true';\nexport const meta = { title: 'x' };\nexport default [];\n`;
+    expect(removeMetaTemplateFlagInSource(src)).toBe(src);
   });
 });
 

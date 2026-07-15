@@ -161,7 +161,7 @@ export async function duplicateSlideDir(
     if (updated === null) {
       return { ok: false, status: 422, error: 'could not update copied slide title' };
     }
-    copiedEntrySource = updated;
+    copiedEntrySource = removeMetaTemplateFlagInSource(updated);
   } catch {
     return { ok: false, status: 404, error: 'slide not found' };
   }
@@ -252,6 +252,43 @@ export function updateMetaTitleInSource(source: string, title: string): string |
   if (exportDefaultIdx === -1) return null;
   const insertion = `export const meta: SlideMeta = { title: ${newLiteral} };\n\n`;
   return source.slice(0, exportDefaultIdx) + insertion + source.slice(exportDefaultIdx);
+}
+
+/**
+ * Strip `template: true` from the slide module's `export const meta`, so a
+ * copy made from a template deck becomes a regular draft instead of showing
+ * up as a new template. Returns the source unchanged when there is nothing
+ * to strip.
+ */
+export function removeMetaTemplateFlagInSource(source: string): string {
+  const metaStart = source.search(/export\s+const\s+meta\b/);
+  if (metaStart === -1) return source;
+  const eqIdx = source.indexOf('=', metaStart);
+  if (eqIdx === -1) return source;
+  const openBrace = source.indexOf('{', eqIdx);
+  if (openBrace === -1) return source;
+
+  let depth = 0;
+  let closeBrace = -1;
+  for (let i = openBrace; i < source.length; i++) {
+    const ch = source[i];
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        closeBrace = i;
+        break;
+      }
+    }
+  }
+  if (closeBrace === -1) return source;
+
+  const body = source.slice(openBrace + 1, closeBrace);
+  let newBody = body.replace(/\n[ \t]*template\s*:\s*true\s*,/, '');
+  if (newBody === body) newBody = body.replace(/,\s*template\s*:\s*true(?=\s*(?:[,}\n]|$))/, '');
+  if (newBody === body) newBody = body.replace(/(^|[\s{])template\s*:\s*true\s*,?\s*/, '$1');
+  if (newBody === body) return source;
+  return source.slice(0, openBrace + 1) + newBody + source.slice(closeBrace);
 }
 
 type ArrayElementRange = { start: number; end: number };

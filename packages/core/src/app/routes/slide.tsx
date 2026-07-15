@@ -45,6 +45,7 @@ import { assetPathFor, hasAssetDrag, readAssetDrag } from '@/lib/asset-dnd';
 import { useFolders } from '@/lib/folders';
 import { type EditOp, useEditor } from '@/lib/inspector/use-editor';
 import { isDraftSlide, PROMOTED_ID } from '@/lib/promotion';
+import { slideTemplates } from '@/lib/slides';
 import { useAgentSocketConnected } from '@/lib/use-agent-socket';
 import { useClickPageNavigation } from '@/lib/use-click-page-navigation';
 import { useIsMobile } from '@/lib/use-is-mobile';
@@ -629,9 +630,12 @@ export function Slide() {
             </div>
 
             <div className="flex flex-1 items-center justify-end gap-1 md:ml-auto md:flex-none">
-              {import.meta.env.DEV && !foldersLoading && isDraftSlide(slideId, manifest) && (
-                <AddToCardsButton onAdd={() => assign(slideId, PROMOTED_ID)} />
-              )}
+              {import.meta.env.DEV &&
+                !foldersLoading &&
+                !slideTemplates.includes(slideId) &&
+                isDraftSlide(slideId, manifest) && (
+                  <AddToCardsButton onAdd={() => assign(slideId, PROMOTED_ID)} />
+                )}
               {
                 <button
                   type="button"

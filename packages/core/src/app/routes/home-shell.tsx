@@ -100,7 +100,10 @@ export function HomeShell() {
   const isAssetsRoute = location.pathname === '/assets';
 
   const { promotedSlides, draftSlides, slidesByFolder } = useMemo(() => {
-    const { promoted, draft, byFolder } = partitionSlides(slideIds, manifest);
+    // Template decks live on the Templates page only — keep them out of the
+    // draft/cards workspace so users don't edit the originals by accident.
+    const workIds = slideIds.filter((id) => !slideTemplates.includes(id));
+    const { promoted, draft, byFolder } = partitionSlides(workIds, manifest);
     return { promotedSlides: promoted, draftSlides: draft, slidesByFolder: byFolder };
   }, [manifest]);
 

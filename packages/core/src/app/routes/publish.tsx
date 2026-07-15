@@ -203,6 +203,26 @@ export function PublishPage() {
     }
   }, [selectedSlideId, promotedSlides]);
 
+  // titleMap only fills in after the home grid has rendered each card, so a
+  // direct visit to /publish would show raw slide ids — load titles here too.
+  const [loadedTitles, setLoadedTitles] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    for (const id of promotedSlides) {
+      if (titleMap[id]) continue;
+      loadSlide(id)
+        .then((mod: SlideModule) => {
+          const title = mod.meta?.title;
+          if (cancelled || !title) return;
+          setLoadedTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title }));
+        })
+        .catch(() => {});
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [promotedSlides, titleMap]);
+
   const handleHashtagChange = (index: number, value: string) => {
     const cleanValue = value.replace(/^#/, '');
     setIgHashtags((current) => {
@@ -407,7 +427,7 @@ export function PublishPage() {
                   >
                     {promotedSlides.map((id) => (
                       <option key={id} value={id}>
-                        {titleMap[id] || id}
+                        {titleMap[id] || loadedTitles[id] || id}
                       </option>
                     ))}
                   </select>
