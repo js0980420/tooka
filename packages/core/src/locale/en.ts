@@ -45,6 +45,8 @@ export const en: Locale = {
     prompts: 'Prompts',
     publish: 'Publish',
     tutorials: 'Help',
+    sidebarCreate: 'Create',
+    sidebarResources: 'Resources',
     folders: 'Folders',
     slides: 'Cards',
     menu: 'Menu',

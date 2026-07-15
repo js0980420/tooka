@@ -45,6 +45,8 @@ export const zhCN: Locale = {
     prompts: '提示词',
     publish: '发布',
     tutorials: '教程',
+    sidebarCreate: '创作',
+    sidebarResources: '资源',
     folders: '文件夹',
     slides: '卡片',
     menu: '菜单',

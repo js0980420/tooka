@@ -139,41 +139,60 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="px-2">
-        <FolderItem
-          row={{ kind: 'all' }}
-          count={allCount}
-          selected={selectedId === ALL_SLIDES_ID}
-          onSelect={() => onSelect(ALL_SLIDES_ID)}
-          onDropSlide={() => {}}
-        />
-        <FolderItem
-          row={{ kind: 'templates' }}
-          count={templatesCount}
-          selected={selectedId === TEMPLATES_ID}
-          onSelect={() => onSelect(TEMPLATES_ID)}
-          onDropSlide={() => {}}
-        />
-        {import.meta.env.DEV && (
-          <FolderItem
-            row={{ kind: 'publish' }}
-            count={0}
-            selected={selectedId === PUBLISH_ID}
-            onSelect={() => onSelect(PUBLISH_ID)}
-            onDropSlide={() => {}}
-          />
-        )}
-        <FolderItem
-          row={{ kind: 'tutorials' }}
-          count={0}
-          selected={selectedId === TUTORIALS_ID}
-          onSelect={() => onSelect(TUTORIALS_ID)}
-          onDropSlide={() => {}}
-        />
+      <div className="flex flex-col gap-4">
+        <section aria-labelledby="sidebar-create-heading">
+          <div className="flex items-center gap-2 px-4 pb-1.5">
+            <h2 id="sidebar-create-heading" className="eyebrow">
+              {t.home.sidebarCreate}
+            </h2>
+            <span className="h-px flex-1 bg-hairline" aria-hidden />
+          </div>
+          <div className="px-2">
+            <FolderItem
+              row={{ kind: 'all' }}
+              count={allCount}
+              selected={selectedId === ALL_SLIDES_ID}
+              onSelect={() => onSelect(ALL_SLIDES_ID)}
+              onDropSlide={() => {}}
+            />
+            {import.meta.env.DEV && (
+              <FolderItem
+                row={{ kind: 'publish' }}
+                selected={selectedId === PUBLISH_ID}
+                onSelect={() => onSelect(PUBLISH_ID)}
+                onDropSlide={() => {}}
+              />
+            )}
+          </div>
+        </section>
+
+        <section aria-labelledby="sidebar-resources-heading">
+          <div className="flex items-center gap-2 px-4 pb-1.5">
+            <h2 id="sidebar-resources-heading" className="eyebrow">
+              {t.home.sidebarResources}
+            </h2>
+            <span className="h-px flex-1 bg-hairline" aria-hidden />
+          </div>
+          <div className="px-2">
+            <FolderItem
+              row={{ kind: 'templates' }}
+              count={templatesCount}
+              selected={selectedId === TEMPLATES_ID}
+              onSelect={() => onSelect(TEMPLATES_ID)}
+              onDropSlide={() => {}}
+            />
+            <FolderItem
+              row={{ kind: 'tutorials' }}
+              selected={selectedId === TUTORIALS_ID}
+              onSelect={() => onSelect(TUTORIALS_ID)}
+              onDropSlide={() => {}}
+            />
+          </div>
+        </section>
       </div>
 
       <div className="mt-5 flex items-center gap-2 px-4 pb-1.5">
-        <span className="eyebrow">{t.home.folders}</span>
+        <h2 className="eyebrow">{t.home.folders}</h2>
         <span className="h-px flex-1 bg-hairline" aria-hidden />
       </div>
 

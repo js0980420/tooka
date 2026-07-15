@@ -106,7 +106,7 @@ export function FolderItem({
   onDropSlide,
 }: {
   row: Row;
-  count: number;
+  count?: number;
   selected: boolean;
   onSelect: () => void;
   onDropSlide: (slideId: string) => void;
@@ -239,16 +239,18 @@ export function FolderItem({
         </button>
       )}
 
-      <span
-        className={cn(
-          'folio ml-auto shrink-0 transition-opacity',
-          row.kind === 'folder' &&
-            import.meta.env.DEV &&
-            'group-hover:opacity-0 group-has-[[aria-expanded=true]]:opacity-0',
-        )}
-      >
-        {count.toString().padStart(2, '0')}
-      </span>
+      {count !== undefined ? (
+        <span
+          className={cn(
+            'folio ml-auto shrink-0 transition-opacity',
+            row.kind === 'folder' &&
+              import.meta.env.DEV &&
+              'group-hover:opacity-0 group-has-[[aria-expanded=true]]:opacity-0',
+          )}
+        >
+          {count.toString().padStart(2, '0')}
+        </span>
+      ) : null}
 
       {row.kind === 'folder' && import.meta.env.DEV && (
         <DropdownMenu>
