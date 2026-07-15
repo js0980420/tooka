@@ -35,13 +35,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { AddToCardsButton } from '../components/add-to-cards-button';
 import { PageTabs } from '../components/page-tabs';
 import { FolderIconChip, SLIDE_DND_MIME } from '../components/sidebar/folder-item';
 import { ALL_SLIDES_ID, DRAFT_ID } from '../components/sidebar/sidebar';
 import { SlideCanvas } from '../components/slide-canvas';
 import { SlidePageProvider } from '../lib/page-context';
 import type { Folder, FolderIcon, SlideModule } from '../lib/sdk';
-import { loadSlide, slideCreatedAt, slideIds } from '../lib/slides';
+import { loadSlide, slideCreatedAt } from '../lib/slides';
 import type { HomeOutletContext } from './home-shell';
 
 type SortKey = 'created-desc' | 'created-asc' | 'title-asc' | 'title-desc';
@@ -79,11 +80,13 @@ export function Home() {
     loading,
     draftSlides,
     slidesByFolder,
+    promotedSlides,
     selectedId,
     selectFolder,
     reportTitle,
     titleMap,
     assign,
+    createFolder,
     renameSlide,
     duplicateSlide,
     deleteSlide,
@@ -95,7 +98,7 @@ export function Home() {
   const selectedFolder =
     isAll || isDraft ? null : (manifest.folders.find((f) => f.id === selectedId) ?? null);
   const visibleSlides = isAll
-    ? slideIds
+    ? promotedSlides
     : isDraft
       ? draftSlides
       : (slidesByFolder[selectedId] ?? []);
@@ -164,7 +167,7 @@ export function Home() {
               >
                 <LayoutGrid className="size-4" />
                 <span className="flex-1 truncate">{t.home.slides}</span>
-                <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
+                <span className="folio">{promotedSlides.length.toString().padStart(2, '0')}</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => selectFolder(DRAFT_ID)}
@@ -219,7 +222,13 @@ export function Home() {
       {loading ? (
         <HomeLoading />
       ) : visibleSlides.length === 0 ? (
-        <EmptyState isDraft={isAll || isDraft} folderName={selectedFolder?.name} />
+        <EmptyState
+          isAll={isAll}
+          isDraft={isDraft}
+          draftCount={draftSlides.length}
+          folderName={selectedFolder?.name}
+          onGoToDraft={() => selectFolder(DRAFT_ID)}
+        />
       ) : filteredSlides.length === 0 ? (
         <NoResultsState query={query} onClear={() => setQuery('')} />
       ) : (
@@ -230,6 +239,15 @@ export function Home() {
                 id={id}
                 folders={manifest.folders}
                 currentFolderId={manifest.assignments[id] ?? null}
+                promote={
+                  isDraft
+                    ? {
+                        folders: manifest.folders,
+                        onAssign: (folderId) => assign(id, folderId),
+                        onCreateFolder: createFolder,
+                      }
+                    : undefined
+                }
                 onRename={(name) => renameSlide(id, name)}
                 onDuplicate={async () => {
                   const slideName = titleMap[id] ?? id;
@@ -375,7 +393,19 @@ function NoResultsState({ query, onClear }: { query: string; onClear: () => void
   );
 }
 
-function EmptyState({ isDraft, folderName }: { isDraft: boolean; folderName?: string }) {
+function EmptyState({
+  isAll,
+  isDraft,
+  draftCount,
+  folderName,
+  onGoToDraft,
+}: {
+  isAll: boolean;
+  isDraft: boolean;
+  draftCount: number;
+  folderName?: string;
+  onGoToDraft: () => void;
+}) {
   const t = useLocale();
   const folderEmptyTitle = t.home.folderEmptyTitle.replace(
     '{name}',
@@ -387,7 +417,19 @@ function EmptyState({ isDraft, folderName }: { isDraft: boolean; folderName?: st
         <div className="flex size-12 items-center justify-center rounded-full border border-hairline bg-card text-muted-foreground">
           <FolderPlus className="size-5" />
         </div>
-        {isDraft ? (
+        {isAll && draftCount > 0 ? (
+          <>
+            <p className="mt-4 font-heading text-[15px] font-semibold tracking-tight">
+              {t.home.allEmptyWithDraftsTitle}
+            </p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
+              {t.home.allEmptyWithDraftsHint}
+            </p>
+            <Button variant="ghost" size="sm" className="mt-4" onClick={onGoToDraft}>
+              {t.home.goToDraft}
+            </Button>
+          </>
+        ) : isAll || isDraft ? (
           <>
             <p className="mt-4 font-heading text-[15px] font-semibold tracking-tight">
               {t.home.noSlidesYet}
@@ -464,6 +506,7 @@ function SlideCard({
   id,
   folders,
   currentFolderId,
+  promote,
   onRename,
   onDuplicate,
   onMove,
@@ -473,6 +516,11 @@ function SlideCard({
   id: string;
   folders: Folder[];
   currentFolderId: string | null;
+  promote?: {
+    folders: Folder[];
+    onAssign: (folderId: string) => Promise<void>;
+    onCreateFolder: (name: string, icon: FolderIcon) => Promise<Folder>;
+  };
   onRename: (name: string) => Promise<void> | void;
   onDuplicate: () => Promise<void> | void;
   onMove: (folderId: string | null) => Promise<void> | void;
@@ -593,6 +641,17 @@ function SlideCard({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        )}
+
+        {import.meta.env.DEV && promote && (
+          <div className="absolute left-2 top-2">
+            <AddToCardsButton
+              folders={promote.folders}
+              onAssign={promote.onAssign}
+              onCreateFolder={promote.onCreateFolder}
+              className="h-7 px-2 text-[11.5px] opacity-0 shadow-edge group-hover:opacity-100 aria-expanded:opacity-100 motion-safe:transition-opacity"
+            />
           </div>
         )}
       </div>
