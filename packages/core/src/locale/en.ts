@@ -649,24 +649,24 @@ export const en: Locale = {
     deleteAction: 'Delete',
     tipsTitle: '💡 Tips:',
     tipsBody:
-      'Copy the prompt with the button in the corner, paste it into a conversation with your AI assistant, and tweak the wording (card topic, headline, accent color, and so on) to quickly generate polished card source code.',
+      'Grab a carousel with "Add to drafts" on the templates page first, then copy a prompt with the button in the corner, paste it to your AI assistant, and swap in your own topic, headline, or accent color to reshape the draft quickly.',
     emptyState: 'No prompts saved yet. Click "New prompt" in the top right to start!',
-    sampleCategory: 'Open-source card examples',
-    sample1Title: 'Card 1: Tech-style cover (Hook)',
+    sampleCategory: 'Template workflow examples',
+    sample1Title: 'Whole carousel: swap in my topic',
     sample1Content:
-      'Design an IG card cover titled "I built an open-source card tool" with the subtitle "This carousel was made with it". Use a modern tech style with a deep blue accent, plus a pill badge mentioning Canva-style dragging and IG-crop safety.',
-    sample2Title: 'Card 2: Pain points & features (Describe)',
+      'I just added a draft carousel from a template. Rewrite it for the topic "..." keeping the layout, colors, and fonts unchanged — text only. The hook card should call out the audience pain point, each middle card makes one point, and the last card ends with a comment-keyword CTA.',
+    sample2Title: 'One card: change title and subtitle',
     sample2Content:
-      'Create a feature card. Headline: "Fixing AI image generation randomness and layout drift". List three numbered points with titles and subtexts: "1. Drag elements freely, like Canva (drag to fine-tune position and spacing)", "2. IG-crop safe areas (IG sizes with comfortable margins on all sides)", "3. Consistent visual style (lock the look to keep the brand consistent)".',
-    sample3Title: 'Card 3: Natural-language editing (Refine)',
+      'On this card, change the headline to "..." and the subtitle to "...". Leave the layout and styles untouched.',
+    sample3Title: 'Whole carousel: restyle the visuals',
     sample3Content:
-      'Create a card introducing editing features. Headline: "Edit with natural language", subtitle "Not just dragging — just say it". Two points below: "1. Prompt the whole card (one sentence adjusts the layout and style)", "2. Select an element, then prompt (precise changes to just that block)".',
-    sample4Title: 'Card 4: Export size guide (Export)',
+      'Restyle this carousel to a warm cream palette: background #F8F2E6, dark-brown text, olive accent, and switch the display font to a serif (Noto Serif TC). Apply to every card and keep the layout.',
+    sample4Title: 'Insert a big-number card',
     sample4Content:
-      'Design a spec card. Title: "Pick the right layout when exporting", subtitle "Both are 4:5 — the difference is the safe margin for key content". Show two spec boxes: "IG portrait (72px sides, 60px top/bottom)" and "IG square (at least 144px sides, 220px top/bottom)", with a warning at the bottom: "Why? Cropping 4:5 to a centered square trims 135px from the top and bottom."',
-    sample5Title: 'Card 5: Engagement CTA (Cta)',
+      'After card 3, add a "big number" card: one large stat "..." with a single supporting line, reusing this carousel\'s layout and palette.',
+    sample5Title: 'Swap the image and handle',
     sample5Content:
-      'Create a closing CTA card. A white rounded panel sits in the center as the focal point, topped with a blue pill badge reading "GET LINK". Inside the panel, the headline is "Comment below for the card tool" with the subtitle "I will DM you the link".',
+      'Replace the cover card\'s image placeholder with "my-shot.png" from the assets library, and change the account handle on every card to "@my.account".',
   },
   tutorials: {
     pageTitle: 'Guides & handbook',
