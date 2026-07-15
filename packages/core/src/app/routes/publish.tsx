@@ -26,7 +26,7 @@ import { PngExportVariantProvider } from '../lib/png-export-variant';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from '../lib/print-ready';
 import type { SlideModule } from '../lib/sdk';
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
-import { loadSlide, slideIds } from '../lib/slides';
+import { loadSlide } from '../lib/slides';
 import type { HomeOutletContext } from './home-shell';
 
 type PublishResult = {
@@ -168,7 +168,7 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
 
 export function PublishPage() {
   const t = useLocale();
-  const { titleMap } = useOutletContext<HomeOutletContext>();
+  const { titleMap, promotedSlides } = useOutletContext<HomeOutletContext>();
   const [selectedSlideId, setSelectedSlideId] = useState('');
 
   const [fbEnabled, setFbEnabled] = useState(false);
@@ -197,10 +197,11 @@ export function PublishPage() {
   };
 
   useEffect(() => {
-    if (slideIds.length > 0 && !selectedSlideId) {
-      setSelectedSlideId(slideIds[0]);
+    if (promotedSlides.length === 0) return;
+    if (!selectedSlideId || !promotedSlides.includes(selectedSlideId)) {
+      setSelectedSlideId(promotedSlides[0]);
     }
-  }, [selectedSlideId]);
+  }, [selectedSlideId, promotedSlides]);
 
   const handleHashtagChange = (index: number, value: string) => {
     const cleanValue = value.replace(/^#/, '');
@@ -383,21 +384,38 @@ export function PublishPage() {
           {/* Card Selection */}
           <div className="rounded-[10px] border border-hairline bg-card p-5 shadow-edge md:col-span-1">
             <span className="eyebrow block mb-2">{t.publish.stepPickCard}</span>
-            <div className="relative">
-              <select
-                value={selectedSlideId}
-                onChange={(e) => setSelectedSlideId(e.target.value)}
-                className="w-full h-9 rounded-md border border-hairline bg-background px-3 py-1.5 text-[13px] font-medium shadow-sm transition-all focus:outline-none focus:ring-1 focus:ring-brand appearance-none pr-8 cursor-pointer"
-              >
-                {slideIds.map((id) => (
-                  <option key={id} value={id}>
-                    {titleMap[id] || id}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">{t.publish.pickCardHint}</p>
+            {promotedSlides.length === 0 ? (
+              <div className="rounded-md border border-dashed border-border bg-background px-3 py-4 text-center">
+                <p className="text-[12.5px] font-medium">{t.publish.emptyNoCards}</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {t.publish.emptyNoCardsHint}
+                </p>
+                <Link
+                  to="/?f=draft"
+                  className="mt-2 inline-block text-[11.5px] font-medium text-brand hover:underline"
+                >
+                  {t.home.goToDraft}
+                </Link>
+              </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <select
+                    value={selectedSlideId}
+                    onChange={(e) => setSelectedSlideId(e.target.value)}
+                    className="w-full h-9 rounded-md border border-hairline bg-background px-3 py-1.5 text-[13px] font-medium shadow-sm transition-all focus:outline-none focus:ring-1 focus:ring-brand appearance-none pr-8 cursor-pointer"
+                  >
+                    {promotedSlides.map((id) => (
+                      <option key={id} value={id}>
+                        {titleMap[id] || id}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2.5 top-2.5 size-4 text-muted-foreground pointer-events-none" />
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">{t.publish.pickCardHint}</p>
+              </>
+            )}
             {captureStatus === 'capturing' && (
               <div className="mt-2 flex items-center gap-1.5 text-[11px] text-brand">
                 <RefreshCw className="size-3 animate-spin" />
