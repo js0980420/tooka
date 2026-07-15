@@ -6,7 +6,7 @@ import { PageTabs } from '../components/page-tabs';
 import { tutorialArticlesZhTW } from './tutorials-zh-tw';
 
 export function TutorialsPage() {
-  const [activeId, setActiveId] = useState('ai-card-workflow');
+  const [activeId, setActiveId] = useState('template-workflow');
 
   const t = zhTW;
   const articles = tutorialArticlesZhTW;

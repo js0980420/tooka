@@ -1,7 +1,86 @@
-import { AtSign, Bot, Camera, Move, Share2, Smartphone, Users } from 'lucide-react';
+import { AtSign, Bot, Camera, LayoutTemplate, Move, Share2, Smartphone, Users } from 'lucide-react';
+import shotTemplates from '../assets/tutorials/workflow-01-templates.jpg';
+import shotTemplateDetail from '../assets/tutorials/workflow-02-template-detail.jpg';
+import shotDraftViewer from '../assets/tutorials/workflow-03-draft-viewer.jpg';
+import shotDrafts from '../assets/tutorials/workflow-04-drafts.jpg';
+import shotCards from '../assets/tutorials/workflow-05-cards.jpg';
+import shotPublish from '../assets/tutorials/workflow-06-publish.jpg';
 import type { TutorialArticle } from './tutorials-article';
 
 export const tutorialArticlesZhTW: TutorialArticle[] = [
+  {
+    id: 'template-workflow',
+    title: '從模板到發布：完整工作流',
+    icon: LayoutTemplate,
+    category: '快速入門',
+    content: (
+      <div className="space-y-6">
+        <div className="rounded-xl border border-brand/20 bg-brand/5 p-5">
+          <h3 className="text-brand font-semibold text-base">模板 → 草稿 → 卡片 → 發布</h3>
+          <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
+            側邊欄的「工作流」就是內容的生產線：從<strong>模板</strong>挑一個風格加入
+            <strong>草稿</strong>，調整好內容後升級為正式<strong>卡片</strong>，最後在
+            <strong>發布</strong>頁一鍵發到社群平台。這篇教學帶你走完整條路。
+          </p>
+        </div>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">STEP 1：到模板頁挑一個風格</h4>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            點側邊欄的「模板」，每個模板都是一組完整的輪播——版式、配色、字體與卡片結構（Hook → 重點
+            → CTA）都設計好了，直接點進去看細節。
+          </p>
+          <img src={shotTemplates} alt="模板頁列出可用的輪播風格" className="rounded-lg border" />
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">STEP 2：按「加入草稿」拿到自己的副本</h4>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            在模板詳情頁按右上角的「加入草稿」。系統會複製一份到你的草稿區並直接開啟，
+            模板原稿不會被動到，可以放心改。
+          </p>
+          <img
+            src={shotTemplateDetail}
+            alt="模板詳情頁右上角的加入草稿按鈕"
+            className="rounded-lg border"
+          />
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">STEP 3：在編輯器調整內容</h4>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            副本會直接在編輯器打開。你可以拖曳元素微調位置、用「檢視」選取元素留下修改提示，
+            或把「提示詞」頁的範例貼給 AI Agent，一次換掉整組文案與配色。
+          </p>
+          <img
+            src={shotDraftViewer}
+            alt="編輯器中開啟的草稿輪播，頂欄有新增到卡片按鈕"
+            className="rounded-lg border"
+          />
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">STEP 4：按「新增到卡片」轉為正式內容</h4>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            內容調整好後，按編輯器頂欄（或草稿列表卡片上）的「新增到卡片」。
+            這組輪播就會從草稿區移到「卡片」，之後也可以拖進資料夾分類整理。
+          </p>
+          <img src={shotDrafts} alt="草稿列表上的新增到卡片按鈕" className="rounded-lg border" />
+          <img src={shotCards} alt="升級後的輪播出現在卡片區" className="rounded-lg border" />
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">STEP 5：到發布頁一鍵發文</h4>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            點側邊欄的「發布」，選擇要發的圖卡、寫好文案、勾選平台，按一次就同步發布到
+            Facebook、Instagram 與
+            Threads。發布頁只會列出正式卡片——這就是前一步「新增到卡片」的用意。
+          </p>
+          <img src={shotPublish} alt="發布頁選擇圖卡與平台" className="rounded-lg border" />
+        </section>
+      </div>
+    ),
+  },
   {
     id: 'ai-card-workflow',
     title: '用 AI Agent 生圖卡並一鍵發布',
