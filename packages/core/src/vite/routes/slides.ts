@@ -16,6 +16,7 @@ import {
 } from '../../editing/slide-ops.ts';
 import { readManifest, writeManifest } from '../../files/folders.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { invalidateSlidesModule } from '../tooka-plugin.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
 // PUT    /__slides/:id/reorder            reorder pages { order: number[] }
@@ -155,6 +156,10 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
           manifest.assignments[duplicated.slideId] = folderId;
           await writeManifest(ctx.manifestPath, manifest);
         }
+        // The chokidar `add` event that regenerates the slide list is debounced
+        // and can lose a race against the client navigating to the new slide —
+        // drop the cached module now so the next fetch always sees the copy.
+        invalidateSlidesModule(server);
         return json(res, 200, { ok: true, slideId: duplicated.slideId });
       }
 
@@ -209,6 +214,7 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const manifest = await readManifest(ctx.manifestPath);
         delete manifest.assignments[slideId];
         await writeManifest(ctx.manifestPath, manifest);
+        invalidateSlidesModule(server);
         return json(res, 200, { ok: true });
       }
 

@@ -1,6 +1,6 @@
 import { ChevronLeft, Copy, Plus, RotateCcw } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -39,7 +39,6 @@ function loadStoredPrompt(id: string): Partial<PromptFields> | null {
 
 export function TemplateDetail({ templateId, onBack }: { templateId: string; onBack: () => void }) {
   const t = useLocale();
-  const navigate = useNavigate();
   const { duplicateSlide } = useOutletContext<HomeOutletContext>();
   const slide = useTemplateSlide(templateId);
 
@@ -63,7 +62,9 @@ export function TemplateDetail({ templateId, onBack }: { templateId: string; onB
     try {
       const newId = await duplicateSlide(templateId);
       toast.success(format(t.templates.toastAdded, { id: newId }));
-      navigate(`/s/${newId}`);
+      // Full document load: the SPA's virtual slide-list module predates the
+      // copy, so a client-side navigate would throw "Slide not found".
+      window.location.assign(`${import.meta.env.BASE_URL}s/${newId}`);
     } catch {
       toast.error(t.templates.toastAddFailed);
     } finally {

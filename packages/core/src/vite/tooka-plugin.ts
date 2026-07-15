@@ -47,6 +47,11 @@ function resolved(id: string): string {
   return `\0${id}`;
 }
 
+export function invalidateSlidesModule(server: ViteDevServer): void {
+  const mod = server.moduleGraph.getModuleById(resolved(SLIDES_VMOD));
+  if (mod) server.moduleGraph.invalidateModule(mod);
+}
+
 async function findSlides(userCwd: string, slidesDir: string): Promise<string[]> {
   const abs = path.resolve(userCwd, slidesDir);
   if (!existsSync(abs)) return [];
@@ -149,7 +154,11 @@ async function generateSlidesModule(
     entries
       .filter((e) => e.template)
       .map((e) => e.id)
-      .sort(),
+      .sort((a, b) => {
+        if (a === 'noir-gold') return -1;
+        if (b === 'noir-gold') return 1;
+        return a.localeCompare(b);
+      }),
   );
   const importTokens = JSON.stringify(Object.fromEntries(entries.map((e) => [e.id, 0])));
   const devRuntime = isDev

@@ -44,7 +44,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { assetPathFor, hasAssetDrag, readAssetDrag } from '@/lib/asset-dnd';
 import { useFolders } from '@/lib/folders';
 import { type EditOp, useEditor } from '@/lib/inspector/use-editor';
-import { isDraftSlide } from '@/lib/promotion';
+import { isDraftSlide, PROMOTED_ID } from '@/lib/promotion';
 import { useAgentSocketConnected } from '@/lib/use-agent-socket';
 import { useClickPageNavigation } from '@/lib/use-click-page-navigation';
 import { useIsMobile } from '@/lib/use-is-mobile';
@@ -95,7 +95,7 @@ export function Slide() {
       if (linkCopiedTimerRef.current) clearTimeout(linkCopiedTimerRef.current);
     };
   }, []);
-  const { renameSlide, manifest, loading: foldersLoading, assign, create } = useFolders();
+  const { renameSlide, manifest, loading: foldersLoading, assign } = useFolders();
   const slideViewportRef = useRef<HTMLElement>(null);
   const t = useLocale();
   const isMobile = useIsMobile();
@@ -630,11 +630,7 @@ export function Slide() {
 
             <div className="flex flex-1 items-center justify-end gap-1 md:ml-auto md:flex-none">
               {import.meta.env.DEV && !foldersLoading && isDraftSlide(slideId, manifest) && (
-                <AddToCardsButton
-                  folders={manifest.folders}
-                  onAssign={(folderId) => assign(slideId, folderId)}
-                  onCreateFolder={(name, icon) => create(name, icon)}
-                />
+                <AddToCardsButton onAdd={() => assign(slideId, PROMOTED_ID)} />
               )}
               {
                 <button

@@ -1,4 +1,5 @@
 import type { ViteDevServer } from 'vite';
+import { PROMOTED_ID } from '../../app/lib/promotion.ts';
 import { SLIDE_ID_RE } from '../../editing/slide-ops.ts';
 import {
   FOLDER_ID_RE,
@@ -67,14 +68,21 @@ export function registerFolderRoutes(server: ViteDevServer, ctx: ApiContext): vo
         let folderId: string | null;
         if (body.folderId === null) {
           folderId = null;
-        } else if (typeof body.folderId === 'string' && FOLDER_ID_RE.test(body.folderId)) {
+        } else if (
+          typeof body.folderId === 'string' &&
+          (body.folderId === PROMOTED_ID || FOLDER_ID_RE.test(body.folderId))
+        ) {
           folderId = body.folderId;
         } else {
           return json(res, 400, { error: 'invalid folderId' });
         }
 
         const manifest = await readManifest(ctx.manifestPath);
-        if (folderId && !manifest.folders.some((f) => f.id === folderId)) {
+        if (
+          folderId &&
+          folderId !== PROMOTED_ID &&
+          !manifest.folders.some((f) => f.id === folderId)
+        ) {
           return json(res, 404, { error: 'folder not found' });
         }
         if (folderId === null) {

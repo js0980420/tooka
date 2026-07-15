@@ -108,8 +108,8 @@ export const en: Locale = {
     toastFolderReorderFailed: 'Failed to reorder folders',
     pickIcon: 'Pick icon',
     addToCards: 'Add to cards',
-    toastPromoted: 'Added to "{folder}"',
-    toastPromoteFailed: 'Failed to add to a folder',
+    toastPromoted: 'Added to cards',
+    toastPromoteFailed: 'Failed to add to cards',
     goToDraft: 'Go to drafts',
     allEmptyWithDraftsTitle: 'No cards yet',
     allEmptyWithDraftsHint:

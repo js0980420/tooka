@@ -41,6 +41,7 @@ import { FolderIconChip, SLIDE_DND_MIME } from '../components/sidebar/folder-ite
 import { ALL_SLIDES_ID, DRAFT_ID } from '../components/sidebar/sidebar';
 import { SlideCanvas } from '../components/slide-canvas';
 import { SlidePageProvider } from '../lib/page-context';
+import { PROMOTED_ID } from '../lib/promotion';
 import type { Folder, FolderIcon, SlideModule } from '../lib/sdk';
 import { loadSlide, slideCreatedAt } from '../lib/slides';
 import type { HomeOutletContext } from './home-shell';
@@ -86,7 +87,6 @@ export function Home() {
     reportTitle,
     titleMap,
     assign,
-    createFolder,
     renameSlide,
     duplicateSlide,
     deleteSlide,
@@ -239,15 +239,7 @@ export function Home() {
                 id={id}
                 folders={manifest.folders}
                 currentFolderId={manifest.assignments[id] ?? null}
-                promote={
-                  isDraft
-                    ? {
-                        folders: manifest.folders,
-                        onAssign: (folderId) => assign(id, folderId),
-                        onCreateFolder: createFolder,
-                      }
-                    : undefined
-                }
+                promote={isDraft ? { onAdd: () => assign(id, PROMOTED_ID) } : undefined}
                 onRename={(name) => renameSlide(id, name)}
                 onDuplicate={async () => {
                   const slideName = titleMap[id] ?? id;
@@ -517,9 +509,7 @@ function SlideCard({
   folders: Folder[];
   currentFolderId: string | null;
   promote?: {
-    folders: Folder[];
-    onAssign: (folderId: string) => Promise<void>;
-    onCreateFolder: (name: string, icon: FolderIcon) => Promise<Folder>;
+    onAdd: () => Promise<void>;
   };
   onRename: (name: string) => Promise<void> | void;
   onDuplicate: () => Promise<void> | void;
@@ -647,9 +637,7 @@ function SlideCard({
         {import.meta.env.DEV && promote && (
           <div className="absolute left-2 top-2">
             <AddToCardsButton
-              folders={promote.folders}
-              onAssign={promote.onAssign}
-              onCreateFolder={promote.onCreateFolder}
+              onAdd={promote.onAdd}
               className="h-7 px-2 text-[11.5px] opacity-0 shadow-edge group-hover:opacity-100 aria-expanded:opacity-100 motion-safe:transition-opacity"
             />
           </div>
