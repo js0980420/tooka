@@ -112,7 +112,7 @@ export type Locale = {
     toastFolderReorderFailed: string;
     pickIcon: string;
     addToCards: string;
-    /** template: "Added to "{folder}"" */
+    /** template: "Added to “{folder}”" */
     toastPromoted: string;
     toastPromoteFailed: string;
     goToDraft: string;
@@ -570,7 +570,7 @@ export type Locale = {
     promptTab: string;
     addToCards: string;
     adding: string;
-    /** template: "Added to cards as {id}" */
+    /** template: "Added to drafts as {id}" */
     toastAdded: string;
     toastAddFailed: string;
     /** template: "page {n}/{total}" */
