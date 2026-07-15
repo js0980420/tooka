@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useFolders } from '@/lib/folders';
+import { partitionSlides } from '@/lib/promotion';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import {
@@ -21,7 +22,7 @@ import {
   TEMPLATES_ID,
   TUTORIALS_ID,
 } from '../components/sidebar/sidebar';
-import type { FoldersManifest } from '../lib/sdk';
+import type { Folder, FolderIcon, FoldersManifest } from '../lib/sdk';
 import { slideIds, slideTemplates } from '../lib/slides';
 
 export type HomeOutletContext = {
@@ -29,12 +30,14 @@ export type HomeOutletContext = {
   loading: boolean;
   draftSlides: string[];
   slidesByFolder: Record<string, string[]>;
+  promotedSlides: string[];
   /** Selected view id: ALL_SLIDES_ID, DRAFT_ID, a folder id, TEMPLATES_ID, or ASSETS_ID. */
   selectedId: string;
   selectFolder: (id: string) => void;
   reportTitle: (slideId: string, title: string) => void;
   titleMap: Record<string, string>;
   assign: (slideId: string, folderId: string | null) => Promise<void>;
+  createFolder: (name: string, icon: FolderIcon) => Promise<Folder>;
   renameSlide: (slideId: string, name: string) => Promise<void>;
   duplicateSlide: (slideId: string, newId?: string) => Promise<string>;
   deleteSlide: (slideId: string) => Promise<void>;
@@ -95,20 +98,9 @@ export function HomeShell() {
 
   const isAssetsRoute = location.pathname === '/assets';
 
-  const { draftSlides, slidesByFolder } = useMemo(() => {
-    const byFolder: Record<string, string[]> = {};
-    const draft: string[] = [];
-    const known = new Set(manifest.folders.map((f) => f.id));
-    for (const id of slideIds) {
-      const folderId = manifest.assignments[id];
-      if (folderId && known.has(folderId)) {
-        byFolder[folderId] ??= [];
-        byFolder[folderId].push(id);
-      } else {
-        draft.push(id);
-      }
-    }
-    return { draftSlides: draft, slidesByFolder: byFolder };
+  const { promotedSlides, draftSlides, slidesByFolder } = useMemo(() => {
+    const { promoted, draft, byFolder } = partitionSlides(slideIds, manifest);
+    return { promotedSlides: promoted, draftSlides: draft, slidesByFolder: byFolder };
   }, [manifest]);
 
   const countFor = (folderId: string | null) =>
@@ -137,11 +129,13 @@ export function HomeShell() {
     loading,
     draftSlides,
     slidesByFolder,
+    promotedSlides,
     selectedId,
     selectFolder,
     reportTitle,
     titleMap,
     assign,
+    createFolder: create,
     renameSlide,
     duplicateSlide,
     deleteSlide,
@@ -153,7 +147,7 @@ export function HomeShell() {
         <Sidebar
           folders={manifest.folders}
           countFor={countFor}
-          allCount={slideIds.length}
+          allCount={promotedSlides.length}
           templatesCount={slideTemplates.length}
           selectedId={selectedId}
           onSelect={selectFolder}
@@ -216,7 +210,7 @@ export function HomeShell() {
                 >
                   <LayoutGrid className="size-4" />
                   <span className="flex-1 truncate">{t.home.slides}</span>
-                  <span className="folio">{slideIds.length.toString().padStart(2, '0')}</span>
+                  <span className="folio">{promotedSlides.length.toString().padStart(2, '0')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => selectFolder(TEMPLATES_ID)}
