@@ -26,6 +26,18 @@ const EXTERNAL_LINK_PATTERN =
 const EXTERNAL_LINK_GLOBAL_PATTERN =
   /(?:https?:\/\/|www\.)[^\s]+|(?:[a-z0-9-]+\.)+(?:com|net|org|io|co|tw|app|dev|me|ai)(?:\/[^\s]*)?/gi;
 const PAGE_NUMBER_PATTERN = /^\s*\d+\s*(?:[/@|｜]\s*\d+)?\s*$/;
+const LATIN_SCRIPT_PATTERN = /\p{Script=Latin}/u;
+const HAN_SCRIPT_PATTERN = /\p{Script=Han}/u;
+const TRADITIONAL_MARKERS = new Set(
+  '這個為與後來時會說學習點開關發現產內體圖張還讓將從問題實際應該請歡讀寫愛過們無頁選擇顯號對務經營據線網軟雲數優種劃專業資訊標籤麼'.split(
+    '',
+  ),
+);
+const SIMPLIFIED_MARKERS = new Set(
+  '这个为与后来时会说学习点开关发现产内体图张还让将从问题实际应该请欢读写爱过们无页选择显号对务经营据线网软云数优种划专业资讯标签么'.split(
+    '',
+  ),
+);
 
 const COPY = {
   'zh-TW': {
@@ -94,6 +106,38 @@ export function stripExternalLinks(text: string): string {
 
 export function hasExternalLink(text: string): boolean {
   return EXTERNAL_LINK_PATTERN.test(text);
+}
+
+export function detectPublishCopyLocale(
+  pages: CardPageText[],
+  fallbackLocale: PublishCopyLocale,
+  fallbackTitle = '',
+): PublishCopyLocale {
+  const pageText = pages
+    .map((page) => page.text)
+    .join('\n')
+    .trim();
+  const text = pageText || fallbackTitle;
+  let latinCount = 0;
+  let cjkCount = 0;
+  let traditionalCount = 0;
+  let simplifiedCount = 0;
+
+  for (const character of text) {
+    if (LATIN_SCRIPT_PATTERN.test(character)) latinCount += 1;
+    if (!HAN_SCRIPT_PATTERN.test(character)) continue;
+    cjkCount += 1;
+    if (TRADITIONAL_MARKERS.has(character)) traditionalCount += 1;
+    if (SIMPLIFIED_MARKERS.has(character)) simplifiedCount += 1;
+  }
+
+  if (latinCount >= 8 && latinCount > cjkCount * 2.5) return 'en';
+  if (cjkCount >= 2) {
+    if (traditionalCount > simplifiedCount) return 'zh-TW';
+    if (simplifiedCount > traditionalCount) return 'zh-CN';
+    return fallbackLocale === 'zh-CN' ? 'zh-CN' : 'zh-TW';
+  }
+  return fallbackLocale;
 }
 
 export function analyzeCardPages(

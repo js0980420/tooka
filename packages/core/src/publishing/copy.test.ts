@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   analyzeCardPages,
+  detectPublishCopyLocale,
   generatePlatformDrafts,
   hasExternalLink,
   stripExternalLinks,
@@ -9,6 +10,22 @@ import {
 } from './copy';
 
 describe('publish copy', () => {
+  it('detects the primary language and falls back for ambiguous content', () => {
+    expect(
+      detectPublishCopyLocale(
+        [{ page: 1, text: 'Write a stronger hook for every social platform' }],
+        'zh-TW',
+      ),
+    ).toBe('en');
+    expect(detectPublishCopyLocale([{ page: 1, text: '這組圖卡整理社群經營重點' }], 'en')).toBe(
+      'zh-TW',
+    );
+    expect(detectPublishCopyLocale([{ page: 1, text: '这组图卡整理社群运营重点' }], 'zh-TW')).toBe(
+      'zh-CN',
+    );
+    expect(detectPublishCopyLocale([{ page: 1, text: '社群文案' }], 'zh-CN')).toBe('zh-CN');
+  });
+
   it('extracts the cover hook, middle key points, and final CTA', () => {
     const insight = analyzeCardPages(
       [

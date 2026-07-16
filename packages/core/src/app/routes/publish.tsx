@@ -25,6 +25,7 @@ import {
   analyzeCardPages,
   type CardInsight,
   type CardPageText,
+  detectPublishCopyLocale,
   generatePlatformDrafts,
   hasExternalLink,
   validateInstagramHashtags,
@@ -276,8 +277,9 @@ export function PublishPage() {
     try {
       const pages = await extractSlidePageTexts(selectedSlideId, t.publish.captureNoPages);
       const title = titleMap[selectedSlideId] || loadedTitles[selectedSlideId] || selectedSlideId;
-      const insight = analyzeCardPages(pages, t.id, title);
-      const drafts = generatePlatformDrafts(insight, t.id, title);
+      const copyLocale = detectPublishCopyLocale(pages, t.id, title);
+      const insight = analyzeCardPages(pages, copyLocale, title);
+      const drafts = generatePlatformDrafts(insight, copyLocale, title);
 
       setCardInsight(insight);
       setAnalyzedSlideId(selectedSlideId);
