@@ -14,7 +14,8 @@ export type EditOp =
     }
   | { kind: 'set-attr-asset'; attr: string; assetPath: string }
   | { kind: 'replace-placeholder-with-image'; assetPath: string }
-  | { kind: 'insert-image'; assetPath: string; x: number; y: number };
+  | { kind: 'insert-image'; assetPath: string; x: number; y: number }
+  | { kind: 'delete-element'; tag?: string };
 
 export type ApplyEditResult =
   | { ok: true; source: string }
@@ -1185,6 +1186,59 @@ function planReplacePlaceholder(
   return { importSplice, elementSplice: spliceRange(element, replacement) };
 }
 
+function elementTagName(element: t.JSXElement): string | null {
+  const name = element.openingElement.name;
+  return t.isJSXIdentifier(name) ? name.name : null;
+}
+
+function planDeleteElement(
+  ast: t.File,
+  source: string,
+  element: t.JSXElement,
+): Splice | { error: string } {
+  // Deleting is only supported where removal keeps the source valid: a
+  // direct JSX child, a `{cond && <El/>}` child (the whole container goes),
+  // or a conditional branch (replaced with `null`). Anything else — the
+  // page root, a `.map()` body shared by every instance — is refused.
+  let removed: t.Node | null = null;
+  let replacement: string | null = null;
+  walkAll(ast, (node) => {
+    if (t.isJSXElement(node) || t.isJSXFragment(node)) {
+      for (const child of node.children) {
+        if (child === element) {
+          removed = element;
+          return 'stop';
+        }
+        if (
+          t.isJSXExpressionContainer(child) &&
+          (child.expression === element ||
+            (t.isLogicalExpression(child.expression) && child.expression.right === element))
+        ) {
+          removed = child;
+          return 'stop';
+        }
+      }
+    } else if (t.isConditionalExpression(node)) {
+      if (node.consequent === element || node.alternate === element) {
+        removed = element;
+        replacement = 'null';
+        return 'stop';
+      }
+    }
+    return;
+  });
+  if (!removed) return { error: 'cannot delete this element from its position in the source' };
+  // TS can't track assignments made inside the walk callback.
+  const target = removed as t.Node;
+  if (replacement !== null) return spliceRange(target, replacement);
+
+  let from = target.start ?? 0;
+  let ws = from;
+  while (ws > 0 && (source[ws - 1] === ' ' || source[ws - 1] === '\t')) ws--;
+  if (ws > 0 && source[ws - 1] === '\n') from = ws - 1;
+  return { from, to: target.end ?? 0, text: '' };
+}
+
 export function applyEdit(
   source: string,
   line: number,
@@ -1199,6 +1253,28 @@ export function applyEdit(
   if (!element) return { ok: false, status: 422, error: 'no JSX element at location' };
 
   const splices: Splice[] = [];
+
+  const deleteOp = ops.find(
+    (op): op is Extract<EditOp, { kind: 'delete-element' }> => op.kind === 'delete-element',
+  );
+  if (deleteOp) {
+    if (ops.length > 1) {
+      return { ok: false, status: 422, error: 'delete-element cannot be combined with other ops' };
+    }
+    // The client sends the DOM tag it sees; a mismatch means the source
+    // location went stale (lines shifted) and points at a different element.
+    const tag = elementTagName(element);
+    if (deleteOp.tag && tag && tag.toLowerCase() !== deleteOp.tag.toLowerCase()) {
+      return {
+        ok: false,
+        status: 422,
+        error: `element at location is <${tag}>, expected <${deleteOp.tag}>`,
+      };
+    }
+    const plan = planDeleteElement(ast, source, element);
+    if ('error' in plan) return { ok: false, status: 422, error: plan.error };
+    splices.push(plan);
+  }
 
   const styleOps = ops.flatMap((op) =>
     op.kind === 'set-style' ? [{ key: op.key, value: op.value }] : [],

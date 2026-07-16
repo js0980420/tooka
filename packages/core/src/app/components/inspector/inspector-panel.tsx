@@ -934,7 +934,7 @@ function CommentsSection({
   return (
     <Section title={t.inspector.leaveComment}>
       <div className="flex flex-col gap-2">
-        <div ref={wrapRef} className="comment-cue rounded-[6px]">
+        <div ref={wrapRef} data-inspector-comment className="comment-cue rounded-[6px]">
           <Textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}

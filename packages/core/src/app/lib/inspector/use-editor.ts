@@ -13,7 +13,8 @@ export type EditOp =
     }
   | { kind: 'set-attr-asset'; attr: string; assetPath: string; previewUrl: string }
   | { kind: 'replace-placeholder-with-image'; assetPath: string }
-  | { kind: 'insert-image'; assetPath: string; x: number; y: number };
+  | { kind: 'insert-image'; assetPath: string; x: number; y: number }
+  | { kind: 'delete-element'; tag?: string };
 
 export type Edit = { line: number; column: number; ops: EditOp[] };
 

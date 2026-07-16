@@ -277,6 +277,8 @@ export const en: Locale = {
     commentsApplyHintSuffix: ' in your agent to apply these.',
     commentDeleteAria: 'Delete',
     saveFailed: "Couldn't save:",
+    deleteElement: 'Delete',
+    cannotDeleteRoot: "The page's root element can't be deleted.",
   },
 
   stylePanel: {

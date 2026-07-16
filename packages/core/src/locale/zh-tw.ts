@@ -275,6 +275,8 @@ export const zhTW: Locale = {
     commentsApplyHintSuffix: ' 以套用這些變更。',
     commentDeleteAria: '刪除',
     saveFailed: '儲存失敗：',
+    deleteElement: '刪除',
+    cannotDeleteRoot: '無法刪除頁面的根元素。',
   },
 
   stylePanel: {

@@ -1228,3 +1228,95 @@ describe('applyEdit / insert-image', () => {
     expect(r.error).toMatch(/self-closing/);
   });
 });
+
+describe('applyEdit / delete-element', () => {
+  it('removes a direct JSX child along with its line', () => {
+    const src = [
+      'export default [() => (',
+      '<div>',
+      '  <span>keep</span>',
+      '  <span>drop</span>',
+      '</div>',
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 4, 2, [{ kind: 'delete-element' }]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).toBe(
+      ['export default [() => (', '<div>', '  <span>keep</span>', '</div>', ')];', ''].join('\n'),
+    );
+  });
+
+  it('removes the whole logical-expression container', () => {
+    const src = [
+      'const cond = true;',
+      'export default [() => (',
+      '<div>',
+      '  {cond && <span>maybe</span>}',
+      '</div>',
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 4, 11, [{ kind: 'delete-element' }]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).not.toContain('cond &&');
+    expect(r.source).not.toContain('maybe');
+    expect(r.source).toContain('<div>');
+  });
+
+  it('replaces a conditional branch with null', () => {
+    const src = [
+      'const cond = true;',
+      'export default [() => (',
+      '<div>',
+      '  {cond ? <b>yes</b> : <i>no</i>}',
+      '</div>',
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 4, 10, [{ kind: 'delete-element' }]);
+    if (!r.ok) throw new Error(`expected ok, got ${r.error}`);
+    expect(r.source).toContain('{cond ? null : <i>no</i>}');
+  });
+
+  it('refuses to delete the page root element', () => {
+    const src = ['export default [() => (', '<div>hi</div>', ')];', ''].join('\n');
+    const r = applyEdit(src, 2, 0, [{ kind: 'delete-element' }]);
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error('expected failure');
+    expect(r.error).toMatch(/cannot delete/);
+  });
+
+  it('refuses when the tag hint does not match the element at the location', () => {
+    const src = [
+      'export default [() => (',
+      '<div>',
+      '  <span>drop</span>',
+      '</div>',
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 3, 2, [{ kind: 'delete-element', tag: 'img' }]);
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error('expected failure');
+    expect(r.error).toMatch(/expected <img>/);
+  });
+
+  it('refuses to combine delete with other ops', () => {
+    const src = [
+      'export default [() => (',
+      '<div>',
+      '  <span>drop</span>',
+      '</div>',
+      ')];',
+      '',
+    ].join('\n');
+    const r = applyEdit(src, 3, 2, [
+      { kind: 'delete-element' },
+      { kind: 'set-style', key: 'color', value: 'red' },
+    ]);
+    expect(r.ok).toBe(false);
+    if (r.ok) throw new Error('expected failure');
+    expect(r.error).toMatch(/cannot be combined/);
+  });
+});

@@ -3,6 +3,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -102,6 +103,35 @@ export function HistoryProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isSuppressed = useCallback(() => suppressedRef.current, []);
+
+  // Text fields keep the browser's native undo; everywhere else Ctrl/Cmd+Z
+  // drives this history (Shift reverses, Ctrl+Y also redoes).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+      const key = e.key.toLowerCase();
+      if (key !== 'z' && key !== 'y') return;
+      if (key === 'y' && e.shiftKey) return;
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || target.matches('input, textarea, select'))
+      ) {
+        // The inspector's comment box autofocuses on selection; while it's
+        // empty there is no text history, so the shortcut stays app-level.
+        const emptyCommentBox =
+          target instanceof HTMLTextAreaElement &&
+          target.value === '' &&
+          target.closest('[data-inspector-comment]');
+        if (!emptyCommentBox) return;
+      }
+      e.preventDefault();
+      if (key === 'y' || e.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [undo, redo]);
 
   const value = useMemo<HistoryCtx>(
     () => ({

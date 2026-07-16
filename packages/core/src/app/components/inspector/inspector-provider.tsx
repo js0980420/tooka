@@ -41,6 +41,9 @@ type Bucket = {
   column: number;
   styleOps: Map<string, Sequenced<StyleOp>>;
   rangeStyleOps: Map<string, Sequenced<TextRangeStyleOp>>;
+  // Deletion previews as `display: none` (original value snapshotted in
+  // `origStyle`) and only splices the source on commit.
+  deleteOp: Sequenced<{ tag: string | null }> | null;
   // Text edits are scoped per DOM instance: a reused component renders
   // the same JSX `<h2>{title}</h2>` at multiple call sites with the same
   // `data-slide-loc`, but each call site's prop literal is independent.
@@ -265,6 +268,7 @@ type InspectorCtx = {
   committing: boolean;
   openCrop: (anchor: HTMLImageElement) => void;
   openReplace: (anchor: HTMLElement) => void;
+  deleteElement: (target: SelectedTarget) => void;
 };
 
 const Ctx = createContext<InspectorCtx | null>(null);
@@ -328,7 +332,8 @@ export function InspectorProvider({
         b.styleOps.size > 0 ||
         b.rangeStyleOps.size > 0 ||
         b.textOps.size > 0 ||
-        b.attrOps.size > 0
+        b.attrOps.size > 0 ||
+        b.deleteOp
       ) {
         n++;
       }
@@ -364,6 +369,7 @@ export function InspectorProvider({
           rangeStyleOps: new Map(),
           textOps: new Map(),
           attrOps: new Map(),
+          deleteOp: null,
           origStyle: new Map(),
           origTexts: new Map(),
           origHtmls: new Map(),
@@ -427,6 +433,12 @@ export function InspectorProvider({
             seq,
           });
           if (anchor?.isConnected) anchor.setAttribute(op.attr, op.previewUrl);
+        } else if (op.kind === 'delete-element') {
+          if (anchor && !bucket.origStyle.has('display')) {
+            bucket.origStyle.set('display', style.display ?? '');
+          }
+          bucket.deleteOp = { tag: op.tag ?? null, seq };
+          if (anchor?.isConnected) style.display = 'none';
         }
       }
       refreshCount();
@@ -462,7 +474,12 @@ export function InspectorProvider({
     value: Sequenced<AssetAttrOp> | string | null;
     source: 'op' | 'orig' | 'dom-missing' | 'dom-present';
   };
-  type Snap = StyleSnap | RangeStyleSnap | TextSnap | AttrSnap;
+  type DeleteSnap = {
+    kind: 'delete';
+    value: Sequenced<{ tag: string | null }> | null;
+    existed: boolean;
+  };
+  type Snap = StyleSnap | RangeStyleSnap | TextSnap | AttrSnap | DeleteSnap;
 
   const snapshotForOps = useCallback(
     (line: number, column: number, anchor: HTMLElement, ops: EditOp[]): Snap[] => {
@@ -533,6 +550,13 @@ export function InspectorProvider({
           } else {
             snaps.push({ kind: 'attr', attr: op.attr, value: null, source: 'dom-missing' });
           }
+        } else if (op.kind === 'delete-element') {
+          const existing = bucket?.deleteOp;
+          snaps.push({
+            kind: 'delete',
+            value: existing ? { ...existing } : null,
+            existed: !!existing,
+          });
         }
       }
       return snaps;
@@ -596,6 +620,15 @@ export function InspectorProvider({
             const orig = bucket.origTexts.get(snap.instanceId);
             if (textAnchor?.isConnected) setEditableText(textAnchor, orig?.value ?? '');
           }
+        } else if (snap.kind === 'delete') {
+          if (snap.existed && snap.value) {
+            bucket.deleteOp = { ...snap.value, seq: ++pendingSeqRef.current };
+            if (sharedAnchor?.isConnected) sharedStyle.display = 'none';
+          } else {
+            bucket.deleteOp = null;
+            const orig = bucket.origStyle.get('display');
+            if (sharedAnchor?.isConnected) sharedStyle.display = orig ?? '';
+          }
         } else if (snap.kind === 'attr') {
           if (snap.source === 'op') {
             const op = snap.value as Sequenced<AssetAttrOp>;
@@ -615,7 +648,8 @@ export function InspectorProvider({
         bucket.styleOps.size === 0 &&
         bucket.rangeStyleOps.size === 0 &&
         bucket.textOps.size === 0 &&
-        bucket.attrOps.size === 0
+        bucket.attrOps.size === 0 &&
+        !bucket.deleteOp
       ) {
         pendingRef.current.delete(key);
       }
@@ -662,7 +696,22 @@ export function InspectorProvider({
     };
     const pending: PendingItem[] = [];
     for (const [key, bucket] of buckets) {
-      const { line, column, styleOps, rangeStyleOps, textOps, attrOps, origTexts } = bucket;
+      const { line, column, styleOps, rangeStyleOps, textOps, attrOps, origTexts, deleteOp } =
+        bucket;
+      if (deleteOp) {
+        pending.push({
+          key,
+          seq: deleteOp.seq,
+          edit: {
+            line,
+            column,
+            ops: [{ kind: 'delete-element', tag: deleteOp.tag ?? undefined }],
+          },
+          onSuccess: (b) => {
+            b.deleteOp = null;
+          },
+        });
+      }
       for (const [k, op] of styleOps) {
         pending.push({
           key,
@@ -739,7 +788,17 @@ export function InspectorProvider({
         });
       }
     }
-    pending.sort((a, b) => a.seq - b.seq);
+    // Deletions remove source lines, which would shift the line:column
+    // targets of every edit below them — so they apply after all other
+    // edits, and bottom-up so they don't shift each other.
+    const isDelete = (p: PendingItem) => p.edit.ops[0]?.kind === 'delete-element';
+    pending.sort((a, b) => {
+      const da = isDelete(a) ? 1 : 0;
+      const db = isDelete(b) ? 1 : 0;
+      if (da !== db) return da - db;
+      if (da === 1) return b.edit.line - a.edit.line;
+      return a.seq - b.seq;
+    });
     if (pending.length === 0) {
       pendingRef.current = new Map();
       setPendingCount(0);
@@ -761,7 +820,8 @@ export function InspectorProvider({
               bucket.styleOps.size === 0 &&
               bucket.rangeStyleOps.size === 0 &&
               bucket.textOps.size === 0 &&
-              bucket.attrOps.size === 0
+              bucket.attrOps.size === 0 &&
+              !bucket.deleteOp
             ) {
               pendingRef.current.delete(item.key);
             }
@@ -815,6 +875,21 @@ export function InspectorProvider({
     history.clear();
   }, [history]);
 
+  const deleteElement = useCallback(
+    (target: SelectedTarget) => {
+      if (!target.anchor.isConnected) return;
+      if (!target.anchor.parentElement?.closest('[data-slide-loc]')) {
+        toast.error(t.inspector.cannotDeleteRoot);
+        return;
+      }
+      bufferOps(target.line, target.column, target.anchor, [
+        { kind: 'delete-element', tag: target.anchor.tagName.toLowerCase() },
+      ]);
+      setSelected(null);
+    },
+    [bufferOps, t],
+  );
+
   // Auto-flush on inspector close and on route unmount so toggling
   // off or navigating away doesn't drop buffered edits. Failures are
   // surfaced via toast inside `commitEdits`; the catch here only
@@ -849,6 +924,7 @@ export function InspectorProvider({
         const v = op.value ?? '';
         if (style[key] !== v) style[key] = v;
       }
+      if (bucket.deleteOp && style.display !== 'none') style.display = 'none';
       // Text replays per-instance: only the originally clicked DOM node
       // (stamped with its `data-slide-instance-id`) gets the buffered
       // value, so siblings of a reused component aren't clobbered.
@@ -991,6 +1067,7 @@ export function InspectorProvider({
       committing,
       openCrop,
       openReplace,
+      deleteElement,
     }),
     [
       slideId,
@@ -1012,6 +1089,7 @@ export function InspectorProvider({
       committing,
       openCrop,
       openReplace,
+      deleteElement,
     ],
   );
 

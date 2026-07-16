@@ -275,6 +275,8 @@ export const zhCN: Locale = {
     commentsApplyHintSuffix: ' 以应用这些更改。',
     commentDeleteAria: '删除',
     saveFailed: '保存失败：',
+    deleteElement: '删除',
+    cannotDeleteRoot: '无法删除页面的根元素。',
   },
 
   stylePanel: {
