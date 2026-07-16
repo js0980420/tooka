@@ -9,6 +9,7 @@ import {
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 import { validateFacebookPageConnection } from './facebook.ts';
+import { validateImgbbKey } from './imgbb.ts';
 import {
   type InstagramTokenSource,
   isInstagramTokenSource,
@@ -42,6 +43,8 @@ const THREADS_ENV_KEYS = [
   THREADS_EXPIRES_KEY,
 ];
 const THREADS_TOKEN_TTL_MS = 60 * 24 * 60 * 60 * 1000;
+
+const IMGBB_KEY_KEY = 'IMGBB_API_KEY';
 
 function tokenSource(value: string | undefined): InstagramTokenSource {
   return isInstagramTokenSource(value) ? value : DEFAULT_TOKEN_SOURCE;
@@ -113,6 +116,12 @@ function facebookStatusBody(values: Record<string, string>) {
   };
 }
 
+function imgbbStatusBody(values: Record<string, string>) {
+  return {
+    keyMasked: maskSecret(values[IMGBB_KEY_KEY]),
+  };
+}
+
 function threadsStatusBody(values: Record<string, string>, needsReauth: boolean) {
   return {
     tokenMasked: maskSecret(values[THREADS_TOKEN_KEY]),
@@ -132,15 +141,17 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
       if (url.pathname === '/' && method === 'GET') {
         const needsReauth = await refreshStoredInstagramLoginToken(ctx.userCwd);
         const threadsNeedsReauth = await refreshStoredThreadsToken(ctx.userCwd);
-        const [instagramValues, facebookValues, threadsValues] = await Promise.all([
+        const [instagramValues, facebookValues, threadsValues, imgbbValues] = await Promise.all([
           readEnvValues(ctx.userCwd, IG_ENV_KEYS),
           readEnvValues(ctx.userCwd, FB_ENV_KEYS),
           readEnvValues(ctx.userCwd, THREADS_ENV_KEYS),
+          readEnvValues(ctx.userCwd, [IMGBB_KEY_KEY]),
         ]);
         return json(res, 200, {
           instagram: statusBody(instagramValues, needsReauth),
           facebook: facebookStatusBody(facebookValues),
           threads: threadsStatusBody(threadsValues, threadsNeedsReauth),
+          imgbb: imgbbStatusBody(imgbbValues),
         });
       }
 
@@ -265,6 +276,47 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
           [THREADS_USERNAME_KEY]: '',
           [THREADS_EXPIRES_KEY]: '',
         });
+        return json(res, 200, { ok: true });
+      }
+
+      if (url.pathname === '/imgbb' && method === 'POST') {
+        const guard = validateMutationRequest(req, { requireJsonBody: true });
+        if (!guard.ok) return json(res, guard.status, { error: guard.error });
+
+        const body = (await readBody(req)) as { key?: unknown };
+        const existing = await readEnvValues(ctx.userCwd, [IMGBB_KEY_KEY]);
+        const submittedKey =
+          body.key === undefined ? existing[IMGBB_KEY_KEY] : validateEnvValue(body.key);
+        if (!submittedKey) return json(res, 400, { error: 'invalid_key' });
+
+        const valid = await validateImgbbKey(submittedKey);
+        if (!valid) return json(res, 400, { error: 'invalid_key' });
+
+        const entries = { [IMGBB_KEY_KEY]: submittedKey };
+        json(res, 200, { imgbb: imgbbStatusBody(entries) });
+        await ensureEnvGitignored(ctx.userCwd);
+        await upsertEnvValues(ctx.userCwd, entries);
+        return;
+      }
+
+      if (url.pathname === '/imgbb/test' && method === 'POST') {
+        const guard = validateMutationRequest(req);
+        if (!guard.ok) return json(res, guard.status, { error: guard.error });
+
+        const values = await readEnvValues(ctx.userCwd, [IMGBB_KEY_KEY]);
+        const key = values[IMGBB_KEY_KEY];
+        if (!key) return json(res, 400, { error: 'no_key' });
+
+        const valid = await validateImgbbKey(key);
+        if (!valid) return json(res, 400, { error: 'invalid_key' });
+        return json(res, 200, { ok: true });
+      }
+
+      if (url.pathname === '/imgbb/disconnect' && method === 'POST') {
+        const guard = validateMutationRequest(req);
+        if (!guard.ok) return json(res, guard.status, { error: guard.error });
+
+        await upsertEnvValues(ctx.userCwd, { [IMGBB_KEY_KEY]: '' });
         return json(res, 200, { ok: true });
       }
 

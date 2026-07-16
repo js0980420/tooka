@@ -480,6 +480,14 @@ export const en: Locale = {
     threadsTokenPlaceholder: 'THAA…',
     threadsAccountUsername: 'Threads account',
     threadsUserIdDerived: 'The Threads account ID is retrieved automatically when you save.',
+    imgbbTitle: 'Imgbb image hosting',
+    imgbbDesc:
+      'Before publishing, cards are uploaded to Imgbb to get public image URLs that the Meta APIs can read; until it is connected, auto-published images will not show up.',
+    imgbbRegisterLink: 'Sign up for Imgbb for free and get an API key',
+    imgbbKeyLabel: 'Imgbb API Key',
+    imgbbKeyPlaceholder: 'Paste your API key',
+    imgbbKeyStatus: 'API key status',
+    imgbbSavedKeyLabel: 'Saved API key',
     tokenSourceLabel: 'Token source',
     businessSystemUser: 'Business permanent token',
     businessSystemUserDesc:
@@ -526,6 +534,10 @@ export const en: Locale = {
     toastThreadsConnectionSuccess: 'Connected to Threads account @{username}.',
     toastThreadsTestFailed: 'Connection failed. Check the access token and permissions.',
     confirmThreadsDisconnect: 'Disconnect Threads API and delete the saved credentials?',
+    toastImgbbInvalidKey: 'Invalid Imgbb API key. Make sure it was copied in full.',
+    toastImgbbConnectionSuccess: 'Connected! Imgbb uploads are working.',
+    toastImgbbTestFailed: 'Connection test failed. Check the Imgbb API key.',
+    confirmImgbbDisconnect: 'Disconnect Imgbb and delete the saved API key?',
     toastConnectionSuccess: 'Connected to Instagram account @{username}.',
     toastTestFailed: 'Connection failed. Check the token source, account ID, and permissions.',
     toastTestError: 'Could not test the connection.',
@@ -537,6 +549,7 @@ export const en: Locale = {
       'Credentials are written to the project .env and added to .gitignore. Apps and AI tools with project file access can still read them.',
     tutorialLink: 'How to apply for the Instagram API',
     threadsTutorialLink: 'How to apply for the Threads API',
+    imgbbTutorialLink: 'How to get an Imgbb API key',
   },
 
   templates: {

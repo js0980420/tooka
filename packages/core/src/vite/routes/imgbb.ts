@@ -3,6 +3,21 @@ type ImgbbResponse = {
   data?: { url?: string };
 };
 
+const VALIDATION_PNG_1PX =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+
+export async function validateImgbbKey(
+  apiKey: string,
+  fetcher: typeof fetch = fetch,
+): Promise<boolean> {
+  try {
+    await uploadImageToImgbb(apiKey, VALIDATION_PNG_1PX, fetcher);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function uploadImageToImgbb(
   apiKey: string,
   base64Image: string,

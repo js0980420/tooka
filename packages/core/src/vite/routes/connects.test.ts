@@ -316,3 +316,38 @@ describe('Threads connect routes', () => {
     await expect(readEnvValues(dir, ['THREADS_ACCESS_TOKEN'])).resolves.toEqual({});
   });
 });
+
+describe('Imgbb connect routes', () => {
+  it('validates the key with a test upload and stores it', async () => {
+    const fetcher = vi.fn(async (_input: URL | string) =>
+      Response.json({ success: true, data: { url: 'https://i.ibb.co/abc/test.png' } }),
+    );
+    vi.stubGlobal('fetch', fetcher);
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(postRequest({ key: 'imgbb-key-1234' }, '/imgbb'), response, () => {});
+
+    expect(response.statusCode).toBe(200);
+    expect(JSON.parse(response.body)).toEqual({ imgbb: { keyMasked: '••••1234' } });
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe('https://api.imgbb.com/1/upload');
+    await expect(readEnvValues(dir, ['IMGBB_API_KEY'])).resolves.toEqual({
+      IMGBB_API_KEY: 'imgbb-key-1234',
+    });
+  });
+
+  it('rejects an invalid key without storing it', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('bad key', { status: 400 })),
+    );
+    const handler = setupRoute();
+    const response = new TestResponse();
+
+    await handler(postRequest({ key: 'bad-key' }, '/imgbb'), response, () => {});
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body)).toEqual({ error: 'invalid_key' });
+    await expect(readEnvValues(dir, ['IMGBB_API_KEY'])).resolves.toEqual({});
+  });
+});

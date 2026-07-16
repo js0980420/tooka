@@ -508,6 +508,13 @@ export type Locale = {
     threadsTokenPlaceholder: string;
     threadsAccountUsername: string;
     threadsUserIdDerived: string;
+    imgbbTitle: string;
+    imgbbDesc: string;
+    imgbbRegisterLink: string;
+    imgbbKeyLabel: string;
+    imgbbKeyPlaceholder: string;
+    imgbbKeyStatus: string;
+    imgbbSavedKeyLabel: string;
     tokenSourceLabel: string;
     businessSystemUser: string;
     businessSystemUserDesc: string;
@@ -550,6 +557,10 @@ export type Locale = {
     toastThreadsConnectionSuccess: string;
     toastThreadsTestFailed: string;
     confirmThreadsDisconnect: string;
+    toastImgbbInvalidKey: string;
+    toastImgbbConnectionSuccess: string;
+    toastImgbbTestFailed: string;
+    confirmImgbbDisconnect: string;
     toastConnectionSuccess: string;
     toastTestFailed: string;
     toastTestError: string;
@@ -560,6 +571,7 @@ export type Locale = {
     envNote: string;
     tutorialLink: string;
     threadsTutorialLink: string;
+    imgbbTutorialLink: string;
   };
 
   templates: {

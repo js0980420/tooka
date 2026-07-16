@@ -1,4 +1,14 @@
-import { AtSign, Bot, Camera, LayoutTemplate, Move, Share2, Smartphone, Users } from 'lucide-react';
+import {
+  AtSign,
+  Bot,
+  Camera,
+  ImageUp,
+  LayoutTemplate,
+  Move,
+  Share2,
+  Smartphone,
+  Users,
+} from 'lucide-react';
 import shotTemplates from '../assets/tutorials/workflow-01-templates.jpg';
 import shotTemplateDetail from '../assets/tutorials/workflow-02-template-detail.jpg';
 import shotDraftViewer from '../assets/tutorials/workflow-03-draft-viewer.jpg';
@@ -483,6 +493,84 @@ export const tutorialArticlesZhTW: TutorialArticle[] = [
             Threads 的長效權杖有效期為 60 天。只要保持 tooka 定期開啟使用，系統會在到期前 10
             天內自動幫您更新權杖；若權杖已完全過期，回 Meta 後台重新產生一顆長效權杖，到 Connects
             頁面貼上即可。短效權杖（約 1 小時）無法自動延期，請務必在後台選擇長效權杖。
+          </p>
+        </section>
+      </div>
+    ),
+  },
+  {
+    id: 'imgbb-api',
+    title: '如何取得 Imgbb API Key (圖床)',
+    icon: ImageUp,
+    category: '進階整合',
+    content: (
+      <div className="space-y-6">
+        <p className="text-[13.5px] leading-relaxed text-muted-foreground">
+          Meta 的 Instagram、Facebook 與 Threads API 都不接受直接上傳圖片檔，只吃
+          <strong>公開的圖片網址</strong>。因此 tooka 在自動發佈時，會先把圖卡 PNG 上傳到{' '}
+          <strong>Imgbb</strong>{' '}
+          免費圖床換成公開網址，再交給平台發佈。尚未連接圖床前，自動發佈的圖片將無法顯示。
+        </p>
+
+        <div className="rounded-xl border border-brand/20 bg-brand/5 p-5">
+          <h3 className="text-brand font-semibold text-base flex items-center gap-2">
+            💡 為什麼是 Imgbb？
+          </h3>
+          <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed">
+            Imgbb 是免費的圖片空間服務，註冊即可取得 API
+            Key，不需審核也沒有月費，上傳後立刻拿到一組任何人都能讀取的公開網址——這正是 Meta API
+            讀取圖片的必要條件。
+          </p>
+        </div>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">三個步驟完成連接</h4>
+          <div className="space-y-3 text-[12.5px]">
+            <div className="flex gap-3">
+              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                1
+              </div>
+              <p className="text-muted-foreground leading-normal">
+                <strong>註冊帳號</strong>：前往{' '}
+                <a
+                  href="https://api.imgbb.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand hover:underline"
+                >
+                  Imgbb API 申請頁
+                </a>{' '}
+                ，用 Email 免費註冊一個帳號並完成登入。
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                2
+              </div>
+              <p className="text-muted-foreground leading-normal">
+                <strong>取得 API Key</strong>：登入後回到同一頁，點「<strong>Get API key</strong>
+                」（或「Add API key」），畫面會顯示一串英數金鑰，整串複製起來。
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted border font-bold text-[10px]">
+                3
+              </div>
+              <p className="text-muted-foreground leading-normal">
+                <strong>貼到 Connects</strong>：回到 tooka 的「Connects → Imgbb 圖床」，貼上 API Key
+                按「儲存」。儲存時系統會自動上傳一張 1×1 測試圖驗證金鑰是否有效，看到「已連接」
+                就完成了。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h4 className="text-base font-semibold">小提醒</h4>
+          <p className="text-[13px] text-muted-foreground leading-relaxed">
+            上傳到 Imgbb 的圖片都是<strong>公開網址</strong>
+            ，任何拿到連結的人都看得到——這是社群平台能讀取圖片的前提，但也代表不適合上傳私密內容。
+            發佈用的圖卡本來就是要公開的，正常使用不必擔心。
           </p>
         </section>
       </div>

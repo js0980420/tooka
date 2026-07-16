@@ -474,6 +474,14 @@ export const zhCN: Locale = {
     threadsTokenPlaceholder: 'THAA…',
     threadsAccountUsername: 'Threads 账号',
     threadsUserIdDerived: '保存时会由 Threads 自动取得账号 ID。',
+    imgbbTitle: 'Imgbb 图床',
+    imgbbDesc:
+      '发布时图卡会先上传到 Imgbb 生成公开图片网址，Meta API 才能读取并显示图片；尚未连接前，自动发布的图片将无法显示。',
+    imgbbRegisterLink: '前往 Imgbb 免费注册并获取 API Key',
+    imgbbKeyLabel: 'Imgbb API Key',
+    imgbbKeyPlaceholder: '粘贴你的 API Key',
+    imgbbKeyStatus: 'API Key 状态',
+    imgbbSavedKeyLabel: '已保存的 API Key',
     tokenSourceLabel: '令牌来源',
     businessSystemUser: '企业后台永久令牌',
     businessSystemUserDesc: 'Meta Business System User，使用 graph.facebook.com，无需定期刷新。',
@@ -518,6 +526,10 @@ export const zhCN: Locale = {
     toastThreadsConnectionSuccess: '连接成功！Threads 账号：@{username}',
     toastThreadsTestFailed: '连接测试失败，请检查 Access Token 与权限。',
     confirmThreadsDisconnect: '确定要断开 Threads API 连接并删除凭证吗？',
+    toastImgbbInvalidKey: 'Imgbb API Key 无效，请确认已完整复制。',
+    toastImgbbConnectionSuccess: '连接成功！Imgbb 图床可以正常上传。',
+    toastImgbbTestFailed: '连接测试失败，请检查 Imgbb API Key。',
+    confirmImgbbDisconnect: '确定要断开 Imgbb 图床连接并删除 API Key 吗？',
     toastConnectionSuccess: '连接成功！Instagram 账号：@{username}',
     toastTestFailed: '连接测试失败，请检查令牌来源、账号 ID 与权限。',
     toastTestError: '连接测试发生错误。',
@@ -529,6 +541,7 @@ export const zhCN: Locale = {
       '凭证会写入项目的 .env 并加入 .gitignore。拥有项目文件权限的应用程序或 AI 工具仍可读取。',
     tutorialLink: '如何申请 Instagram API',
     threadsTutorialLink: '如何申请 Threads API',
+    imgbbTutorialLink: '如何获取 Imgbb API Key',
   },
 
   templates: {

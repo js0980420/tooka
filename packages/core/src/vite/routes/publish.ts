@@ -287,7 +287,7 @@ async function resolveImageUrls(
   const env = await readEnvValues(userCwd, [IMGBB_API_KEY_KEY]);
   const apiKey = env[IMGBB_API_KEY_KEY];
   if (!apiKey) {
-    throw new Error('尚未設定 imgbb 圖床，請在 .env 設定 IMGBB_API_KEY。');
+    throw new Error('尚未連接 Imgbb 圖床，請到 Connects 頁面設定 API Key。');
   }
 
   const urls: string[] = [];
