@@ -4,7 +4,10 @@ import {
   ChevronDown,
   FileText,
   ImageIcon,
+  ListChecks,
+  MousePointerClick,
   Plug,
+  Quote,
   RefreshCw,
   Rocket,
   Send,
@@ -18,6 +21,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { format, useLocale } from '@/lib/use-locale';
+import {
+  analyzeCardPages,
+  type CardInsight,
+  type CardPageText,
+  generatePlatformDrafts,
+  hasExternalLink,
+  validateInstagramHashtags,
+  validateThreadsTopicTag,
+} from '../../publishing/copy';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
 import { PageTabs } from '../components/page-tabs';
 import { designToCssVars } from '../lib/design';
@@ -50,8 +62,16 @@ const CAPTURE_CLASS = 'os-publish-capture';
 const ANIMATION_TIMEOUT_MS = 15_000;
 const POLL_INTERVAL_MS = 100;
 const FROZEN_PROPS = ['opacity', 'transform', 'filter', 'clip-path'] as const;
+const IG_HASHTAG_SLOTS = ['first', 'second', 'third', 'fourth', 'fifth'] as const;
 
-async function captureSlideImages(slideId: string, emptyMessage: string): Promise<string[]> {
+type MountedSlide = {
+  canvas: { width: number; height: number };
+  container: HTMLElement;
+  frames: HTMLElement[];
+  cleanup: () => void;
+};
+
+async function mountSlide(slideId: string, emptyMessage: string): Promise<MountedSlide> {
   const slide: SlideModule = await loadSlide(slideId);
   const pages = slide.default ?? [];
   if (pages.length === 0) throw new Error(emptyMessage);
@@ -118,6 +138,12 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
     setTimeout(settle, 50);
   });
 
+  const cleanup = () => {
+    for (const root of reactRoots) root.unmount();
+    container.remove();
+    captureStyle.remove();
+  };
+
   try {
     await waitForFonts();
 
@@ -127,6 +153,29 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
       await new Promise<void>((r) => setTimeout(r, POLL_INTERVAL_MS));
     }
     await waitForDataWaitfor(container);
+    return { canvas, container, frames, cleanup };
+  } catch (error) {
+    cleanup();
+    throw error;
+  }
+}
+
+async function extractSlidePageTexts(
+  slideId: string,
+  emptyMessage: string,
+): Promise<CardPageText[]> {
+  const mounted = await mountSlide(slideId, emptyMessage);
+  try {
+    return mounted.frames.map((frame, index) => ({ page: index + 1, text: frame.innerText }));
+  } finally {
+    mounted.cleanup();
+  }
+}
+
+async function captureSlideImages(slideId: string, emptyMessage: string): Promise<string[]> {
+  const mounted = await mountSlide(slideId, emptyMessage);
+  try {
+    const { canvas, frames } = mounted;
 
     const { toBlob } = await import('html-to-image');
     const base64Images: string[] = [];
@@ -161,9 +210,7 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
 
     return base64Images;
   } finally {
-    for (const r of reactRoots) r.unmount();
-    container.remove();
-    captureStyle.remove();
+    mounted.cleanup();
   }
 }
 
@@ -180,8 +227,9 @@ export function PublishPage() {
   const [threadsEnabled, setThreadsEnabled] = useState(false);
   const [threadsText, setThreadsText] = useState('');
   const [threadsTopicTag, setThreadsTopicTag] = useState('');
-
-  const [commonText, setCommonText] = useState('');
+  const [cardInsight, setCardInsight] = useState<CardInsight | null>(null);
+  const [analyzedSlideId, setAnalyzedSlideId] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
 
   const [publishingPlatforms, setPublishingPlatforms] = useState<PublishPlatform[]>([]);
   const [batchPublishing, setBatchPublishing] = useState(false);
@@ -189,13 +237,6 @@ export function PublishPage() {
   const [captureStatus, setCaptureStatus] = useState<'idle' | 'capturing' | 'done'>('idle');
 
   const capturedImagesRef = useRef<string[]>([]);
-
-  const syncCaptions = () => {
-    if (fbEnabled) setFbCaption(commonText);
-    if (igEnabled) setIgCaption(commonText);
-    if (threadsEnabled) setThreadsText(commonText);
-    toast.success(t.publish.toastSynced);
-  };
 
   useEffect(() => {
     if (promotedSlides.length === 0) return;
@@ -224,8 +265,44 @@ export function PublishPage() {
     };
   }, [promotedSlides, titleMap]);
 
+  const handleGenerateCaptions = async () => {
+    if (!selectedSlideId) {
+      toast.error(t.publish.toastSelectSlide);
+      return;
+    }
+
+    setAnalyzing(true);
+    toast.info(t.publish.toastAnalyzingCard);
+    try {
+      const pages = await extractSlidePageTexts(selectedSlideId, t.publish.captureNoPages);
+      const title = titleMap[selectedSlideId] || loadedTitles[selectedSlideId] || selectedSlideId;
+      const insight = analyzeCardPages(pages, t.id, title);
+      const drafts = generatePlatformDrafts(insight, t.id, title);
+
+      setCardInsight(insight);
+      setAnalyzedSlideId(selectedSlideId);
+      setFbCaption(drafts.facebook);
+      setIgCaption(drafts.instagram);
+      setIgHashtags(drafts.instagramHashtags);
+      setThreadsText(drafts.threads);
+      setThreadsTopicTag(drafts.threadsTopicTag);
+      setFbEnabled(true);
+      setIgEnabled(true);
+      setThreadsEnabled(true);
+      toast.success(t.publish.toastCaptionsGenerated);
+    } catch (error) {
+      toast.error(
+        format(t.publish.toastAnalyzeFailed, {
+          error: error instanceof Error ? error.message : t.publish.unknownError,
+        }),
+      );
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
   const handleHashtagChange = (index: number, value: string) => {
-    const cleanValue = value.replace(/^#/, '');
+    const cleanValue = value.replace(/^#/, '').replace(/\s+/g, '');
     setIgHashtags((current) => {
       const next = [...current];
       next[index] = cleanValue;
@@ -255,6 +332,8 @@ export function PublishPage() {
     ...(threadsEnabled ? (['threads'] as const) : []),
   ];
   const isPublishing = publishingPlatforms.length > 0;
+  const instagramHashtagsValid = validateInstagramHashtags(igHashtags);
+  const threadsTopicTagValid = validateThreadsTopicTag(threadsTopicTag);
 
   const publishPlatform = async (
     platform: PublishPlatform,
@@ -317,7 +396,23 @@ export function PublishPage() {
       );
       return;
     }
-    if (platforms.includes('threads') && /[.&]/.test(threadsTopicTag)) {
+    const captionsWithLinks = platforms.filter((platform) => hasExternalLink(captions[platform]));
+    if (captionsWithLinks.length > 0) {
+      toast.error(
+        format(t.publish.toastExternalLinks, {
+          platforms: captionsWithLinks.map((platform) => platformLabels[platform]).join(', '),
+        }),
+      );
+      return;
+    }
+    if (
+      platforms.includes('instagram') &&
+      (!validateInstagramHashtags(igHashtags) || igCaption.includes('#'))
+    ) {
+      toast.error(t.publish.toastInvalidInstagramHashtags);
+      return;
+    }
+    if (platforms.includes('threads') && !validateThreadsTopicTag(threadsTopicTag)) {
       toast.error(t.publish.toastInvalidTopicTag);
       return;
     }
@@ -328,6 +423,11 @@ export function PublishPage() {
     let images: string[];
     try {
       images = await captureSlideImages(selectedSlideId, t.publish.captureNoPages);
+      if (platforms.includes('instagram') && images.length > 10) {
+        setCaptureStatus('idle');
+        toast.error(t.publish.toastInstagramCardLimit);
+        return;
+      }
       capturedImagesRef.current = images;
       setCaptureStatus('done');
       toast.success(format(t.publish.toastCaptureDone, { count: images.length }));
@@ -451,30 +551,80 @@ export function PublishPage() {
             )}
           </div>
 
-          {/* Sync caption tool */}
-          <div className="rounded-[10px] border border-hairline bg-card p-5 shadow-edge md:col-span-2 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="eyebrow flex items-center gap-1.5">
-                <Sparkles className="size-3.5 text-brand" />
-                {t.publish.stepSyncText}
-              </span>
+          <div className="flex flex-col gap-4 rounded-[10px] border border-hairline bg-card p-5 shadow-edge md:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="eyebrow flex items-center gap-1.5">
+                  <Sparkles className="size-3.5 text-brand" />
+                  {t.publish.stepGenerateText}
+                </span>
+                <p className="text-[11.5px] text-muted-foreground">{t.publish.generateTextHint}</p>
+              </div>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-7 text-[11.5px] border hover:bg-muted"
-                disabled={!commonText.trim() || (!fbEnabled && !igEnabled && !threadsEnabled)}
-                onClick={syncCaptions}
+                disabled={!selectedSlideId || analyzing || isPublishing}
+                onClick={handleGenerateCaptions}
               >
-                {t.publish.applyToAll}
+                {analyzing ? (
+                  <RefreshCw data-icon="inline-start" className="animate-spin" />
+                ) : (
+                  <Sparkles data-icon="inline-start" />
+                )}
+                {analyzing
+                  ? t.publish.analyzingCard
+                  : analyzedSlideId === selectedSlideId
+                    ? t.publish.regenerateCaptions
+                    : t.publish.generateCaptions}
               </Button>
             </div>
-            <Textarea
-              placeholder={t.publish.commonTextPlaceholder}
-              value={commonText}
-              onChange={(e) => setCommonText(e.target.value)}
-              rows={2}
-              className="text-[13px] resize-none"
-            />
+
+            {cardInsight && analyzedSlideId === selectedSlideId ? (
+              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+                <div className="rounded-md border border-hairline bg-background p-3">
+                  <span className="flex items-center gap-1.5 text-[10.5px] font-semibold text-muted-foreground">
+                    <Quote className="size-3.5" />
+                    {t.publish.insightHook}
+                  </span>
+                  <p className="mt-1.5 line-clamp-3 text-[12px] font-medium">
+                    {cardInsight.hook.text}
+                  </p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {format(t.publish.insightPage, { page: cardInsight.hook.page })}
+                  </p>
+                </div>
+                <div className="rounded-md border border-hairline bg-background p-3">
+                  <span className="flex items-center gap-1.5 text-[10.5px] font-semibold text-muted-foreground">
+                    <ListChecks className="size-3.5" />
+                    {t.publish.insightKeyPoints}
+                  </span>
+                  <p className="mt-1.5 line-clamp-3 text-[12px] font-medium">
+                    {cardInsight.keyPoints.map((point) => point.text).join(' · ') || '—'}
+                  </p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {format(t.publish.insightCount, { count: cardInsight.keyPoints.length })}
+                  </p>
+                </div>
+                <div className="rounded-md border border-hairline bg-background p-3">
+                  <span className="flex items-center gap-1.5 text-[10.5px] font-semibold text-muted-foreground">
+                    <MousePointerClick className="size-3.5" />
+                    {t.publish.insightCta}
+                  </span>
+                  <p className="mt-1.5 line-clamp-3 text-[12px] font-medium">
+                    {cardInsight.cta.text}
+                  </p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {cardInsight.cta.generated
+                      ? t.publish.insightGenerated
+                      : format(t.publish.insightPage, { page: cardInsight.cta.page })}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-md border border-dashed border-border bg-background px-4 py-5 text-center">
+                <p className="text-[12px] font-medium">{t.publish.analysisEmpty}</p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -511,6 +661,7 @@ export function PublishPage() {
                   placeholder={t.publish.fbCaptionPlaceholder}
                   value={fbCaption}
                   onChange={(e) => setFbCaption(e.target.value)}
+                  aria-invalid={fbEnabled && hasExternalLink(fbCaption)}
                   rows={4}
                   className="bg-background text-[12.5px]"
                 />
@@ -562,6 +713,9 @@ export function PublishPage() {
                     placeholder={t.publish.igCaptionPlaceholder}
                     value={igCaption}
                     onChange={(e) => setIgCaption(e.target.value)}
+                    aria-invalid={
+                      igEnabled && (hasExternalLink(igCaption) || igCaption.includes('#'))
+                    }
                     rows={4}
                     className="bg-background text-[12.5px] mt-3"
                   />
@@ -572,61 +726,20 @@ export function PublishPage() {
                     {t.publish.igHashtagsLabel}
                   </span>
                   <div className="grid grid-cols-5 gap-1">
-                    <div className="relative flex items-center">
-                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
-                        #
-                      </span>
-                      <Input
-                        placeholder={format(t.publish.igHashtagPlaceholder, { n: 1 })}
-                        value={igHashtags[0]}
-                        onChange={(e) => handleHashtagChange(0, e.target.value)}
-                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
-                      />
-                    </div>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
-                        #
-                      </span>
-                      <Input
-                        placeholder={format(t.publish.igHashtagPlaceholder, { n: 2 })}
-                        value={igHashtags[1]}
-                        onChange={(e) => handleHashtagChange(1, e.target.value)}
-                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
-                      />
-                    </div>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
-                        #
-                      </span>
-                      <Input
-                        placeholder={format(t.publish.igHashtagPlaceholder, { n: 3 })}
-                        value={igHashtags[2]}
-                        onChange={(e) => handleHashtagChange(2, e.target.value)}
-                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
-                      />
-                    </div>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
-                        #
-                      </span>
-                      <Input
-                        placeholder={format(t.publish.igHashtagPlaceholder, { n: 4 })}
-                        value={igHashtags[3]}
-                        onChange={(e) => handleHashtagChange(3, e.target.value)}
-                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
-                      />
-                    </div>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-2 text-[11px] text-muted-foreground select-none font-bold">
-                        #
-                      </span>
-                      <Input
-                        placeholder={format(t.publish.igHashtagPlaceholder, { n: 5 })}
-                        value={igHashtags[4]}
-                        onChange={(e) => handleHashtagChange(4, e.target.value)}
-                        className="h-7 text-[11px] pl-4.5 pr-1 bg-background"
-                      />
-                    </div>
+                    {IG_HASHTAG_SLOTS.map((slot, index) => (
+                      <div key={slot} className="relative flex items-center">
+                        <span className="absolute left-2 select-none text-[11px] font-bold text-muted-foreground">
+                          #
+                        </span>
+                        <Input
+                          placeholder={format(t.publish.igHashtagPlaceholder, { n: index + 1 })}
+                          value={igHashtags[index] ?? ''}
+                          onChange={(event) => handleHashtagChange(index, event.target.value)}
+                          aria-invalid={igEnabled && !instagramHashtagsValid}
+                          className="h-7 bg-background pr-1 pl-4.5 text-[11px]"
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -678,13 +791,15 @@ export function PublishPage() {
                   placeholder={t.publish.threadsTopicTagPlaceholder}
                   value={threadsTopicTag}
                   maxLength={50}
-                  onChange={(e) => setThreadsTopicTag(e.target.value)}
+                  onChange={(e) => setThreadsTopicTag(e.target.value.replace(/^#/, ''))}
+                  aria-invalid={threadsEnabled && !threadsTopicTagValid}
                   className="bg-background text-[12.5px]"
                 />
                 <Textarea
                   placeholder={t.publish.threadsCaptionPlaceholder}
                   value={threadsText}
                   onChange={(e) => setThreadsText(e.target.value)}
+                  aria-invalid={threadsEnabled && hasExternalLink(threadsText)}
                   rows={4}
                   className="bg-background text-[12.5px]"
                 />

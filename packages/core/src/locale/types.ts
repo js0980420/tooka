@@ -628,7 +628,15 @@ export type Locale = {
     toastSelectPlatform: string;
     /** template: "Fill in the {platforms} caption first!" */
     toastMissingCaptions: string;
+    /** template: "External links found in {platforms}." */
+    toastExternalLinks: string;
+    toastInvalidInstagramHashtags: string;
     toastInvalidTopicTag: string;
+    toastInstagramCardLimit: string;
+    toastAnalyzingCard: string;
+    toastCaptionsGenerated: string;
+    /** template: "Could not analyze the card: {error}" */
+    toastAnalyzeFailed: string;
     toastCapturing: string;
     /** template: "Captured {count} pages…" */
     toastCaptureDone: string;
@@ -653,6 +661,20 @@ export type Locale = {
     stepSyncText: string;
     applyToAll: string;
     commonTextPlaceholder: string;
+    stepGenerateText: string;
+    generateTextHint: string;
+    analyzingCard: string;
+    generateCaptions: string;
+    regenerateCaptions: string;
+    analysisEmpty: string;
+    insightHook: string;
+    insightKeyPoints: string;
+    insightCta: string;
+    /** template: "Page {page}" */
+    insightPage: string;
+    /** template: "{count} key points" */
+    insightCount: string;
+    insightGenerated: string;
     stepEditPlatforms: string;
     platformToggleHint: string;
     fbCaptionPlaceholder: string;

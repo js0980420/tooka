@@ -1,6 +1,11 @@
 import type { ViteDevServer } from 'vite';
 import { readEnvValues } from '../../files/env.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import {
+  hasExternalLink,
+  validateInstagramHashtags,
+  validateThreadsTopicTag,
+} from '../../publishing/copy.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 import { publishFacebookPagePost } from './facebook.ts';
 import { uploadImageToImgbb } from './imgbb.ts';
@@ -31,6 +36,19 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
           caption: string;
           images: string[];
         };
+        if (typeof body.caption !== 'string' || !body.caption.trim()) {
+          return json(res, 400, { error: 'caption_required' });
+        }
+        if (hasExternalLink(body.caption)) {
+          return json(res, 400, { error: 'external_links_not_allowed' });
+        }
+        const hashtags = body.caption.match(/#[\p{L}\p{N}_]+/gu) ?? [];
+        if (!validateInstagramHashtags(hashtags)) {
+          return json(res, 400, { error: 'instagram_requires_five_hashtags' });
+        }
+        if (!Array.isArray(body.images) || body.images.length === 0 || body.images.length > 10) {
+          return json(res, 400, { error: 'instagram_requires_one_to_ten_images' });
+        }
         const env = await readEnvValues(ctx.userCwd, [IG_TOKEN_KEY, IG_USER_ID_KEY]);
         const token = env[IG_TOKEN_KEY];
         const userId = env[IG_USER_ID_KEY];
@@ -110,6 +128,12 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
           caption: string;
           images: string[];
         };
+        if (typeof body.caption !== 'string' || !body.caption.trim()) {
+          return json(res, 400, { error: 'caption_required' });
+        }
+        if (hasExternalLink(body.caption)) {
+          return json(res, 400, { error: 'external_links_not_allowed' });
+        }
         const env = await readEnvValues(ctx.userCwd, [FB_TOKEN_KEY, FB_PAGE_ID_KEY]);
         const token = env[FB_TOKEN_KEY];
         const pageId = env[FB_PAGE_ID_KEY];
@@ -164,10 +188,16 @@ export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): v
           topicTag?: string;
         };
         const topicTag = typeof body.topicTag === 'string' ? body.topicTag.trim() : '';
-        if (topicTag && (topicTag.length > 50 || /[.&]/.test(topicTag))) {
+        if (typeof body.caption !== 'string' || !body.caption.trim()) {
+          return json(res, 400, { error: 'caption_required' });
+        }
+        if (hasExternalLink(body.caption)) {
+          return json(res, 400, { error: 'external_links_not_allowed' });
+        }
+        if (!validateThreadsTopicTag(topicTag)) {
           return json(res, 400, { error: 'invalid_topic_tag' });
         }
-        const topicTagParam = topicTag ? `&topic_tag=${encodeURIComponent(topicTag)}` : '';
+        const topicTagParam = `&topic_tag=${encodeURIComponent(topicTag)}`;
         const env = await readEnvValues(ctx.userCwd, [THREADS_TOKEN_KEY, THREADS_USER_ID_KEY]);
         const token = env[THREADS_TOKEN_KEY];
         const userId = env[THREADS_USER_ID_KEY];
