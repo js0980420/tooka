@@ -51,8 +51,8 @@ const LogoRow = () => (
   <div
     style={{
       position: 'absolute',
-      left: 130,
-      top: 72,
+      left: 150,
+      top: 84,
       display: 'flex',
       alignItems: 'center',
       gap: 48,
@@ -118,9 +118,9 @@ const Headline = () => (
   <div
     style={{
       position: 'absolute',
-      left: 96,
+      left: 150,
       top: 278,
-      width: 1120,
+      width: 1080,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'flex-start',
@@ -159,9 +159,9 @@ const Headline = () => (
       style={{
         padding: '4px 22px 14px',
         color: '#FFFFFF',
-        WebkitTextStroke: '16px #080A0D',
+        WebkitTextStroke: '15px #080A0D',
         paintOrder: 'stroke fill',
-        fontSize: 130,
+        fontSize: 112,
         filter: 'drop-shadow(0 9px 7px rgba(20, 120, 242, 0.35))',
       }}
     >
@@ -174,9 +174,9 @@ const FeatureBar = () => (
   <div
     style={{
       position: 'absolute',
-      left: 76,
-      bottom: 62,
-      width: 1150,
+      left: 150,
+      bottom: 96,
+      width: 1060,
       height: 118,
       display: 'flex',
       alignItems: 'center',
@@ -258,7 +258,7 @@ const VideoBannerThumbnail: Page = () => (
     <div
       style={{
         position: 'absolute',
-        right: -60,
+        right: 10,
         bottom: -300,
         width: 900,
         height: 1200,
@@ -271,7 +271,7 @@ const VideoBannerThumbnail: Page = () => (
       alt="白色襯衫的講者半身照"
       style={{
         position: 'absolute',
-        right: 84,
+        right: 150,
         bottom: -170,
         width: 640,
         filter: 'drop-shadow(0 30px 46px rgba(8, 42, 86, 0.34))',
