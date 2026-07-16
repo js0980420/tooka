@@ -191,8 +191,15 @@ function PagesGrid({ slide }: { slide: ReturnType<typeof useTemplateSlide> }) {
       {pages.map((PageComp, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: pages are position-keyed by design
         <li key={i}>
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04]">
-            <SlideCanvas flat freezeMotion design={slide.design}>
+          <div
+            className="relative overflow-hidden rounded-[6px] border border-hairline bg-card shadow-edge ring-1 ring-foreground/[0.04]"
+            style={{
+              aspectRatio: slide.meta?.canvas
+                ? `${slide.meta.canvas.width}/${slide.meta.canvas.height}`
+                : '4/5',
+            }}
+          >
+            <SlideCanvas flat freezeMotion design={slide.design} canvas={slide.meta?.canvas}>
               <SlidePageProvider index={i} total={pages.length}>
                 <PageComp />
               </SlidePageProvider>

@@ -11,8 +11,20 @@ export type {
 export { cssVarsToString, defaultDesign, designToCssVars } from './app/lib/design.ts';
 export { useSlidePageNumber } from './app/lib/page-context.tsx';
 export { usePngExportVariant } from './app/lib/png-export-variant.tsx';
-export type { Page, PngExportVariant, SlideMeta, SlideModule } from './app/lib/sdk.ts';
-export { CANVAS_HEIGHT, CANVAS_WIDTH } from './app/lib/sdk.ts';
+export type {
+  CanvasSize,
+  Page,
+  PngExportVariant,
+  SlideMeta,
+  SlideModule,
+  TemplateCategory,
+} from './app/lib/sdk.ts';
+export {
+  CANVAS_HEIGHT,
+  CANVAS_WIDTH,
+  DEFAULT_CANVAS_SIZE,
+  resolveCanvasSize,
+} from './app/lib/sdk.ts';
 export type { StepProps, StepsProps } from './app/lib/step-context.tsx';
 export { Step, Steps } from './app/lib/step-context.tsx';
 export type {

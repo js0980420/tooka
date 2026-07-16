@@ -71,11 +71,22 @@ function toId(absFile: string, slidesRoot: string): string {
 const META_THEME_RE = /(?:^|[\s,{])theme\s*:\s*['"]([^'"]+)['"]/;
 const META_CREATED_AT_RE = /(?:^|[\s,{])createdAt\s*:\s*['"]([^'"]+)['"]/;
 const META_TEMPLATE_RE = /(?:^|[\s,{])template\s*:\s*true\b/;
+const META_TEMPLATE_CATEGORY_RE = /(?:^|[\s,{])templateCategory\s*:\s*['"]([^'"]+)['"]/;
 
-type ExtractedMeta = { theme: string | null; createdAt: string | null; template: boolean };
+type ExtractedMeta = {
+  theme: string | null;
+  createdAt: string | null;
+  template: boolean;
+  templateCategory: string | null;
+};
 
-function extractMeta(src: string): ExtractedMeta {
-  const empty: ExtractedMeta = { theme: null, createdAt: null, template: false };
+export function extractMeta(src: string): ExtractedMeta {
+  const empty: ExtractedMeta = {
+    theme: null,
+    createdAt: null,
+    template: false,
+    templateCategory: null,
+  };
   const metaStart = src.search(/export\s+const\s+meta\b/);
   if (metaStart === -1) return empty;
   const eqIdx = src.indexOf('=', metaStart);
@@ -99,10 +110,12 @@ function extractMeta(src: string): ExtractedMeta {
   const body = src.slice(openBrace + 1, closeBrace);
   const themeMatch = body.match(META_THEME_RE);
   const createdAtMatch = body.match(META_CREATED_AT_RE);
+  const templateCategoryMatch = body.match(META_TEMPLATE_CATEGORY_RE);
   return {
     theme: themeMatch ? themeMatch[1] : null,
     createdAt: createdAtMatch ? createdAtMatch[1] : null,
     template: META_TEMPLATE_RE.test(body),
+    templateCategory: templateCategoryMatch ? templateCategoryMatch[1] : null,
   };
 }
 
@@ -111,7 +124,7 @@ async function readSlideMeta(abs: string): Promise<ExtractedMeta> {
     const src = await fs.readFile(abs, 'utf8');
     return extractMeta(src);
   } catch {
-    return { theme: null, createdAt: null, template: false };
+    return { theme: null, createdAt: null, template: false, templateCategory: null };
   }
 }
 
@@ -137,6 +150,7 @@ async function generateSlidesModule(
         theme: meta.theme,
         createdAt: parseCreatedAtMs(meta.createdAt),
         template: meta.template,
+        templateCategory: meta.templateCategory,
       };
     }),
   );
@@ -159,6 +173,13 @@ async function generateSlidesModule(
         if (b === 'noir-gold') return 1;
         return a.localeCompare(b);
       }),
+  );
+  const templateCategoriesJson = JSON.stringify(
+    Object.fromEntries(
+      entries
+        .filter((e) => e.template && e.templateCategory)
+        .map((e) => [e.id, e.templateCategory]),
+    ),
   );
   const importTokens = JSON.stringify(Object.fromEntries(entries.map((e) => [e.id, 0])));
   const devRuntime = isDev
@@ -189,6 +210,7 @@ export const slideIds = ${ids};
 export const slideThemes = ${themesJson};
 export const slideCreatedAt = ${createdAtJson};
 export const slideTemplates = ${templatesJson};
+export const slideTemplateCategories = ${templateCategoriesJson};
 ${devRuntime}
 
 export async function loadSlide(id) {

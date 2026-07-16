@@ -36,7 +36,7 @@ export const zhTW: Locale = {
   },
 
   home: {
-    appTitle: 'tooka',
+    appTitle: 'Tooka',
     draft: '草稿',
     duplicate: '複製',
     templates: '模板',
@@ -531,6 +531,12 @@ export const zhTW: Locale = {
 
   templates: {
     title: '模板',
+    categoryLabel: '模板分類',
+    allCategory: '全部',
+    carouselCategory: '輪播圖卡',
+    videoBannerThumbnailCategory: '橫幅影片縮圖',
+    shortVideoThumbnailCategory: '短影音縮圖',
+    noTemplatesInCategory: '這個分類目前沒有模板。',
     noTemplatesTitle: '尚無模板',
     noTemplatesHintPrefix: '在卡片的 meta 加上 ',
     noTemplatesHintSuffix: '，就會出現在這裡成為可重用的模板。',

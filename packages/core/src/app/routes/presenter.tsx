@@ -11,7 +11,7 @@ import {
 import { SlideCanvas } from '../components/slide-canvas';
 import { isDeckWarmed, markDeckWarmed, SlidePreloadLayer } from '../components/slide-preload-layer';
 import { SlidePageProvider } from '../lib/page-context';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
+import { resolveCanvasSize } from '../lib/sdk';
 import { type StepController, StepHost } from '../lib/step-context';
 import { useSlideModule } from '../lib/use-slide-module';
 
@@ -135,6 +135,7 @@ export function Presenter() {
 
   const CurrentPage = pages[index];
   const NextPage = hasNext ? pages[nextPageIndex] : null;
+  const canvas = resolveCanvasSize(slide.meta);
 
   // Hold the loader while a hidden layer warms the whole deck's images and
   // fonts, so the previews first paint with every asset already in cache.
@@ -154,6 +155,7 @@ export function Presenter() {
           pages={pages}
           index={index}
           design={slide.design}
+          canvas={canvas}
           includeCurrent
           onDone={handleAssetsWarmed}
         />
@@ -176,7 +178,7 @@ export function Presenter() {
         <section className="flex min-h-0 flex-col gap-3">
           <SectionLabel>{t.presenter.nowShowing}</SectionLabel>
           <div className="relative min-h-0 flex-1 overflow-hidden rounded-[8px] bg-black ring-1 ring-border">
-            <SlideCanvas flat design={slide.design}>
+            <SlideCanvas flat design={slide.design} canvas={canvas}>
               <SlidePageProvider index={index} total={total}>
                 <PreviewStepHost revealed={stepIndex}>
                   <CurrentPage />
@@ -203,10 +205,10 @@ export function Presenter() {
             <SectionLabel>{hasNext ? t.presenter.upNext : t.presenter.lastSlide}</SectionLabel>
             <div
               className="relative w-full overflow-hidden rounded-[8px] bg-black ring-1 ring-border"
-              style={{ aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
+              style={{ aspectRatio: `${canvas.width}/${canvas.height}` }}
             >
               {NextPage ? (
-                <SlideCanvas flat freezeMotion design={slide.design}>
+                <SlideCanvas flat freezeMotion design={slide.design} canvas={canvas}>
                   <SlidePageProvider index={nextPageIndex} total={total}>
                     <PreviewStepHost revealed={nextRevealed}>
                       <NextPage />

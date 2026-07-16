@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { type DesignSystem, designToCssVars } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, type Page } from '../lib/sdk';
+import { type CanvasSize, DEFAULT_CANVAS_SIZE, type Page } from '../lib/sdk';
 import { type StepController, StepHost } from '../lib/step-context';
 
 const PAGES_PER_FRAME = 2;
@@ -11,6 +11,7 @@ type Props = {
   pages: Page[];
   index: number;
   design?: DesignSystem;
+  canvas?: CanvasSize;
   /** Also warm the page at `index` — for use while no page is live yet. */
   includeCurrent?: boolean;
   onDone?: () => void;
@@ -73,7 +74,14 @@ function computeWarmupOrder(pages: Page[], index: number, includeCurrent: boolea
  * boxes trigger background-image loads), and the whole layer unmounts once
  * fonts and images have settled — by then everything sits in the HTTP cache.
  */
-export function SlidePreloadLayer({ pages, index, design, includeCurrent = false, onDone }: Props) {
+export function SlidePreloadLayer({
+  pages,
+  index,
+  design,
+  canvas = DEFAULT_CANVAS_SIZE,
+  includeCurrent = false,
+  onDone,
+}: Props) {
   // Warm-up order is captured on mount, not on every index change — later
   // navigation must not restart the sequence. But the deck itself can change
   // under a reused component instance (a client-side slide switch keeps this
@@ -164,8 +172,8 @@ export function SlidePreloadLayer({ pages, index, design, includeCurrent = false
               position: 'absolute',
               top: 0,
               left: 0,
-              width: CANVAS_WIDTH,
-              height: CANVAS_HEIGHT,
+              width: canvas.width,
+              height: canvas.height,
             }}
           >
             <SlidePageProvider index={pageIndex} total={pages.length}>

@@ -36,7 +36,7 @@ export const en: Locale = {
   },
 
   home: {
-    appTitle: 'tooka',
+    appTitle: 'Tooka',
     draft: 'Draft',
     duplicate: 'Duplicate',
     templates: 'Templates',
@@ -539,6 +539,12 @@ export const en: Locale = {
 
   templates: {
     title: 'Templates',
+    categoryLabel: 'Template categories',
+    allCategory: 'All',
+    carouselCategory: 'Carousel cards',
+    videoBannerThumbnailCategory: 'Video banner thumbnails',
+    shortVideoThumbnailCategory: 'Short-video thumbnails',
+    noTemplatesInCategory: 'There are no templates in this category yet.',
     noTemplatesTitle: 'No templates yet',
     noTemplatesHintPrefix: 'Add ',
     noTemplatesHintSuffix: " to a card's meta to show it here as a reusable template.",

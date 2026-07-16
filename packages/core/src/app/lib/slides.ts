@@ -2,6 +2,7 @@ import {
   slideCreatedAt as createdAt,
   slideIds as ids,
   loadSlide as load,
+  slideTemplateCategories as templateCategories,
   slideTemplates as templates,
   slideThemes as themes,
 } from 'virtual:tooka/slides';
@@ -11,6 +12,7 @@ export const slideIds: string[] = ids;
 export const slideThemes: Record<string, string> = themes;
 export const slideCreatedAt: Record<string, number> = createdAt;
 export const slideTemplates: string[] = templates;
+export const slideTemplateCategories: Record<string, string> = templateCategories;
 
 export function slidesByTheme(themeId: string): string[] {
   return slideIds.filter((id) => slideThemes[id] === themeId);

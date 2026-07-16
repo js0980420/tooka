@@ -5,7 +5,10 @@ dist
 .vite
 *.tsbuildinfo
 .turbo
-apps/studio/slides/
+apps/studio/slides/*
+!apps/studio/slides/video-banner-ai-template/
+!apps/studio/slides/video-banner-ai-template/**
+!apps/studio/slides/short-video-ai-template/
+!apps/studio/slides/short-video-ai-template/**
 .env
 gemini.md
-

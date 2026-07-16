@@ -37,7 +37,7 @@ export const meta: SlideMeta = { title: 'My slide' };
 export default [Cover] satisfies Page[];
 ```
 
-Every page renders into a fixed **1080 × 1350** canvas — design with absolute pixel values. Put images, videos, and fonts under `slides/<id>/assets/` and import them directly.
+Every page defaults to a **1080 × 1350** canvas — design with absolute pixel values. Landscape decks can set `meta.canvas`, for example `canvas: { width: 1920, height: 1080 }`. Put images, videos, and fonts under `slides/<id>/assets/` and import them directly.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full authoring guide.
 

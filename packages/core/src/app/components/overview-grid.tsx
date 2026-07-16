@@ -5,19 +5,18 @@ import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import type { DesignSystem } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
-import type { Page } from '../lib/sdk';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
+import { type CanvasSize, DEFAULT_CANVAS_SIZE, type Page } from '../lib/sdk';
 import type { SlideTransition } from '../lib/transition';
 import { SlideCanvas } from './slide-canvas';
 
 const THUMB_W = 320;
-const THUMB_H = (THUMB_W * CANVAS_HEIGHT) / CANVAS_WIDTH;
 
 export type OverviewVariant = 'present' | 'editor';
 
 type Props = {
   pages: Page[];
   design?: DesignSystem;
+  canvas?: CanvasSize;
   open: boolean;
   current: number;
   onClose: () => void;
@@ -30,6 +29,7 @@ type Props = {
 export function OverviewGrid({
   pages,
   design,
+  canvas = DEFAULT_CANVAS_SIZE,
   open,
   current,
   onClose,
@@ -149,6 +149,7 @@ export function OverviewGrid({
                   index={i}
                   total={pages.length}
                   design={design}
+                  canvas={canvas}
                   isFocused={isFocused}
                   isCurrent={isCurrent}
                   styles={styles}
@@ -174,6 +175,7 @@ function OverviewThumb({
   index,
   total,
   design,
+  canvas,
   isFocused,
   isCurrent,
   styles,
@@ -187,6 +189,7 @@ function OverviewThumb({
   index: number;
   total: number;
   design?: DesignSystem;
+  canvas: CanvasSize;
   isFocused: boolean;
   isCurrent: boolean;
   styles: OverviewStyles;
@@ -227,14 +230,15 @@ function OverviewThumb({
           styles.thumbSurface,
           isFocused ? 'ring-2 ring-[var(--brand,#e5484d)]' : styles.thumbRing,
         )}
-        style={{ height: THUMB_H }}
+        style={{ height: (THUMB_W * canvas.height) / canvas.width }}
       >
         <SlideCanvas
-          scale={THUMB_W / CANVAS_WIDTH}
+          scale={THUMB_W / canvas.width}
           center={false}
           flat
           freezeMotion
           design={design}
+          canvas={canvas}
         >
           <SlidePageProvider index={index} total={total}>
             <PageComp />

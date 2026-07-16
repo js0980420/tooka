@@ -3,7 +3,7 @@ import { useClickPageNavigation } from '@/lib/use-click-page-navigation';
 import { useWheelPageNavigation } from '@/lib/use-wheel-page-navigation';
 import { cn } from '@/lib/utils';
 import type { DesignSystem } from '../lib/design';
-import type { Page } from '../lib/sdk';
+import type { CanvasSize, Page } from '../lib/sdk';
 import type { EntryDirection, StepAggregate, StepController } from '../lib/step-context';
 import type { SlideTransition } from '../lib/transition';
 import { useIsMobile } from '../lib/use-is-mobile';
@@ -33,6 +33,7 @@ const MOBILE_CHROME_HIDE_MS = 2200;
 type Props = {
   pages: Page[];
   design?: DesignSystem;
+  canvas?: CanvasSize;
   transition?: SlideTransition;
   index: number;
   onIndexChange: (index: number) => void;
@@ -51,6 +52,7 @@ type Props = {
 export function Player({
   pages,
   design,
+  canvas,
   transition,
   index,
   onIndexChange,
@@ -401,7 +403,7 @@ export function Player({
       )}
       style={design ? { background: design.palette.bg } : undefined}
     >
-      <SlideCanvas flat design={design}>
+      <SlideCanvas flat design={design} canvas={canvas}>
         <SlideTransitionLayer
           pages={pages}
           index={index}
@@ -444,6 +446,7 @@ export function Player({
           <OverviewGrid
             pages={pages}
             design={design}
+            canvas={canvas}
             open={overviewOpen}
             current={index}
             onClose={() => setOverviewOpen(false)}

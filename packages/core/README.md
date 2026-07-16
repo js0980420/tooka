@@ -72,6 +72,9 @@ export default pages;
 export const meta = { title: 'Hello' };
 ```
 
+Cards use a 1080 × 1350 canvas by default. Set `meta.canvas` for other formats, such as
+`canvas: { width: 1920, height: 1080 }` for a landscape video thumbnail.
+
 ## Exports
 
 ```ts

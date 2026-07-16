@@ -562,6 +562,12 @@ export type Locale = {
 
   templates: {
     title: string;
+    categoryLabel: string;
+    allCategory: string;
+    carouselCategory: string;
+    videoBannerThumbnailCategory: string;
+    shortVideoThumbnailCategory: string;
+    noTemplatesInCategory: string;
     noTemplatesTitle: string;
     noTemplatesHintPrefix: string;
     noTemplatesHintSuffix: string;

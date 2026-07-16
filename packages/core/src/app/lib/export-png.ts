@@ -5,7 +5,7 @@ import { pngFileName } from './export-png-name';
 import { SlidePageProvider } from './page-context';
 import { PngExportVariantProvider } from './png-export-variant';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from './print-ready';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, type PngExportVariant, type SlideModule } from './sdk';
+import { type PngExportVariant, resolveCanvasSize, type SlideModule } from './sdk';
 
 const CAPTURE_PIXEL_RATIO = 1;
 
@@ -34,6 +34,7 @@ export async function exportSlideAsPng(
 ): Promise<void> {
   const pages = slide.default ?? [];
   if (pages.length === 0) return;
+  const canvas = resolveCanvasSize(slide.meta);
 
   const total = pages.length;
   onProgress?.({ phase: 'processing', current: 0, total, percent: 0 });
@@ -74,8 +75,8 @@ export async function exportSlideAsPng(
     if (!Page) continue;
     const host = document.createElement('div');
     host.setAttribute('data-osd-canvas', '');
-    host.style.width = `${CANVAS_WIDTH}px`;
-    host.style.height = `${CANVAS_HEIGHT}px`;
+    host.style.width = `${canvas.width}px`;
+    host.style.height = `${canvas.height}px`;
     host.style.overflow = 'hidden';
     host.style.background = '#fff';
     if (designVars) {
@@ -111,8 +112,8 @@ export async function exportSlideAsPng(
     for (let i = 0; i < frames.length; i++) {
       freezeForCapture(frames[i]);
       let blob = await toBlob(frames[i], {
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
+        width: canvas.width,
+        height: canvas.height,
         pixelRatio: CAPTURE_PIXEL_RATIO,
         backgroundColor: '#ffffff',
         cacheBust: true,

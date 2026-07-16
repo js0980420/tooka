@@ -3,13 +3,13 @@ import { createRoot, type Root } from 'react-dom/client';
 import { designToCssVars } from './design';
 import { SlidePageProvider } from './page-context';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from './print-ready';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, type SlideModule } from './sdk';
+import { resolveCanvasSize, type SlideModule } from './sdk';
 
 const PRINT_ROOT_ID = 'os-print-root';
 const PRINT_STYLE_ID = 'os-print-style';
 
-const PRINT_STYLES = `
-@page { size: ${CANVAS_WIDTH}px ${CANVAS_HEIGHT}px; margin: 0; }
+const printStyles = (width: number, height: number) => `
+@page { size: ${width}px ${height}px; margin: 0; }
 
 @media screen {
   #${PRINT_ROOT_ID} {
@@ -36,8 +36,8 @@ const PRINT_STYLES = `
     background: #fff !important;
   }
   #${PRINT_ROOT_ID} .os-print-frame {
-    width: ${CANVAS_WIDTH}px !important;
-    height: ${CANVAS_HEIGHT}px !important;
+    width: ${width}px !important;
+    height: ${height}px !important;
     background: #fff;
     color: #000;
     overflow: hidden;
@@ -54,11 +54,11 @@ const PRINT_STYLES = `
      blur, mix-blend-mode) at the layer's CSS-pixel size, so a blurred
      gradient on a 1080×1350 page bakes in at ~1× DPI and bands when the PDF
      is viewed scaled up. zoom:2 doubles the layer raster size; scale(0.5)
-     composites it back to 1080×1350. Vector content (text, plain CSS
+     composites it back to the deck's canvas size. Vector content (text, plain CSS
      gradients, SVG) stays vector through both transforms. */
   #${PRINT_ROOT_ID} .os-print-supersample {
-    width: ${CANVAS_WIDTH}px !important;
-    height: ${CANVAS_HEIGHT}px !important;
+    width: ${width}px !important;
+    height: ${height}px !important;
     zoom: 2;
     transform: scale(0.5);
     transform-origin: top left;
@@ -105,12 +105,13 @@ export async function exportSlideAsPdf(
 ): Promise<void> {
   const pages = slide.default ?? [];
   if (pages.length === 0) return;
+  const canvas = resolveCanvasSize(slide.meta);
 
   const total = pages.length;
 
   const style = document.createElement('style');
   style.id = PRINT_STYLE_ID;
-  style.textContent = PRINT_STYLES;
+  style.textContent = printStyles(canvas.width, canvas.height);
   document.head.appendChild(style);
 
   const root = document.createElement('div');
@@ -130,15 +131,15 @@ export async function exportSlideAsPdf(
     const host = document.createElement('div');
     host.className = 'os-print-frame';
     host.setAttribute('data-osd-canvas', '');
-    host.style.width = `${CANVAS_WIDTH}px`;
-    host.style.height = `${CANVAS_HEIGHT}px`;
+    host.style.width = `${canvas.width}px`;
+    host.style.height = `${canvas.height}px`;
     if (designVars) {
       for (const [k, v] of Object.entries(designVars)) host.style.setProperty(k, v);
     }
     const inner = document.createElement('div');
     inner.className = 'os-print-supersample';
-    inner.style.width = `${CANVAS_WIDTH}px`;
-    inner.style.height = `${CANVAS_HEIGHT}px`;
+    inner.style.width = `${canvas.width}px`;
+    inner.style.height = `${canvas.height}px`;
     host.appendChild(inner);
     root.appendChild(host);
     frames.push(host);

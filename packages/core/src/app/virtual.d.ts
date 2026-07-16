@@ -4,6 +4,7 @@ declare module 'virtual:tooka/slides' {
   export const slideThemes: Record<string, string>;
   export const slideCreatedAt: Record<string, number>;
   export const slideTemplates: string[];
+  export const slideTemplateCategories: Record<string, string>;
   export function loadSlide(id: string): Promise<SlideModule>;
 }
 

@@ -70,7 +70,7 @@ import { type ThumbnailActions, ThumbnailRail } from '../components/thumbnail-ra
 import { exportSlideAsPng } from '../lib/export-png';
 import { remapNotesSessionCacheAfterReorder } from '../lib/inspector/use-notes';
 import { PngExportVariantProvider } from '../lib/png-export-variant';
-import type { PngExportVariant, SlideModule } from '../lib/sdk';
+import type { CanvasSize, PngExportVariant, SlideModule } from '../lib/sdk';
 import { usePrefersReducedMotion } from '../lib/use-prefers-reduced-motion';
 import { useSlideModule } from '../lib/use-slide-module';
 
@@ -446,6 +446,7 @@ export function Slide() {
           pages={pages}
           index={index}
           design={slide.design}
+          canvas={slide.meta?.canvas}
           includeCurrent
           onDone={handleAssetsWarmed}
         />
@@ -458,6 +459,7 @@ export function Slide() {
       <Player
         pages={pages}
         design={slide.design}
+        canvas={slide.meta?.canvas}
         transition={slide.transition}
         index={index}
         onIndexChange={goTo}
@@ -472,6 +474,7 @@ export function Slide() {
       <Player
         pages={pages}
         design={slide.design}
+        canvas={slide.meta?.canvas}
         transition={slide.transition}
         index={index}
         onIndexChange={goTo}
@@ -779,6 +782,7 @@ export function Slide() {
                   <ResizableRail
                     pages={pages}
                     design={slide.design}
+                    canvas={slide.meta?.canvas}
                     current={index}
                     onSelect={goTo}
                     onReorder={import.meta.env.DEV ? reorderPage : undefined}
@@ -812,7 +816,7 @@ export function Slide() {
                       canPrev={index > 0}
                       canNext={index < pageCount - 1}
                     />
-                    <SlideCanvas design={slide.design}>
+                    <SlideCanvas design={slide.design} canvas={slide.meta?.canvas}>
                       <SlideTransitionLayer
                         pages={pages}
                         index={index}
@@ -836,6 +840,7 @@ export function Slide() {
                     <ThumbnailRail
                       pages={pages}
                       design={slide.design}
+                      canvas={slide.meta?.canvas}
                       current={index}
                       onSelect={goTo}
                       orientation="horizontal"
@@ -856,6 +861,7 @@ export function Slide() {
                 <OverviewGrid
                   pages={pages}
                   design={slide.design}
+                  canvas={slide.meta?.canvas}
                   open={overviewOpen}
                   current={index}
                   onClose={() => setOverviewOpen(false)}
@@ -922,6 +928,7 @@ const MAX_RAIL_WIDTH = 480;
 function ResizableRail(props: {
   pages: SlideModule['default'];
   design?: SlideModule['design'];
+  canvas?: CanvasSize;
   current: number;
   onSelect: (i: number) => void;
   onReorder?: (from: number, to: number) => void;

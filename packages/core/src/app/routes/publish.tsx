@@ -25,7 +25,7 @@ import { SlidePageProvider } from '../lib/page-context';
 import { PngExportVariantProvider } from '../lib/png-export-variant';
 import { isFrameAnimationSettled, waitForDataWaitfor, waitForFonts } from '../lib/print-ready';
 import type { SlideModule } from '../lib/sdk';
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../lib/sdk';
+import { resolveCanvasSize } from '../lib/sdk';
 import { loadSlide } from '../lib/slides';
 import type { HomeOutletContext } from './home-shell';
 
@@ -55,6 +55,7 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
   const slide: SlideModule = await loadSlide(slideId);
   const pages = slide.default ?? [];
   if (pages.length === 0) throw new Error(emptyMessage);
+  const canvas = resolveCanvasSize(slide.meta);
 
   const container = document.createElement('div');
   container.className = CAPTURE_CLASS;
@@ -86,8 +87,8 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
     if (!Page) continue;
     const host = document.createElement('div');
     host.setAttribute('data-osd-canvas', '');
-    host.style.width = `${CANVAS_WIDTH}px`;
-    host.style.height = `${CANVAS_HEIGHT}px`;
+    host.style.width = `${canvas.width}px`;
+    host.style.height = `${canvas.height}px`;
     host.style.overflow = 'hidden';
     host.style.background = '#fff';
     if (designVars) {
@@ -141,8 +142,8 @@ async function captureSlideImages(slideId: string, emptyMessage: string): Promis
       }
 
       const blob = await toBlob(frame, {
-        width: CANVAS_WIDTH,
-        height: CANVAS_HEIGHT,
+        width: canvas.width,
+        height: canvas.height,
         pixelRatio: 1,
         backgroundColor: '#ffffff',
         cacheBust: true,
