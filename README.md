@@ -13,7 +13,8 @@ At its core, tooka is about three things:
 Pages are arbitrary React components, not a constrained DSL.
 
 ```bash
-npx @tooka/cli init my-cards
+npm install @tooka/core react react-dom
+npx tooka dev
 ```
 
 ## Why tooka
@@ -24,7 +25,7 @@ Cards are visual code. Agents are great at writing code. tooka is the missing ru
 
 ### 🤖 Agent-native authoring
 
-Works with any coding agent (Claude Code, Codex, Cursor, …). The scaffolder ships with built-in skills:
+Works with any coding agent (Claude Code, Codex, Cursor, …). `@tooka/core` ships with built-in skills — `npx tooka sync:skills` installs them into your project:
 
 - **`/create-carousel`** — drafts a card carousel end-to-end. Asks four scoping questions (topic & aesthetic, page count, text density, motion vs. static), picks an id, plans the structure, and writes the pages.
 - **`/card-authoring`** — the technical reference for the 1080 × 1350 canvas, type scale, palette, and layout rules. The agent reads this before writing.
@@ -68,12 +69,14 @@ Outputs a plain static build — one-click deploy to Vercel, Cloudflare Pages, Z
 ## Get started
 
 ```bash
-npx @tooka/cli init my-cards
-cd my-cards
-pnpm dev
+mkdir my-cards && cd my-cards
+npm init -y
+npm install @tooka/core react react-dom
+npx tooka sync:skills   # install the agent skills into .agents/ + .claude/
+npx tooka dev           # open the studio
 ```
 
-The scaffolded workspace ships with agent skills preconfigured for Claude Code. From there you drive the carousel through your agent — or edit `slides/<id>/index.tsx` directly.
+`tooka dev` serves the studio, `tooka build` produces the static site, `tooka preview` serves the build. From there you drive the carousel through your agent — or edit `slides/<id>/index.tsx` directly.
 
 ## Origins
 
