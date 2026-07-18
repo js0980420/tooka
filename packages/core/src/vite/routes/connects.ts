@@ -7,6 +7,7 @@ import {
   validateEnvValue,
 } from '../../files/env.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 import { validateFacebookPageConnection } from './facebook.ts';
 import { validateImgbbKey } from './imgbb.ts';
@@ -133,7 +134,7 @@ function threadsStatusBody(values: Record<string, string>, needsReauth: boolean)
 }
 
 export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__connects', async (req, res, next) => {
+  server.middlewares.use(API.connects, async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
 
@@ -177,10 +178,9 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
           [FB_PAGE_ID_KEY]: validation.page.pageId,
           [FB_PAGE_NAME_KEY]: validation.page.pageName,
         };
-        json(res, 200, { facebook: facebookStatusBody(entries) });
         await ensureEnvGitignored(ctx.userCwd);
         await upsertEnvValues(ctx.userCwd, entries);
-        return;
+        return json(res, 200, { facebook: facebookStatusBody(entries) });
       }
 
       if (url.pathname === '/facebook/test' && method === 'POST') {
@@ -242,10 +242,9 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
           [THREADS_USERNAME_KEY]: validation.account.username,
           [THREADS_EXPIRES_KEY]: String(savedExpiry),
         };
-        json(res, 200, { threads: threadsStatusBody(entries, false) });
         await ensureEnvGitignored(ctx.userCwd);
         await upsertEnvValues(ctx.userCwd, entries);
-        return;
+        return json(res, 200, { threads: threadsStatusBody(entries, false) });
       }
 
       if (url.pathname === '/threads/test' && method === 'POST') {
@@ -293,10 +292,9 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
         if (!valid) return json(res, 400, { error: 'invalid_key' });
 
         const entries = { [IMGBB_KEY_KEY]: submittedKey };
-        json(res, 200, { imgbb: imgbbStatusBody(entries) });
         await ensureEnvGitignored(ctx.userCwd);
         await upsertEnvValues(ctx.userCwd, entries);
-        return;
+        return json(res, 200, { imgbb: imgbbStatusBody(entries) });
       }
 
       if (url.pathname === '/imgbb/test' && method === 'POST') {
@@ -375,10 +373,9 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
           [IG_EXPIRES_KEY]: savedExpiry ? String(savedExpiry) : '',
         };
         const merged = { ...existing, ...entries };
-        json(res, 200, { instagram: statusBody(merged, false) });
         await ensureEnvGitignored(ctx.userCwd);
         await upsertEnvValues(ctx.userCwd, entries);
-        return;
+        return json(res, 200, { instagram: statusBody(merged, false) });
       }
 
       if (url.pathname === '/instagram/test' && method === 'POST') {
@@ -419,7 +416,8 @@ export function registerConnectRoutes(server: ViteDevServer, ctx: ApiContext): v
 
       next();
     } catch {
-      json(res, 500, { error: 'internal_error' });
+      if (!res.headersSent) json(res, 500, { error: 'internal_error' });
+      else res.end();
     }
   });
 }

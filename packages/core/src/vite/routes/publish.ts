@@ -6,6 +6,7 @@ import {
   validateInstagramHashtags,
   validateThreadsTopicTag,
 } from '../../publishing/copy.ts';
+import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 import { publishFacebookPagePost } from './facebook.ts';
 import { uploadImageToImgbb } from './imgbb.ts';
@@ -22,7 +23,7 @@ const THREADS_USER_ID_KEY = 'THREADS_USER_ID';
 const IMGBB_API_KEY_KEY = 'IMGBB_API_KEY';
 
 export function registerPublishRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__publish', async (req, res, next) => {
+  server.middlewares.use(API.publish, async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
 

@@ -15,18 +15,25 @@ type Props = {
  */
 export function PresentJumpInput({ pageCount, onJump }: Props) {
   const [buffer, setBuffer] = useState('');
+  // Ref mirrors the buffer so flush can call onJump outside a setState
+  // updater — StrictMode double-invokes updaters, which would jump twice.
+  const bufferRef = useRef('');
   const flushRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    const setBuf = (value: string) => {
+      bufferRef.current = value;
+      setBuffer(value);
+    };
+
     const flush = () => {
-      setBuffer((current) => {
-        if (!current) return current;
-        const n = Number.parseInt(current, 10);
-        if (Number.isFinite(n) && n >= 1) {
-          onJump(Math.min(pageCount, n) - 1);
-        }
-        return '';
-      });
+      const current = bufferRef.current;
+      if (!current) return;
+      const n = Number.parseInt(current, 10);
+      if (Number.isFinite(n) && n >= 1) {
+        onJump(Math.min(pageCount, n) - 1);
+      }
+      setBuf('');
     };
 
     const onKey = (e: KeyboardEvent) => {
@@ -35,7 +42,7 @@ export function PresentJumpInput({ pageCount, onJump }: Props) {
 
       if (/^[0-9]$/.test(e.key)) {
         e.preventDefault();
-        setBuffer((b) => (b + e.key).slice(0, 4));
+        setBuf((bufferRef.current + e.key).slice(0, 4));
         if (flushRef.current) clearTimeout(flushRef.current);
         flushRef.current = setTimeout(flush, FLUSH_DELAY_MS);
         return;
@@ -46,17 +53,29 @@ export function PresentJumpInput({ pageCount, onJump }: Props) {
         return;
       }
       if (e.key === 'Backspace') {
-        setBuffer((b) => b.slice(0, -1));
+        setBuf(bufferRef.current.slice(0, -1));
         return;
       }
-      if (e.key === 'Escape' || e.key === ' ') {
-        setBuffer('');
+      if (e.key === 'Escape') {
+        // Cancelling a typed page number must not also reach the Player's
+        // Escape handler (blackout/exit) — consume it while a buffer exists.
+        if (bufferRef.current) {
+          e.preventDefault();
+          e.stopPropagation();
+          setBuf('');
+        }
+        return;
+      }
+      if (e.key === ' ') {
+        setBuf('');
       }
     };
 
-    window.addEventListener('keydown', onKey);
+    // Capture phase so the Escape consumption above runs before the
+    // Player's bubble-phase keydown listener.
+    window.addEventListener('keydown', onKey, true);
     return () => {
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onKey, true);
       if (flushRef.current) clearTimeout(flushRef.current);
     };
   }, [pageCount, onJump]);

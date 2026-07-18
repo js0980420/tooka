@@ -31,6 +31,7 @@ import {
   validateInstagramHashtags,
   validateThreadsTopicTag,
 } from '../../publishing/copy';
+import { API } from '../../shared/api-routes';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
 import { PageTabs } from '../components/page-tabs';
 import { designToCssVars } from '../lib/design';
@@ -342,7 +343,7 @@ export function PublishPage() {
     images: string[],
   ): Promise<PublishResult> => {
     try {
-      const res = await fetch(`/__publish/${platform}`, {
+      const res = await fetch(`${API.publish}/${platform}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({

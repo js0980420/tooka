@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { API } from '../../../shared/api-routes';
 import type { DesignSystem } from '../../lib/design';
 
 type FetchedState = {
@@ -28,7 +29,7 @@ export function useDesign(slideId: string): UseDesignReturn {
     const id = slideIdRef.current;
     if (!id) return;
     try {
-      const res = await fetch(`/__design?slideId=${encodeURIComponent(id)}`);
+      const res = await fetch(`${API.design}?slideId=${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = (await res.json()) as {
         design: DesignSystem;
@@ -55,7 +56,7 @@ export function useDesign(slideId: string): UseDesignReturn {
     const id = slideIdRef.current;
     if (!id) return { ok: false, error: 'no slide id' };
     try {
-      const res = await fetch(`/__design?slideId=${encodeURIComponent(id)}`, {
+      const res = await fetch(`${API.design}?slideId=${encodeURIComponent(id)}`, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ patch }),
@@ -87,7 +88,7 @@ export function useDesign(slideId: string): UseDesignReturn {
     const id = slideIdRef.current;
     if (!id) return { ok: false, error: 'no slide id' };
     try {
-      const res = await fetch(`/__design/reset?slideId=${encodeURIComponent(id)}`, {
+      const res = await fetch(`${API.design}/reset?slideId=${encodeURIComponent(id)}`, {
         method: 'POST',
       });
       const body = (await res.json()) as { ok?: boolean; error?: string; design?: DesignSystem };

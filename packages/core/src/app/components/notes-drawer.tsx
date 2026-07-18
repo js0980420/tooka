@@ -51,10 +51,8 @@ export function NotesDrawer({ slideId, index, total, initial }: Props) {
       <button
         type="button"
         onClick={() => {
-          setOpen((o) => {
-            if (o) void flush();
-            return !o;
-          });
+          if (open) void flush();
+          setOpen(!open);
         }}
         className="flex h-9 w-full items-center gap-2 px-3 text-[12px] text-foreground/80 hover:bg-muted/40"
         aria-expanded={open}

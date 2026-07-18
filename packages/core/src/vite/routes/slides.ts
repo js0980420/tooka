@@ -14,8 +14,10 @@ import {
   updateMetaTitleInSource,
   validateSlideName,
 } from '../../editing/slide-ops.ts';
+import { withFileLock } from '../../files/file-lock.ts';
 import { readManifest, writeManifest } from '../../files/folders.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
 import { invalidateSlidesModule } from '../tooka-plugin.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
@@ -30,7 +32,7 @@ type DuplicateSlideBody = { newId?: unknown };
 type SlidePatchBody = { name?: unknown };
 
 export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__slides', async (req, res, next) => {
+  server.middlewares.use(API.slides, async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
 
@@ -55,29 +57,31 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const entry = resolveSlideEntry(ctx.slidesRoot, slideId);
         if (!entry) return json(res, 400, { error: 'invalid slideId' });
 
-        let source: string;
-        try {
-          source = await fs.readFile(entry, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(entry, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(entry, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const reordered = reorderDefaultExportPagesInSource(source, order);
-        if (reordered === null) {
-          return json(res, 422, {
-            error: 'could not reorder pages — order must be a permutation of the existing array',
-          });
-        }
-        const withNotes = reorderNotesArrayInSource(reordered, order);
-        if (withNotes === null) {
-          return json(res, 422, {
-            error: 'could not reorder pages — `notes` export has an unexpected shape',
-          });
-        }
-        if (withNotes !== source) {
-          await fs.writeFile(entry, withNotes, 'utf8');
-        }
-        return json(res, 200, { ok: true, slideId, order });
+          const reordered = reorderDefaultExportPagesInSource(source, order);
+          if (reordered === null) {
+            return json(res, 422, {
+              error: 'could not reorder pages — order must be a permutation of the existing array',
+            });
+          }
+          const withNotes = reorderNotesArrayInSource(reordered, order);
+          if (withNotes === null) {
+            return json(res, 422, {
+              error: 'could not reorder pages — `notes` export has an unexpected shape',
+            });
+          }
+          if (withNotes !== source) {
+            await fs.writeFile(entry, withNotes, 'utf8');
+          }
+          return json(res, 200, { ok: true, slideId, order });
+        });
       }
 
       const pageOpMatch = url.pathname.match(/^\/([^/]+)\/pages\/(\d+)(?:\/([a-z]+))?$/);
@@ -100,37 +104,39 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const entry = resolveSlideEntry(ctx.slidesRoot, slideId);
         if (!entry) return json(res, 400, { error: 'invalid slideId' });
 
-        let source: string;
-        try {
-          source = await fs.readFile(entry, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(entry, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(entry, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const updated = isDelete
-          ? removePageFromDefaultExportInSource(source, pageIndex)
-          : duplicatePageInDefaultExportInSource(source, pageIndex);
-        if (updated === null) {
-          return json(res, 422, {
-            error: isDelete
-              ? 'could not delete page — index out of range or default export is not an array'
-              : 'could not duplicate page — index out of range or default export is not an array',
-          });
-        }
-        const withNotes = isDelete
-          ? removeNotesElementInSource(updated, pageIndex)
-          : duplicateNotesElementInSource(updated, pageIndex);
-        if (withNotes === null) {
-          return json(res, 422, {
-            error: isDelete
-              ? 'could not delete page — `notes` export has an unexpected shape'
-              : 'could not duplicate page — `notes` export has an unexpected shape',
-          });
-        }
-        if (withNotes !== source) {
-          await fs.writeFile(entry, withNotes, 'utf8');
-        }
-        return json(res, 200, { ok: true, slideId, index: pageIndex });
+          const updated = isDelete
+            ? removePageFromDefaultExportInSource(source, pageIndex)
+            : duplicatePageInDefaultExportInSource(source, pageIndex);
+          if (updated === null) {
+            return json(res, 422, {
+              error: isDelete
+                ? 'could not delete page — index out of range or default export is not an array'
+                : 'could not duplicate page — index out of range or default export is not an array',
+            });
+          }
+          const withNotes = isDelete
+            ? removeNotesElementInSource(updated, pageIndex)
+            : duplicateNotesElementInSource(updated, pageIndex);
+          if (withNotes === null) {
+            return json(res, 422, {
+              error: isDelete
+                ? 'could not delete page — `notes` export has an unexpected shape'
+                : 'could not duplicate page — `notes` export has an unexpected shape',
+            });
+          }
+          if (withNotes !== source) {
+            await fs.writeFile(entry, withNotes, 'utf8');
+          }
+          return json(res, 200, { ok: true, slideId, index: pageIndex });
+        });
       }
 
       const duplicateMatch = url.pathname.match(/^\/([^/]+)\/duplicate$/);
@@ -150,12 +156,14 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const duplicated = await duplicateSlideDir(ctx.slidesRoot, slideId, body.newId);
         if (!duplicated.ok) return json(res, duplicated.status, { error: duplicated.error });
 
-        const manifest = await readManifest(ctx.manifestPath);
-        const folderId = manifest.assignments[slideId];
-        if (folderId) {
-          manifest.assignments[duplicated.slideId] = folderId;
-          await writeManifest(ctx.manifestPath, manifest);
-        }
+        await withFileLock(ctx.manifestPath, async () => {
+          const manifest = await readManifest(ctx.manifestPath);
+          const folderId = manifest.assignments[slideId];
+          if (folderId) {
+            manifest.assignments[duplicated.slideId] = folderId;
+            await writeManifest(ctx.manifestPath, manifest);
+          }
+        });
         // The chokidar `add` event that regenerates the slide list is debounced
         // and can lose a race against the client navigating to the new slide —
         // drop the cached module now so the next fetch always sees the copy.
@@ -180,21 +188,29 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const entry = resolveSlideEntry(ctx.slidesRoot, slideId);
         if (!entry) return json(res, 400, { error: 'invalid slideId' });
 
-        let source: string;
-        try {
-          source = await fs.readFile(entry, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        const patchResult = await withFileLock(
+          entry,
+          async (): Promise<'missing' | 'stuck' | 'ok'> => {
+            let source: string;
+            try {
+              source = await fs.readFile(entry, 'utf8');
+            } catch {
+              return 'missing';
+            }
 
-        const updated = updateMetaTitleInSource(source, name);
-        if (updated === null) {
+            const updated = updateMetaTitleInSource(source, name);
+            if (updated === null) return 'stuck';
+            if (updated !== source) {
+              await fs.writeFile(entry, updated, 'utf8');
+            }
+            return 'ok';
+          },
+        );
+        if (patchResult === 'missing') return json(res, 404, { error: 'slide not found' });
+        if (patchResult === 'stuck') {
           return json(res, 422, {
             error: 'could not locate a safe place to write meta.title in index.tsx',
           });
-        }
-        if (updated !== source) {
-          await fs.writeFile(entry, updated, 'utf8');
         }
         // The TSX edit lands through Vite's normal HMR pipeline, but the
         // React state holding `slide.meta` in the editor won't re-fetch on
@@ -211,9 +227,11 @@ export function registerSlideRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const removed = await rmSlideDir(ctx.slidesRoot, slideId);
         if (!removed) return json(res, 404, { error: 'slide not found' });
 
-        const manifest = await readManifest(ctx.manifestPath);
-        delete manifest.assignments[slideId];
-        await writeManifest(ctx.manifestPath, manifest);
+        await withFileLock(ctx.manifestPath, async () => {
+          const manifest = await readManifest(ctx.manifestPath);
+          delete manifest.assignments[slideId];
+          await writeManifest(ctx.manifestPath, manifest);
+        });
         invalidateSlidesModule(server);
         return json(res, 200, { ok: true });
       }

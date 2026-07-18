@@ -27,6 +27,7 @@ export function Presenter() {
   // until the projection window publishes its actual `startedAt`.
   const [localStart] = useState(() => Date.now());
   const [hasProjection, setHasProjection] = useState(false);
+  const [linkGraceOver, setLinkGraceOver] = useState(false);
   const requestedRef = useRef(false);
   const t = useLocale();
   const [, setWarmedTick] = useState(0);
@@ -47,9 +48,10 @@ export function Presenter() {
     if (!channel.available || requestedRef.current) return;
     requestedRef.current = true;
     channel.send({ type: 'request-state' });
-    // If nothing answers within a beat, surface the "no projection" hint.
-    const t = setTimeout(() => setHasProjection((v) => v), 600);
-    return () => clearTimeout(t);
+    // Give the projection a beat to answer before the "no projection"
+    // hint is allowed to show.
+    const timer = setTimeout(() => setLinkGraceOver(true), 600);
+    return () => clearTimeout(timer);
   }, [channel]);
 
   const send = channel.send;
@@ -170,7 +172,7 @@ export function Presenter() {
         total={total}
         startedAt={startedAt}
         slideTitle={slide.meta?.title ?? slideId}
-        connected={hasProjection}
+        connected={hasProjection || !linkGraceOver}
       />
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 px-6 pb-4 lg:grid-cols-[2fr_1fr]">

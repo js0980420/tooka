@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import type { ViteDevServer } from 'vite';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json } from './context.ts';
 
 // GET /__update-check  → { current, latest, outdated }
@@ -162,7 +163,7 @@ async function updatePackage(ctx: ApiContext): Promise<UpdateResult> {
 }
 
 export function registerUpdateRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__update-check', async (req, res, next) => {
+  server.middlewares.use(API.updateCheck, async (req, res, next) => {
     if ((req.method ?? 'GET') !== 'GET') return next();
     const latest = await fetchLatest(Date.now());
     const result: CheckResult = {
@@ -174,7 +175,7 @@ export function registerUpdateRoutes(server: ViteDevServer, ctx: ApiContext): vo
     json(res, 200, result);
   });
 
-  server.middlewares.use('/__update-package', async (req, res, next) => {
+  server.middlewares.use(API.updatePackage, async (req, res, next) => {
     if ((req.method ?? 'GET') !== 'POST') return next();
 
     const guard = validateMutationRequest(req);

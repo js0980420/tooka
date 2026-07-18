@@ -2,7 +2,9 @@ import fs from 'node:fs/promises';
 import { parse as babelParse } from '@babel/parser';
 import * as t from '@babel/types';
 import type { Plugin, ViteDevServer } from 'vite';
+import { withFileLock } from '../files/file-lock.ts';
 import { validateMutationRequest } from '../http/request-guard.ts';
+import { API } from '../shared/api-routes.ts';
 import { json, readBody, resolveSlidePath } from './routes/context.ts';
 
 type NotesBody = {
@@ -175,7 +177,7 @@ export function notesPlugin(opts: NotesPluginOptions): Plugin {
       return undefined;
     },
     configureServer(server: ViteDevServer) {
-      server.middlewares.use('/__notes', async (req, res, next) => {
+      server.middlewares.use(API.notes, async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://local');
         const method = req.method ?? 'GET';
         if (method !== 'PUT' || url.pathname !== '/') return next();
@@ -189,22 +191,26 @@ export function notesPlugin(opts: NotesPluginOptions): Plugin {
           if (!file) return json(res, 400, { error: 'invalid slideId' });
           if (typeof body.index !== 'number') return json(res, 400, { error: 'missing index' });
           if (typeof body.text !== 'string') return json(res, 400, { error: 'missing text' });
+          const index = body.index;
+          const text = body.text;
 
-          let source: string;
-          try {
-            source = await fs.readFile(file, 'utf8');
-          } catch {
-            return json(res, 404, { error: 'slide not found' });
-          }
+          return await withFileLock(file, async () => {
+            let source: string;
+            try {
+              source = await fs.readFile(file, 'utf8');
+            } catch {
+              return json(res, 404, { error: 'slide not found' });
+            }
 
-          const result = applyNotesEdit(source, body.index, body.text);
-          if (!result.ok) return json(res, result.status, { error: result.error });
-          const changed = result.source !== source;
-          if (changed) {
-            recentWrites.set(file, Date.now());
-            await fs.writeFile(file, result.source, 'utf8');
-          }
-          return json(res, 200, { ok: true, changed });
+            const result = applyNotesEdit(source, index, text);
+            if (!result.ok) return json(res, result.status, { error: result.error });
+            const changed = result.source !== source;
+            if (changed) {
+              recentWrites.set(file, Date.now());
+              await fs.writeFile(file, result.source, 'utf8');
+            }
+            return json(res, 200, { ok: true, changed });
+          });
         } catch (err) {
           json(res, 500, { error: String((err as Error).message ?? err) });
         }

@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
+import { API } from '../../shared/api-routes';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
 import { PageTabs } from '../components/page-tabs';
 
@@ -63,7 +64,7 @@ export function ConnectsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/__connects')
+    fetch(API.connects)
       .then((res) => (res.ok ? res.json() : null))
       .then(
         (
@@ -173,7 +174,7 @@ function InstagramCard({ initialStatus }: { initialStatus: InstagramStatus | nul
 
     setSaving(true);
     try {
-      const res = await fetch('/__connects/instagram', {
+      const res = await fetch(`${API.connects}/instagram`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
@@ -205,7 +206,7 @@ function InstagramCard({ initialStatus }: { initialStatus: InstagramStatus | nul
   const testConnection = async () => {
     setTesting(true);
     try {
-      const res = await fetch('/__connects/instagram/test', { method: 'POST' });
+      const res = await fetch(`${API.connects}/instagram/test`, { method: 'POST' });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         username?: string;
@@ -232,7 +233,7 @@ function InstagramCard({ initialStatus }: { initialStatus: InstagramStatus | nul
     if (!confirm(t.connects.confirmDisconnect)) return;
     setDisconnecting(true);
     try {
-      const res = await fetch('/__connects/instagram/disconnect', { method: 'POST' });
+      const res = await fetch(`${API.connects}/instagram/disconnect`, { method: 'POST' });
       if (!res.ok) {
         toast.error(t.connects.toastDisconnectFailed);
         return;
@@ -503,7 +504,7 @@ function FacebookPageCard({ initialStatus }: { initialStatus: FacebookStatus | n
 
     setSaving(true);
     try {
-      const res = await fetch('/__connects/facebook', {
+      const res = await fetch(`${API.connects}/facebook`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
@@ -534,7 +535,7 @@ function FacebookPageCard({ initialStatus }: { initialStatus: FacebookStatus | n
   const testConnection = async () => {
     setTesting(true);
     try {
-      const res = await fetch('/__connects/facebook/test', { method: 'POST' });
+      const res = await fetch(`${API.connects}/facebook/test`, { method: 'POST' });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         pageId?: string;
@@ -565,7 +566,7 @@ function FacebookPageCard({ initialStatus }: { initialStatus: FacebookStatus | n
     if (!confirm(t.connects.confirmFacebookDisconnect)) return;
     setDisconnecting(true);
     try {
-      const res = await fetch('/__connects/facebook/disconnect', { method: 'POST' });
+      const res = await fetch(`${API.connects}/facebook/disconnect`, { method: 'POST' });
       if (!res.ok) {
         toast.error(t.connects.toastDisconnectFailed);
         return;
@@ -763,7 +764,7 @@ function ThreadsCard({ initialStatus }: { initialStatus: ThreadsStatus | null })
 
     setSaving(true);
     try {
-      const res = await fetch('/__connects/threads', {
+      const res = await fetch(`${API.connects}/threads`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
@@ -791,7 +792,7 @@ function ThreadsCard({ initialStatus }: { initialStatus: ThreadsStatus | null })
   const testConnection = async () => {
     setTesting(true);
     try {
-      const res = await fetch('/__connects/threads/test', { method: 'POST' });
+      const res = await fetch(`${API.connects}/threads/test`, { method: 'POST' });
       const body = (await res.json().catch(() => ({}))) as {
         ok?: boolean;
         username?: string;
@@ -820,7 +821,7 @@ function ThreadsCard({ initialStatus }: { initialStatus: ThreadsStatus | null })
     if (!confirm(t.connects.confirmThreadsDisconnect)) return;
     setDisconnecting(true);
     try {
-      const res = await fetch('/__connects/threads/disconnect', { method: 'POST' });
+      const res = await fetch(`${API.connects}/threads/disconnect`, { method: 'POST' });
       if (!res.ok) {
         toast.error(t.connects.toastDisconnectFailed);
         return;
@@ -1010,7 +1011,7 @@ function ImgbbCard({ initialStatus }: { initialStatus: ImgbbStatus | null }) {
 
     setSaving(true);
     try {
-      const res = await fetch('/__connects/imgbb', {
+      const res = await fetch(`${API.connects}/imgbb`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
@@ -1038,7 +1039,7 @@ function ImgbbCard({ initialStatus }: { initialStatus: ImgbbStatus | null }) {
   const testConnection = async () => {
     setTesting(true);
     try {
-      const res = await fetch('/__connects/imgbb/test', { method: 'POST' });
+      const res = await fetch(`${API.connects}/imgbb/test`, { method: 'POST' });
       const body = (await res.json().catch(() => ({}))) as { ok?: boolean } & ConnectionError;
       if (res.ok && body.ok) {
         toast.success(t.connects.toastImgbbConnectionSuccess);
@@ -1056,7 +1057,7 @@ function ImgbbCard({ initialStatus }: { initialStatus: ImgbbStatus | null }) {
     if (!confirm(t.connects.confirmImgbbDisconnect)) return;
     setDisconnecting(true);
     try {
-      const res = await fetch('/__connects/imgbb/disconnect', { method: 'POST' });
+      const res = await fetch(`${API.connects}/imgbb/disconnect`, { method: 'POST' });
       if (!res.ok) {
         toast.error(t.connects.toastDisconnectFailed);
         return;

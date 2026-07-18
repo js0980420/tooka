@@ -2,7 +2,9 @@ import fs from 'node:fs/promises';
 import type { ViteDevServer } from 'vite';
 import { applyEdit, type EditOp } from '../../editing/edit-ops.ts';
 import { applyRevertAsset } from '../../editing/revert-asset.ts';
+import { withFileLock } from '../../files/file-lock.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody, resolveSlideEntryPath } from './context.ts';
 
 // POST /__edit                applyEdit({ slideId, line, column, ops })
@@ -22,7 +24,7 @@ type EditBatchBody = {
 };
 
 export function registerEditRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__edit', async (req, res, next) => {
+  server.middlewares.use(API.edit, async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
     if (method !== 'POST') return next();
@@ -38,18 +40,20 @@ export function registerEditRoutes(server: ViteDevServer, ctx: ApiContext): void
         if (!body.line || body.line < 1) return json(res, 400, { error: 'invalid line' });
         if (!Array.isArray(body.ops)) return json(res, 400, { error: 'missing ops' });
 
-        let source: string;
-        try {
-          source = await fs.readFile(file, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(file, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(file, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const result = applyEdit(source, body.line, body.column ?? 0, body.ops);
-        if (!result.ok) return json(res, result.status, { error: result.error });
-        const changed = result.source !== source;
-        if (changed) await fs.writeFile(file, result.source, 'utf8');
-        return json(res, 200, { ok: true, changed });
+          const result = applyEdit(source, body.line ?? 0, body.column ?? 0, body.ops ?? []);
+          if (!result.ok) return json(res, result.status, { error: result.error });
+          const changed = result.source !== source;
+          if (changed) await fs.writeFile(file, result.source, 'utf8');
+          return json(res, 200, { ok: true, changed });
+        });
       }
 
       if (url.pathname === '/revert-asset') {
@@ -65,18 +69,20 @@ export function registerEditRoutes(server: ViteDevServer, ctx: ApiContext): void
           return json(res, 400, { error: 'asset path must start with ./assets/ or @assets/' });
         }
 
-        let source: string;
-        try {
-          source = await fs.readFile(file, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(file, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(file, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const result = applyRevertAsset(source, assetPath);
-        if (!result.ok) return json(res, result.status, { error: result.error });
-        const changed = result.source !== source;
-        if (changed) await fs.writeFile(file, result.source, 'utf8');
-        return json(res, 200, { ok: true, changed });
+          const result = applyRevertAsset(source, assetPath);
+          if (!result.ok) return json(res, result.status, { error: result.error });
+          const changed = result.source !== source;
+          if (changed) await fs.writeFile(file, result.source, 'utf8');
+          return json(res, 200, { ok: true, changed });
+        });
       }
 
       // One read-modify-write per batch so a multi-element edit session
@@ -88,32 +94,35 @@ export function registerEditRoutes(server: ViteDevServer, ctx: ApiContext): void
         const file = resolveSlideEntryPath(ctx, slideId);
         if (!file) return json(res, 400, { error: 'invalid slideId' });
         if (!Array.isArray(body.edits)) return json(res, 400, { error: 'missing edits' });
+        const edits = body.edits;
 
-        let source: string;
-        try {
-          source = await fs.readFile(file, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(file, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(file, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const original = source;
-        const results: Array<{ ok: boolean; error?: string }> = [];
-        for (const edit of body.edits) {
-          if (!edit.line || edit.line < 1 || !Array.isArray(edit.ops)) {
-            results.push({ ok: false, error: 'invalid edit' });
-            continue;
+          const original = source;
+          const results: Array<{ ok: boolean; error?: string }> = [];
+          for (const edit of edits) {
+            if (!edit.line || edit.line < 1 || !Array.isArray(edit.ops)) {
+              results.push({ ok: false, error: 'invalid edit' });
+              continue;
+            }
+            const r = applyEdit(source, edit.line, edit.column ?? 0, edit.ops);
+            if (r.ok) {
+              source = r.source;
+              results.push({ ok: true });
+            } else {
+              results.push({ ok: false, error: r.error });
+            }
           }
-          const r = applyEdit(source, edit.line, edit.column ?? 0, edit.ops);
-          if (r.ok) {
-            source = r.source;
-            results.push({ ok: true });
-          } else {
-            results.push({ ok: false, error: r.error });
-          }
-        }
-        const changed = source !== original;
-        if (changed) await fs.writeFile(file, source, 'utf8');
-        return json(res, 200, { ok: true, changed, results });
+          const changed = source !== original;
+          if (changed) await fs.writeFile(file, source, 'utf8');
+          return json(res, 200, { ok: true, changed, results });
+        });
       }
 
       return next();

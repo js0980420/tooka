@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import type { ViteDevServer } from 'vite';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
+import { DEV_SUPERVISED_ENV, RESTART_EXIT_CODE } from '../../shared/dev-lifecycle.ts';
 import { json } from './context.ts';
 
 // GET /__server-status → { executionId, canRestart }
@@ -10,9 +12,6 @@ import { json } from './context.ts';
 //   Exits with RESTART_EXIT_CODE so the CLI supervisor respawns the server
 //   against the currently installed @tooka/core.
 
-export const RESTART_EXIT_CODE = 52;
-export const DEV_SUPERVISED_ENV = 'TOOKA_DEV_SUPERVISED';
-
 const executionId = randomUUID();
 
 function isSupervised(): boolean {
@@ -20,13 +19,13 @@ function isSupervised(): boolean {
 }
 
 export function registerRestartRoutes(server: ViteDevServer): void {
-  server.middlewares.use('/__server-status', (req, res, next) => {
+  server.middlewares.use(API.serverStatus, (req, res, next) => {
     if ((req.method ?? 'GET') !== 'GET') return next();
     res.setHeader('cache-control', 'no-store');
     json(res, 200, { executionId, canRestart: isSupervised() });
   });
 
-  server.middlewares.use('/__restart-server', (req, res, next) => {
+  server.middlewares.use(API.restartServer, (req, res, next) => {
     if ((req.method ?? 'GET') !== 'POST') return next();
 
     const guard = validateMutationRequest(req);

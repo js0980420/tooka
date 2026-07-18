@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { API } from '../../../shared/api-routes';
 
 export type NoteSaveStatus =
   | { kind: 'idle' }
@@ -41,7 +42,9 @@ export function useNotes(slideId: string, index: number, initial: string | undef
   const lastSavedRef = useRef(initialText);
   const dirtyRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const inflightRef = useRef<AbortController | null>(null);
+  // Keyed per target so a save for page 1 is never aborted by a newer
+  // save for page 2 — only a newer save of the SAME note supersedes.
+  const inflightRef = useRef(new Map<string, AbortController>());
   const targetRef = useRef<Target>({ slideId, index });
   const valueRef = useRef(value);
   valueRef.current = value;
@@ -54,12 +57,16 @@ export function useNotes(slideId: string, index: number, initial: string | undef
   }, []);
 
   const persist = useCallback(async (target: Target, text: string) => {
-    inflightRef.current?.abort();
+    const key = cacheKey(target.slideId, target.index);
+    const inflight = inflightRef.current;
+    inflight.get(key)?.abort();
     const ctl = new AbortController();
-    inflightRef.current = ctl;
-    setStatus({ kind: 'saving' });
+    inflight.set(key, ctl);
+    const isCurrent = () =>
+      targetRef.current.slideId === target.slideId && targetRef.current.index === target.index;
+    if (isCurrent()) setStatus({ kind: 'saving' });
     try {
-      const res = await fetch('/__notes', {
+      const res = await fetch(API.notes, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ slideId: target.slideId, index: target.index, text }),
@@ -67,16 +74,18 @@ export function useNotes(slideId: string, index: number, initial: string | undef
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) throw new Error(body.error ?? `PUT /__notes → ${res.status}`);
-      sessionCache.set(cacheKey(target.slideId, target.index), text);
-      if (inflightRef.current !== ctl) return;
+      sessionCache.set(key, text);
+      if (inflight.get(key) !== ctl || !isCurrent()) return;
       lastSavedRef.current = text;
       dirtyRef.current = false;
       setStatus({ kind: 'saved' });
     } catch (err) {
       if ((err as { name?: string }).name === 'AbortError') return;
-      setStatus({ kind: 'error', message: String((err as Error).message ?? err) });
+      if (isCurrent()) {
+        setStatus({ kind: 'error', message: String((err as Error).message ?? err) });
+      }
     } finally {
-      if (inflightRef.current === ctl) inflightRef.current = null;
+      if (inflight.get(key) === ctl) inflight.delete(key);
     }
   }, []);
 
@@ -105,12 +114,16 @@ export function useNotes(slideId: string, index: number, initial: string | undef
     setStatus({ kind: 'idle' });
   }, [slideId, index, initialText, persist, cancelTimer]);
 
+  // On unmount, flush instead of aborting — navigating away must not
+  // lose a note that was typed but not yet persisted.
   useEffect(() => {
     return () => {
       cancelTimer();
-      inflightRef.current?.abort();
+      if (dirtyRef.current && lastSavedRef.current !== valueRef.current) {
+        void persist(targetRef.current, valueRef.current);
+      }
     };
-  }, [cancelTimer]);
+  }, [cancelTimer, persist]);
 
   const setValue = useCallback(
     (next: string) => {

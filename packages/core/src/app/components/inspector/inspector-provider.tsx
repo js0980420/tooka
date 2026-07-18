@@ -832,13 +832,15 @@ export function InspectorProvider({
       }
       refreshCount();
       if (failures.length > 0) toast.error(`${t.inspector.saveFailed} ${failures.join('; ')}`);
+      // The server rewrote the source, so DOM-level undo entries are stale.
+      // On transport failure nothing was applied — keep the undo stack.
+      history.clear();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       toast.error(`${t.inspector.saveFailed} ${msg}`);
       throw err;
     } finally {
       setCommitting(false);
-      history.clear();
     }
   }, [applyEdits, history, refreshCount, t]);
 

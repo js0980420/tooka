@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { API } from '../../../shared/api-routes';
 
 export type EditOp =
   | { kind: 'set-style'; key: string; value: string | null; prevText?: string }
@@ -32,7 +33,7 @@ export class NoOpEditError extends Error {
 export function useEditor(slideId: string) {
   const applyEdit = useCallback(
     async (line: number, column: number, ops: EditOp[]) => {
-      const res = await fetch('/__edit', {
+      const res = await fetch(API.edit, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ slideId, line, column, ops }),
@@ -54,7 +55,7 @@ export function useEditor(slideId: string) {
   const applyEdits = useCallback(
     async (edits: Edit[]): Promise<EditResult[]> => {
       if (edits.length === 0) return [];
-      const res = await fetch('/__edit/batch', {
+      const res = await fetch(`${API.edit}/batch`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ slideId, edits }),
@@ -66,7 +67,12 @@ export function useEditor(slideId: string) {
       if (!res.ok) {
         throw new Error(body.error ?? `POST /__edit/batch → ${res.status}`);
       }
-      return body.results ?? [];
+      if (!Array.isArray(body.results) || body.results.length !== edits.length) {
+        throw new Error(
+          `POST /__edit/batch returned ${body.results?.length ?? 0} results for ${edits.length} edits`,
+        );
+      }
+      return body.results;
     },
     [slideId],
   );

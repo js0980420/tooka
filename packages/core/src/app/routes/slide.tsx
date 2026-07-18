@@ -53,6 +53,7 @@ import { format, useLocale } from '@/lib/use-locale';
 import { useResizableWidth } from '@/lib/use-resizable-width';
 import { useWheelPageNavigation } from '@/lib/use-wheel-page-navigation';
 import { cn } from '@/lib/utils';
+import { API } from '../../shared/api-routes';
 import { AddToCardsButton } from '../components/add-to-cards-button';
 import { CarouselDots } from '../components/carousel-dots';
 import { ExportCropPreview } from '../components/export-crop-preview';
@@ -224,7 +225,7 @@ export function Slide() {
       if (nextIndex !== index) goTo(nextIndex);
 
       try {
-        const res = await fetch(`/__slides/${encodeURIComponent(slideId)}/reorder`, {
+        const res = await fetch(`${API.slides}/${encodeURIComponent(slideId)}/reorder`, {
           method: 'PUT',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ order }),
@@ -253,9 +254,12 @@ export function Slide() {
       if (index > i) goTo(index + 1);
 
       try {
-        const res = await fetch(`/__slides/${encodeURIComponent(slideId)}/pages/${i}/duplicate`, {
-          method: 'POST',
-        });
+        const res = await fetch(
+          `${API.slides}/${encodeURIComponent(slideId)}/pages/${i}/duplicate`,
+          {
+            method: 'POST',
+          },
+        );
         if (!res.ok) {
           const detail = await res.json().catch(() => ({ error: res.statusText }));
           throw new Error(detail.error ?? `HTTP ${res.status}`);
@@ -283,7 +287,7 @@ export function Slide() {
       }
 
       try {
-        const res = await fetch(`/__slides/${encodeURIComponent(slideId)}/pages/${i}`, {
+        const res = await fetch(`${API.slides}/${encodeURIComponent(slideId)}/pages/${i}`, {
           method: 'DELETE',
         });
         if (!res.ok) {
@@ -318,7 +322,13 @@ export function Slide() {
     // page-nav handler too would race it and skip <Steps> reveals, so bail out.
     if (playMode || !showSlideUi) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement && e.target.matches('input, textarea')) return;
+      if (
+        e.target instanceof HTMLElement &&
+        (e.target.isContentEditable ||
+          e.target.matches('input, textarea, select, button, a, [role="button"]'))
+      ) {
+        return;
+      }
       // Letter shortcuts only fire bare so browser combos (Cmd/Ctrl-P, ⌘F…) stay intact.
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       // Toggle overview from either state — the overview's own capture-phase

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format, useLocale } from '@/lib/use-locale';
+import { API } from '../../../shared/api-routes';
 
 type UpdateCheck = { current: string; latest: string | null; outdated: boolean };
 type ServerStatus = { executionId: string; canRestart: boolean };
@@ -27,7 +28,7 @@ function LineIcon({ className }: { className?: string }) {
 }
 
 async function fetchServerStatus(): Promise<ServerStatus | null> {
-  const res = await fetch('/__server-status');
+  const res = await fetch(API.serverStatus);
   if (!res.ok) return null;
   return (await res.json()) as ServerStatus;
 }
@@ -43,7 +44,7 @@ export function SidebarFooter() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     let cancelled = false;
-    fetch('/__update-check')
+    fetch(API.updateCheck)
       .then((res) => (res.ok ? (res.json() as Promise<UpdateCheck>) : null))
       .then((data) => {
         if (!cancelled && data?.outdated) setUpdate(data);
@@ -68,7 +69,7 @@ export function SidebarFooter() {
     setUpdateStatus('running');
     setOpen(true);
     try {
-      const res = await fetch('/__update-package', { method: 'POST' });
+      const res = await fetch(API.updatePackage, { method: 'POST' });
       if (!res.ok) throw new Error('update failed');
       setUpdateStatus('done');
       toast.success(t.home.updatePackageDone);
@@ -84,7 +85,7 @@ export function SidebarFooter() {
     try {
       const before = await fetchServerStatus();
       if (!before) throw new Error('server status unavailable');
-      const res = await fetch('/__restart-server', { method: 'POST' });
+      const res = await fetch(API.restartServer, { method: 'POST' });
       if (!res.ok) throw new Error('restart failed');
       for (let attempt = 0; attempt < 30; attempt++) {
         await new Promise((resolve) => setTimeout(resolve, 500));

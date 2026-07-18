@@ -8,7 +8,9 @@ import {
   parseMarkers,
   removeMarker,
 } from '../../editing/comments.ts';
+import { withFileLock } from '../../files/file-lock.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody, resolveSlideEntryPath } from './context.ts';
 
 // GET    /__comments        list markers for ?slideId=…
@@ -24,7 +26,7 @@ type AddCommentBody = {
 };
 
 export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__comments', async (req, res, next) => {
+  server.middlewares.use(API.comments, async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
 
@@ -55,32 +57,35 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         if (!body.text || typeof body.text !== 'string') {
           return json(res, 400, { error: 'missing text' });
         }
+        const text = body.text;
 
-        let source: string;
-        try {
-          source = await fs.readFile(file, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(file, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(file, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const plan = findInsertion(source, body.line, body.column);
-        if (!plan) {
-          return json(res, 422, {
-            error:
-              'could not find a JSX container around line ' +
-              `${body.line}. Try clicking a different element.`,
-          });
-        }
+          const plan = findInsertion(source, body.line ?? 0, body.column);
+          if (!plan) {
+            return json(res, 422, {
+              error:
+                'could not find a JSX container around line ' +
+                `${body.line}. Try clicking a different element.`,
+            });
+          }
 
-        const id = newCommentId();
-        const ts = new Date().toISOString();
-        const payload = b64urlEncode(JSON.stringify({ note: body.text, hint: body.hint }));
-        const marker = `\n${plan.indent}{/* @slide-comment id="${id}" ts="${ts}" text="${payload}" */}`;
+          const id = newCommentId();
+          const ts = new Date().toISOString();
+          const payload = b64urlEncode(JSON.stringify({ note: text, hint: body.hint }));
+          const marker = `\n${plan.indent}{/* @slide-comment id="${id}" ts="${ts}" text="${payload}" */}`;
 
-        const next = source.slice(0, plan.offset) + marker + source.slice(plan.offset);
-        await fs.writeFile(file, next, 'utf8');
-        const markerLine = offsetToLine(next, plan.offset + 1);
-        return json(res, 200, { id, line: markerLine });
+          const updated = source.slice(0, plan.offset) + marker + source.slice(plan.offset);
+          await fs.writeFile(file, updated, 'utf8');
+          const markerLine = offsetToLine(updated, plan.offset + 1);
+          return json(res, 200, { id, line: markerLine });
+        });
       }
 
       if (method === 'DELETE' && url.pathname.startsWith('/')) {
@@ -94,17 +99,19 @@ export function registerCommentRoutes(server: ViteDevServer, ctx: ApiContext): v
         const file = resolveSlideEntryPath(ctx, slideId);
         if (!file) return json(res, 400, { error: 'invalid slideId' });
 
-        let source: string;
-        try {
-          source = await fs.readFile(file, 'utf8');
-        } catch {
-          return json(res, 404, { error: 'slide not found' });
-        }
+        return await withFileLock(file, async () => {
+          let source: string;
+          try {
+            source = await fs.readFile(file, 'utf8');
+          } catch {
+            return json(res, 404, { error: 'slide not found' });
+          }
 
-        const nextSource = removeMarker(source, id);
-        if (nextSource === null) return json(res, 404, { error: 'marker not found' });
-        await fs.writeFile(file, nextSource, 'utf8');
-        return json(res, 200, { ok: true });
+          const nextSource = removeMarker(source, id);
+          if (nextSource === null) return json(res, 404, { error: 'marker not found' });
+          await fs.writeFile(file, nextSource, 'utf8');
+          return json(res, 200, { ok: true });
+        });
       }
 
       next();

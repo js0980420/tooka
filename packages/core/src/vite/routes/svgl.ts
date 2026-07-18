@@ -1,11 +1,12 @@
 import type { ViteDevServer } from 'vite';
+import { API } from '../../shared/api-routes.ts';
 import { json } from './context.ts';
 
 // GET /__svgl/search?q=&limit=  proxy https://api.svgl.app/?search=…
 // GET /__svgl/svg?u=…           proxy raw svg from svgl.app (https only)
 
 export function registerSvglRoutes(server: ViteDevServer): void {
-  server.middlewares.use('/__svgl', async (req, res, next) => {
+  server.middlewares.use(API.svgl, async (req, res, next) => {
     const reqUrl = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
     if (method !== 'GET') return next();

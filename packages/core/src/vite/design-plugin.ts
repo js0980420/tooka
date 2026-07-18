@@ -1,9 +1,10 @@
 import fs from 'node:fs/promises';
 import { parse as babelParse } from '@babel/parser';
 import type { Plugin, ViteDevServer } from 'vite';
-import { type DesignSystem, defaultDesign } from '../app/lib/design.ts';
 import type { AstNode } from '../editing/babel-walk.ts';
 import { validateMutationRequest } from '../http/request-guard.ts';
+import { API } from '../shared/api-routes.ts';
+import { type DesignSystem, defaultDesign } from '../shared/design.ts';
 import { json, readBody, resolveSlidePath } from './routes/context.ts';
 
 function parseSource(source: string): AstNode | null {
@@ -340,7 +341,7 @@ export function designPlugin(opts: DesignPluginOptions): Plugin {
     name: 'tooka:design',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
-      server.middlewares.use('/__design', async (req, res, next) => {
+      server.middlewares.use(API.design, async (req, res, next) => {
         const url = new URL(req.url ?? '/', 'http://local');
         const method = req.method ?? 'GET';
         const slideId = url.searchParams.get('slideId') ?? '';

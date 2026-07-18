@@ -3,8 +3,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import chalk from 'chalk';
 import { createServer, mergeConfig } from 'vite';
+import { DEV_SUPERVISED_ENV, RESTART_EXIT_CODE } from '../shared/dev-lifecycle.ts';
 import { createViteConfig } from '../vite/config.ts';
-import { DEV_SUPERVISED_ENV, RESTART_EXIT_CODE } from '../vite/routes/restart.ts';
 
 export interface DevOptions {
   port?: number;

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { API } from '../../../shared/api-routes';
 
 export type SlideComment = {
   id: string;
@@ -17,7 +18,7 @@ export function useComments(slideId: string) {
   const refetch = useCallback(async () => {
     if (!slideId) return;
     try {
-      const res = await fetch(`/__comments?slideId=${encodeURIComponent(slideId)}`);
+      const res = await fetch(`${API.comments}?slideId=${encodeURIComponent(slideId)}`);
       if (!res.ok) {
         setError(`GET /__comments → ${res.status}`);
         return;
@@ -32,7 +33,7 @@ export function useComments(slideId: string) {
 
   const add = useCallback(
     async (line: number, column: number, text: string) => {
-      const res = await fetch('/__comments/add', {
+      const res = await fetch(`${API.comments}/add`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ slideId, line, column, text }),
@@ -48,7 +49,7 @@ export function useComments(slideId: string) {
 
   const remove = useCallback(
     async (id: string) => {
-      const res = await fetch(`/__comments/${id}?slideId=${encodeURIComponent(slideId)}`, {
+      const res = await fetch(`${API.comments}/${id}?slideId=${encodeURIComponent(slideId)}`, {
         method: 'DELETE',
       });
       if (!res.ok) throw new Error(`DELETE /__comments/${id} → ${res.status}`);

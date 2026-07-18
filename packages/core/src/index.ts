@@ -2,13 +2,6 @@ export type { ImagePlaceholderProps } from './app/components/image-placeholder.t
 export { ImagePlaceholder } from './app/components/image-placeholder.tsx';
 export type { unstable_SharedElementProps } from './app/components/shared-element.tsx';
 export { unstable_SharedElement } from './app/components/shared-element.tsx';
-export type {
-  DesignFonts,
-  DesignPalette,
-  DesignSystem,
-  DesignTypeScale,
-} from './app/lib/design.ts';
-export { cssVarsToString, defaultDesign, designToCssVars } from './app/lib/design.ts';
 export { useSlidePageNumber } from './app/lib/page-context.tsx';
 export { usePngExportVariant } from './app/lib/png-export-variant.tsx';
 export type {
@@ -34,3 +27,10 @@ export type {
 } from './app/lib/transition.ts';
 export type { TookaConfig } from './config.ts';
 export type { Locale, Plural } from './locale/types.ts';
+export type {
+  DesignFonts,
+  DesignPalette,
+  DesignSystem,
+  DesignTypeScale,
+} from './shared/design.ts';
+export { cssVarsToString, defaultDesign, designToCssVars } from './shared/design.ts';

@@ -13,6 +13,7 @@ import {
   validateAssetName,
 } from '../../files/assets.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
 // GET    /__assets/:scope                     list assets in slide or @global
@@ -23,7 +24,7 @@ import { type ApiContext, json, readBody } from './context.ts';
 // GET    /__assets/:scope/:file/usages        count <img src={import}> references
 
 export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use('/__assets', async (req, res, next) => {
+  server.middlewares.use(API.assets, async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
 
@@ -109,7 +110,7 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
             createdAt: assetCreatedAt(stat.birthtimeMs, stat.mtimeMs),
             mtime: stat.mtimeMs,
             mime: mimeForFilename(name),
-            url: `/__assets/${slideId}/${encodeURIComponent(name)}`,
+            url: `${API.assets}/${slideId}/${encodeURIComponent(name)}`,
             unused: true,
           });
         }
@@ -206,20 +207,33 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
           const chunks: Buffer[] = [];
           let total = 0;
           let oversized = false;
+          let completed = false;
+          // req and res share one socket — destroying req here would also kill the
+          // response, so oversized uploads are drained instead and answered early.
           await new Promise<void>((resolve, reject) => {
             req.on('data', (c: Buffer) => {
+              if (oversized) return;
               total += c.length;
               if (total > ASSET_MAX_BYTES) {
                 oversized = true;
-                req.destroy();
+                chunks.length = 0;
+                resolve();
                 return;
               }
               chunks.push(c);
             });
-            req.on('end', () => resolve());
+            req.on('end', () => {
+              completed = true;
+              resolve();
+            });
+            req.on('close', () => resolve());
             req.on('error', reject);
           });
-          if (oversized) return json(res, 413, { error: 'file too large' });
+          if (oversized) {
+            res.setHeader('connection', 'close');
+            return json(res, 413, { error: 'file too large' });
+          }
+          if (!completed) return res.end();
 
           await fs.writeFile(file, Buffer.concat(chunks));
           const stat = await fs.stat(file);
@@ -230,7 +244,7 @@ export function registerAssetRoutes(server: ViteDevServer, ctx: ApiContext): voi
             createdAt: assetCreatedAt(stat.birthtimeMs, stat.mtimeMs),
             mtime: stat.mtimeMs,
             mime: mimeForFilename(filename),
-            url: `/__assets/${slideId}/${encodeURIComponent(filename)}`,
+            url: `${API.assets}/${slideId}/${encodeURIComponent(filename)}`,
           });
         }
 

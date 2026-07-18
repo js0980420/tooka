@@ -208,7 +208,8 @@ export function Player({
       el.requestFullscreen?.().catch(() => {});
     }
     return () => {
-      if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+      // Only exit our own fullscreen — a slide's <video> may own it too.
+      if (document.fullscreenElement === el) document.exitFullscreen?.().catch(() => {});
     };
   }, [windowed]);
 
@@ -283,6 +284,13 @@ export function Player({
         } else if (helpOpen && (e.key === '?' || e.key === 'h' || e.key === 'H')) {
           e.preventDefault();
           setHelpOpen(false);
+        } else if (
+          overviewOpen &&
+          (e.key === 'o' || e.key === 'O') &&
+          !(e.altKey || e.ctrlKey || e.metaKey)
+        ) {
+          e.preventDefault();
+          setOverviewOpen(false);
         }
         return;
       }

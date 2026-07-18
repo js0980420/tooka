@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { assetPathFor, hasAssetDrag, readAssetDrag } from '@/lib/asset-dnd';
 import { uploadWithAutoRename } from '@/lib/assets';
 import { useLocale } from '@/lib/use-locale';
+import { API } from '../../shared/api-routes';
 
 export type ImagePlaceholderProps = {
   hint: string;
@@ -221,7 +222,7 @@ async function replacePlaceholder(
   line: number,
   column: number,
 ) {
-  const res = await fetch('/__edit', {
+  const res = await fetch(API.edit, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
