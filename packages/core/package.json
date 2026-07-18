@@ -29,6 +29,8 @@
     "env.d.ts",
     "src/app",
     "src/locale",
+    "src/publishing",
+    "src/shared",
     "skills",
     "README.md"
   ],
@@ -71,7 +73,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/geist": "^5.2.8",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.3.2",
     "@vitejs/plugin-react": "^4.3.3",
     "chalk": "^5.3.0",
     "class-variance-authority": "^0.7.1",
@@ -83,11 +85,8 @@
     "html-to-image": "^1.11.13",
     "lucide-react": "^1.8.0",
     "next-themes": "^0.4.6",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
     "react-image-crop": "^11.0.10",
     "react-router-dom": "^7.18.1",
-    "shadcn": "^4.13.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.3.2",
@@ -95,11 +94,19 @@
     "use-sync-external-store": "^1.6.0",
     "vite": "^5.4.10"
   },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "shadcn": "^4.13.0",
     "tsdown": "^0.9.9",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

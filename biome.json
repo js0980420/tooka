@@ -11,7 +11,8 @@
       "!**/dist",
       "!**/node_modules",
       "!**/*.tsbuildinfo",
-      "!packages/core/src/app/components/ui"
+      "!packages/core/src/app/components/ui",
+      "!packages/core/src/app/shadcn-tailwind.css"
     ]
   },
   "formatter": {
