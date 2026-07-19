@@ -12,264 +12,29 @@ import {
 import { toast } from 'sonner';
 import { useHistory } from '@/components/history-provider';
 import { Button } from '@/components/ui/button';
-import { type SlideComment, useComments } from '@/lib/inspector/use-comments';
-import { type Edit, type EditOp, type EditResult, useEditor } from '@/lib/inspector/use-editor';
+import { useComments } from '@/lib/inspector/use-comments';
+import { type EditOp, useEditor } from '@/lib/inspector/use-editor';
 import { useLocale } from '@/lib/use-locale';
 import { AssetPickerDialog } from './asset-picker-dialog';
 import { ImageCropDialog, type ImageCropRect } from './image-crop-dialog';
+import {
+  type AssetAttrOp,
+  type Bucket,
+  buildPendingItems,
+  INSTANCE_ID_ATTR,
+  rangeStyleKey,
+  readEditableText,
+  readInstanceId,
+  replayDomTextRangeStyles,
+  type Sequenced,
+  type Snap,
+  setEditableText,
+  type TextRangeStyleOp,
+} from './inspector-buffer';
+import { parseObjectPosition, parseObjectViewBox, round2 } from './inspector-crop-utils';
+import type { InspectorCtx, SelectedTarget } from './inspector-types';
 
-export type SelectedTarget = {
-  line: number;
-  column: number;
-  anchor: HTMLElement;
-};
-
-type AssetAttrOp = { assetPath: string; previewUrl: string };
-type Sequenced<T> = T & { seq: number };
-type StyleOp = { value: string | null; prevText?: string };
-type TextRangeStyleOp = {
-  instanceId: string;
-  start: number;
-  end: number;
-  key: string;
-  value: string | null;
-  prevText?: string;
-};
-
-type Bucket = {
-  line: number;
-  column: number;
-  styleOps: Map<string, Sequenced<StyleOp>>;
-  rangeStyleOps: Map<string, Sequenced<TextRangeStyleOp>>;
-  // Deletion previews as `display: none` (original value snapshotted in
-  // `origStyle`) and only splices the source on commit.
-  deleteOp: Sequenced<{ tag: string | null }> | null;
-  // Text edits are scoped per DOM instance: a reused component renders
-  // the same JSX `<h2>{title}</h2>` at multiple call sites with the same
-  // `data-slide-loc`, but each call site's prop literal is independent.
-  // Style/attr ops stay shared because they edit the JSX definition.
-  textOps: Map<string /* instanceId */, Sequenced<{ value: string }>>;
-  attrOps: Map<string, Sequenced<AssetAttrOp>>;
-  // Pre-edit snapshot of the DOM, captured the first time we touch
-  // each style key / text / attribute. Used by `cancelEdits` to revert.
-  origStyle: Map<string, string>;
-  origTexts: Map<string /* instanceId */, { value: string }>;
-  origHtmls: Map<string /* instanceId */, string>;
-  origAttrs: Map<string, string | null>;
-};
-
-const INSTANCE_ID_ATTR = 'data-slide-instance-id';
-
-function readInstanceId(el: HTMLElement): string | null {
-  return el.getAttribute(INSTANCE_ID_ATTR);
-}
-
-type DomTextPart = { node: Text | HTMLBRElement; current: string };
-
-function readEditableText(el: HTMLElement): string {
-  const parts: DomTextPart[] = [];
-  collectDomTextParts(el, parts);
-  return parts.map((part) => part.current).join('');
-}
-
-function collectDomTextParts(node: Node, out: DomTextPart[]): void {
-  const parts: DomTextPart[] = [];
-  collectDomTextPartsRaw(node, parts);
-  out.push(...normalizeDomTextParts(parts));
-}
-
-function collectDomTextPartsRaw(node: Node, out: DomTextPart[]): void {
-  for (const child of Array.from(node.childNodes)) {
-    if (child instanceof Text) {
-      const current = renderedTextNodeValue(child);
-      if (current) out.push({ node: child, current });
-    } else if (child instanceof HTMLBRElement) {
-      out.push({ node: child, current: '\n' });
-    } else if (child instanceof HTMLElement) {
-      collectDomTextPartsRaw(child, out);
-    }
-  }
-}
-
-function normalizeDomTextParts(parts: DomTextPart[]): DomTextPart[] {
-  return parts.flatMap((part, index) => {
-    if (part.current === '\n') return [part];
-    let current = part.current;
-    if (parts[index - 1]?.current === '\n') current = current.replace(/^\s+/, '');
-    if (parts[index + 1]?.current === '\n') current = current.replace(/\s+$/, '');
-    return current ? [{ ...part, current }] : [];
-  });
-}
-
-function renderedTextNodeValue(node: Text): string {
-  const whiteSpace = node.parentElement ? getComputedStyle(node.parentElement).whiteSpace : '';
-  if (whiteSpace === 'pre' || whiteSpace === 'pre-wrap' || whiteSpace === 'break-spaces') {
-    return node.data;
-  }
-  return node.data.replace(/\s+/g, ' ');
-}
-
-function textDiff(prevText: string, nextText: string) {
-  let start = 0;
-  while (
-    start < prevText.length &&
-    start < nextText.length &&
-    prevText[start] === nextText[start]
-  ) {
-    start += 1;
-  }
-
-  let prevEnd = prevText.length;
-  let nextEnd = nextText.length;
-  while (prevEnd > start && nextEnd > start && prevText[prevEnd - 1] === nextText[nextEnd - 1]) {
-    prevEnd -= 1;
-    nextEnd -= 1;
-  }
-
-  return { start, end: prevEnd, value: nextText.slice(start, nextEnd) };
-}
-
-function textFragment(value: string): DocumentFragment {
-  const fragment = document.createDocumentFragment();
-  const lines = value.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i]) fragment.append(document.createTextNode(lines[i]));
-    if (i < lines.length - 1) fragment.append(document.createElement('br'));
-  }
-  return fragment;
-}
-
-function replaceDomTextPart(part: DomTextPart, value: string) {
-  if (part.node instanceof Text && !value.includes('\n')) {
-    part.node.data = value;
-    return;
-  }
-  const fragment = textFragment(value);
-  part.node.replaceWith(fragment);
-}
-
-function setEditableText(el: HTMLElement, value: string) {
-  const parts: DomTextPart[] = [];
-  collectDomTextParts(el, parts);
-  const current = parts.map((part) => part.current).join('');
-  if (current === value) return;
-  if (parts.length === 0) {
-    el.replaceChildren(textFragment(value));
-    return;
-  }
-
-  const diff = textDiff(current, value);
-  let offset = 0;
-  let inserted = false;
-  for (const part of parts) {
-    const partStart = offset;
-    const partEnd = partStart + part.current.length;
-    offset = partEnd;
-
-    const overlaps = diff.start < partEnd && diff.end > partStart;
-    const insertsHere =
-      diff.start === diff.end && !inserted && diff.start >= partStart && diff.start <= partEnd;
-    if (!overlaps && !insertsHere) continue;
-
-    if (part.node instanceof Text) {
-      const localStart = Math.max(diff.start, partStart) - partStart;
-      const localEnd = overlaps ? Math.min(diff.end, partEnd) - partStart : localStart;
-      replaceDomTextPart(
-        part,
-        `${part.current.slice(0, localStart)}${inserted ? '' : diff.value}${part.current.slice(localEnd)}`,
-      );
-    } else if (overlaps) {
-      replaceDomTextPart(part, inserted ? '' : diff.value);
-    } else {
-      const fragment = textFragment(diff.value);
-      if (diff.start === partStart) part.node.before(fragment);
-      else part.node.after(fragment);
-    }
-
-    inserted = true;
-  }
-
-  if (!inserted && diff.start === diff.end && diff.start === offset) {
-    el.append(textFragment(diff.value));
-  }
-}
-
-function rangeStyleKey(
-  instanceId: string,
-  op: { start: number; end: number; key: string },
-): string {
-  return `${instanceId}:${op.start}:${op.end}:${op.key}`;
-}
-
-function applyDomTextRangeStyle(
-  el: HTMLElement,
-  op: Pick<TextRangeStyleOp, 'start' | 'end' | 'key' | 'value'>,
-) {
-  const value = op.value ?? resetValueForRangeStyle(op.key);
-  if (value === null) return;
-  const parts: DomTextPart[] = [];
-  collectDomTextParts(el, parts);
-  let offset = 0;
-  for (const part of parts) {
-    const partStart = offset;
-    const partEnd = partStart + part.current.length;
-    offset = partEnd;
-    if (!(part.node instanceof Text)) continue;
-    const selectedStart = Math.max(op.start, partStart);
-    const selectedEnd = Math.min(op.end, partEnd);
-    if (selectedStart >= selectedEnd) continue;
-
-    const localStart = selectedStart - partStart;
-    const localEnd = selectedEnd - partStart;
-    const before = part.current.slice(0, localStart);
-    const selected = part.current.slice(localStart, localEnd);
-    const after = part.current.slice(localEnd);
-    const span = document.createElement('span');
-    (span.style as unknown as Record<string, string>)[op.key] = value;
-    span.textContent = selected;
-    part.node.replaceWith(document.createTextNode(before), span, document.createTextNode(after));
-  }
-}
-
-function resetValueForRangeStyle(key: string): string | null {
-  if (key === 'fontWeight') return '400';
-  if (key === 'fontStyle') return 'normal';
-  return null;
-}
-
-function replayDomTextRangeStyles(el: HTMLElement, html: string, ops: TextRangeStyleOp[]) {
-  const preview = document.createElement('span');
-  preview.innerHTML = html;
-  for (const op of ops) applyDomTextRangeStyle(preview, op);
-  if (el.innerHTML !== preview.innerHTML) el.innerHTML = preview.innerHTML;
-}
-
-type InspectorCtx = {
-  slideId: string;
-  active: boolean;
-  toggle: () => void;
-  cancel: () => void;
-  comments: SlideComment[];
-  error: string | null;
-  refetch: () => Promise<void>;
-  add: (line: number, column: number, text: string) => Promise<void>;
-  remove: (id: string) => Promise<void>;
-  selected: SelectedTarget | null;
-  setSelected: (s: SelectedTarget | null) => void;
-  applyEdit: (line: number, column: number, ops: EditOp[]) => Promise<void>;
-  applyEdits: (edits: Edit[]) => Promise<EditResult[]>;
-  // Mutate the DOM optimistically, snapshot the pre-edit values, and
-  // remember the ops. `commitEdits` (manual Save or auto-flush on
-  // close) is what actually writes to disk; `cancelEdits` reverts.
-  bufferOps: (line: number, column: number, anchor: HTMLElement, ops: EditOp[]) => void;
-  pendingCount: number;
-  commitEdits: () => Promise<void>;
-  cancelEdits: () => void;
-  committing: boolean;
-  openCrop: (anchor: HTMLImageElement) => void;
-  openReplace: (anchor: HTMLElement) => void;
-  deleteElement: (target: SelectedTarget) => void;
-};
+export type { SelectedTarget } from './inspector-types';
 
 const Ctx = createContext<InspectorCtx | null>(null);
 
@@ -445,41 +210,6 @@ export function InspectorProvider({
     },
     [refreshCount, ensureInstanceId],
   );
-
-  // Pre-edit snapshot for history: capture the *currently effective* value of
-  // each touched field so undo can restore exactly the prior state, including
-  // the case where the bucket already had a buffered edit before this op.
-  type StyleSnap = {
-    kind: 'style';
-    key: string;
-    value: Sequenced<StyleOp> | string | null;
-    existed: boolean;
-  };
-  type RangeStyleSnap = {
-    kind: 'range-style';
-    id: string;
-    instanceId: string;
-    value: Sequenced<TextRangeStyleOp> | null;
-    existed: boolean;
-  };
-  type TextSnap = {
-    kind: 'text';
-    instanceId: string;
-    value: string | null;
-    existed: boolean;
-  };
-  type AttrSnap = {
-    kind: 'attr';
-    attr: string;
-    value: Sequenced<AssetAttrOp> | string | null;
-    source: 'op' | 'orig' | 'dom-missing' | 'dom-present';
-  };
-  type DeleteSnap = {
-    kind: 'delete';
-    value: Sequenced<{ tag: string | null }> | null;
-    existed: boolean;
-  };
-  type Snap = StyleSnap | RangeStyleSnap | TextSnap | AttrSnap | DeleteSnap;
 
   const snapshotForOps = useCallback(
     (line: number, column: number, anchor: HTMLElement, ops: EditOp[]): Snap[] => {
@@ -688,117 +418,7 @@ export function InspectorProvider({
   const commitEdits = useCallback(async () => {
     const buckets = pendingRef.current;
     if (buckets.size === 0) return;
-    type PendingItem = {
-      key: string;
-      seq: number;
-      edit: Edit;
-      onSuccess: (bucket: Bucket) => void;
-    };
-    const pending: PendingItem[] = [];
-    for (const [key, bucket] of buckets) {
-      const { line, column, styleOps, rangeStyleOps, textOps, attrOps, origTexts, deleteOp } =
-        bucket;
-      if (deleteOp) {
-        pending.push({
-          key,
-          seq: deleteOp.seq,
-          edit: {
-            line,
-            column,
-            ops: [{ kind: 'delete-element', tag: deleteOp.tag ?? undefined }],
-          },
-          onSuccess: (b) => {
-            b.deleteOp = null;
-          },
-        });
-      }
-      for (const [k, op] of styleOps) {
-        pending.push({
-          key,
-          seq: op.seq,
-          edit: {
-            line,
-            column,
-            ops: [{ kind: 'set-style', key: k, value: op.value, prevText: op.prevText }],
-          },
-          onSuccess: (b) => {
-            b.styleOps.delete(k);
-          },
-        });
-      }
-      for (const [attr, op] of attrOps) {
-        pending.push({
-          key,
-          seq: op.seq,
-          edit: {
-            line,
-            column,
-            ops: [
-              {
-                kind: 'set-attr-asset',
-                attr,
-                assetPath: op.assetPath,
-                previewUrl: op.previewUrl,
-              },
-            ],
-          },
-          onSuccess: (b) => {
-            b.attrOps.delete(attr);
-          },
-        });
-      }
-      for (const [id, op] of rangeStyleOps) {
-        pending.push({
-          key,
-          seq: op.seq,
-          edit: {
-            line,
-            column,
-            ops: [
-              {
-                kind: 'set-text-range-style',
-                start: op.start,
-                end: op.end,
-                key: op.key,
-                value: op.value,
-                prevText: op.prevText,
-              },
-            ],
-          },
-          onSuccess: (b) => {
-            b.rangeStyleOps.delete(id);
-          },
-        });
-      }
-      // Per-instance text edits — one Edit per call site, each with its
-      // own prevText so the server can disambiguate among siblings.
-      for (const [instanceId, textOp] of textOps) {
-        const orig = origTexts.get(instanceId);
-        pending.push({
-          key,
-          seq: textOp.seq,
-          edit: {
-            line,
-            column,
-            ops: [{ kind: 'set-text', value: textOp.value, prevText: orig?.value }],
-          },
-          onSuccess: (b) => {
-            b.textOps.delete(instanceId);
-          },
-        });
-      }
-    }
-    // Deletions remove source lines, which would shift the line:column
-    // targets of every edit below them — so they apply after all other
-    // edits, and bottom-up so they don't shift each other.
-    const isDelete = (p: PendingItem) => p.edit.ops[0]?.kind === 'delete-element';
-    pending.sort((a, b) => {
-      const da = isDelete(a) ? 1 : 0;
-      const db = isDelete(b) ? 1 : 0;
-      if (da !== db) return da - db;
-      if (da === 1) return b.edit.line - a.edit.line;
-      return a.seq - b.seq;
-    });
+    const pending = buildPendingItems(buckets);
     if (pending.length === 0) {
       pendingRef.current = new Map();
       setPendingCount(0);
@@ -1167,65 +787,6 @@ export function InspectorProvider({
       )}
     </Ctx.Provider>
   );
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
-function parseObjectViewBox(value: string): ImageCropRect | null {
-  const v = value?.trim();
-  if (!v || v === 'none') return null;
-  const m = v.match(/^inset\(([^)]+)\)$/);
-  if (!m?.[1]) return null;
-  const nums = m[1]
-    .trim()
-    .split(/\s+/)
-    .map((p) => {
-      const n = p.match(/^(-?\d+(?:\.\d+)?)%$/);
-      return n?.[1] ? Number(n[1]) : null;
-    });
-  if (nums.some((n) => n === null)) return null;
-  let top: number, right: number, bottom: number, left: number;
-  if (nums.length === 1) {
-    top = right = bottom = left = nums[0] as number;
-  } else if (nums.length === 2) {
-    top = bottom = nums[0] as number;
-    right = left = nums[1] as number;
-  } else if (nums.length === 3) {
-    top = nums[0] as number;
-    right = left = nums[1] as number;
-    bottom = nums[2] as number;
-  } else if (nums.length === 4) {
-    top = nums[0] as number;
-    right = nums[1] as number;
-    bottom = nums[2] as number;
-    left = nums[3] as number;
-  } else {
-    return null;
-  }
-  const x = left;
-  const y = top;
-  const width = 100 - left - right;
-  const height = 100 - top - bottom;
-  if (width <= 0 || height <= 0) return null;
-  return { x, y, width, height };
-}
-
-function parseObjectPosition(value: string): { x: number; y: number } {
-  const parts = value.trim().split(/\s+/);
-  const xRaw = parts[0] ?? '50%';
-  const yRaw = parts[1] ?? xRaw;
-  return { x: parsePercent(xRaw, 50), y: parsePercent(yRaw, 50) };
-}
-
-function parsePercent(s: string, fallback: number): number {
-  if (s === 'center') return 50;
-  if (s === 'left' || s === 'top') return 0;
-  if (s === 'right' || s === 'bottom') return 100;
-  const m = s.match(/(-?\d+(?:\.\d+)?)%/);
-  if (m?.[1]) return Number(m[1]);
-  return fallback;
 }
 
 export function InspectToggleButton() {
