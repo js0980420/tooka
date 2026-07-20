@@ -1,19 +1,38 @@
-import { KeyRound, RefreshCw, Sparkles, Unplug } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  KeyRound,
+  LoaderCircle,
+  LogIn,
+  RefreshCw,
+  Sparkles,
+  Unplug,
+} from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { API } from '../../../shared/api-routes';
 import { ConnectionDetail, SecretValue } from './shared';
 
-export type AgentProviderId = 'claude' | 'codex' | 'gemini';
+export type AgentProviderId = 'codex' | 'gemini';
 
 export type AgentProviderStatus = {
   runtime: 'builtin' | 'global' | null;
   version: string | null;
   tokenMasked: string | null;
+  authMethod: 'chatgpt' | 'api_key' | null;
 };
 
 export type AgentStatusResponse = {
@@ -214,66 +233,299 @@ function AgentProviderCard({ config }: { config: AgentCardConfig }) {
   );
 }
 
-export function ClaudeAgentCard() {
+const CODEX_DEVICE_URL = 'https://auth.openai.com/codex/device';
+const ANSI_SEQUENCE = /^\[[0-?]*[ -/]*[@-~]/;
+const DEVICE_CODE =
+  /(?:one-time code|device code|code|驗證碼)[^A-Z0-9]*([A-Z0-9]{4,6}-[A-Z0-9]{4,6})/i;
+
+type LoginPhase = 'idle' | 'waiting' | 'success' | 'error';
+type AuthStreamEvent = {
+  type: 'output' | 'exit';
+  text?: string;
+  code?: number | null;
+  authMethod?: AgentProviderStatus['authMethod'];
+  error?: string;
+};
+
+function stripAnsi(value: string): string {
+  return value
+    .split(String.fromCharCode(27))
+    .map((part, index) => (index === 0 ? part : part.replace(ANSI_SEQUENCE, '')))
+    .join('');
+}
+
+function CodexLoginDialog({
+  open,
+  onOpenChange,
+  onConnected,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConnected: () => Promise<void>;
+}) {
+  const controllerRef = useRef<AbortController | null>(null);
+  const [phase, setPhase] = useState<LoginPhase>('idle');
+  const [deviceCode, setDeviceCode] = useState<string | null>(null);
+  const [details, setDetails] = useState('');
+
+  const close = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      controllerRef.current?.abort();
+      setPhase('idle');
+    }
+    onOpenChange(nextOpen);
+  };
+
+  const startLogin = useCallback(async () => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setPhase('waiting');
+    setDeviceCode(null);
+    setDetails('');
+
+    let transcript = '';
+    try {
+      const response = await fetch(`${API.agent}/auth/login`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ provider: 'codex' }),
+        signal: controller.signal,
+      });
+      if (!response.ok || !response.body) throw new Error('無法啟動 OpenAI 登入流程');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let pending = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        pending += decoder.decode(value, { stream: !done });
+        const lines = pending.split('\n');
+        pending = done ? '' : (lines.pop() ?? '');
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const event = JSON.parse(line) as AuthStreamEvent;
+          if (event.type === 'output' && event.text) {
+            transcript += stripAnsi(event.text);
+            const code = transcript.match(DEVICE_CODE)?.[1];
+            if (code) setDeviceCode(code);
+            setDetails(transcript.trim().slice(-1200));
+          }
+          if (event.type === 'exit') {
+            if (event.authMethod === 'chatgpt') {
+              setPhase('success');
+              await onConnected();
+              toast.success('OpenAI 帳號已連線');
+            } else {
+              setPhase('error');
+              if (event.error === 'auth_timeout') setDetails('登入逾時，請重新嘗試。');
+            }
+          }
+        }
+        if (done) break;
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        setPhase('error');
+        setDetails((error as Error).message);
+      }
+    }
+  }, [onConnected]);
+
+  useEffect(() => {
+    if (open && phase === 'idle') void startLogin();
+  }, [open, phase, startLogin]);
+
   return (
-    <AgentProviderCard
-      config={{
-        provider: 'claude',
-        title: 'Claude Agent',
-        quotaBadge: 'Claude Pro / Max 訂閱額度',
-        description:
-          '用你的 Claude 訂閱額度，直接在網頁上輸入提示詞生成卡片——不用 clone 或 fork 專案，也不需要 API key。Agent 只會在此專案資料夾內建立與修改卡片。',
-        runtimeLabels: {
-          builtin: '內建（隨 @tooka/core 安裝，免另外裝 CLI）',
-          global: '系統已安裝的 Claude Code CLI',
-        },
-        tokenLabel: '訂閱登入 token',
-        tokenPlaceholder: 'sk-ant-oat01-…',
-        tokenHint: (
-          <>
-            本機登入過 Claude Code 可留空。沒登入過？在專案資料夾執行{' '}
-            <code className="font-mono">npx claude setup-token</code>
-            ，完成瀏覽器授權後把產出的 token 貼到這裡。
-          </>
-        ),
-        notReadyHint: (
-          <>
-            未偵測到可用的 Claude 執行環境。重新執行一次{' '}
-            <code className="font-mono">npm install</code>（會自動帶入內建 runtime），或安裝{' '}
-            <code className="font-mono">npm install -g @anthropic-ai/claude-code</code> 後再試。
-          </>
-        ),
-      }}
-    />
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent className="sm:max-w-[540px]">
+        <DialogHeader>
+          <DialogTitle>使用 OpenAI 帳號登入</DialogTitle>
+          <DialogDescription>
+            已在瀏覽器開啟 OpenAI 驗證頁面。登入 ChatGPT 帳號後，輸入下方一次性驗證碼。
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex min-h-32 flex-col items-center justify-center gap-4 rounded-lg border border-hairline bg-muted/30 px-5 py-6">
+          {phase === 'success' ? (
+            <>
+              <span className="flex size-10 items-center justify-center rounded-full bg-emerald-500/12 text-emerald-600">
+                <Check className="size-5" />
+              </span>
+              <p className="text-sm font-medium">授權完成，已使用 ChatGPT 帳號連線</p>
+            </>
+          ) : deviceCode ? (
+            <>
+              <button
+                type="button"
+                className="rounded-md border border-border bg-background px-5 py-3 font-mono text-2xl font-semibold tracking-[0.28em] shadow-edge transition-colors hover:bg-muted"
+                onClick={() => {
+                  void navigator.clipboard.writeText(deviceCode);
+                  toast.success('驗證碼已複製');
+                }}
+              >
+                {deviceCode}
+              </button>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Copy className="size-3.5" /> 點一下即可複製驗證碼
+              </p>
+            </>
+          ) : phase === 'error' ? (
+            <p className="text-center text-sm text-destructive">無法完成登入</p>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <LoaderCircle className="size-4 animate-spin" /> 正在取得驗證碼…
+            </div>
+          )}
+        </div>
+
+        {phase === 'error' && details ? (
+          <pre className="max-h-28 overflow-auto whitespace-pre-wrap rounded-md bg-muted px-3 py-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
+            {details}
+          </pre>
+        ) : null}
+
+        <DialogFooter className="sm:justify-between">
+          <Button
+            variant="outline"
+            onClick={() => window.open(CODEX_DEVICE_URL, '_blank', 'noopener,noreferrer')}
+          >
+            <ExternalLink data-icon="inline-start" /> 重新開啟驗證頁
+          </Button>
+          {phase === 'error' ? (
+            <Button variant="brand" onClick={startLogin}>
+              <RefreshCw data-icon="inline-start" /> 再試一次
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={() => close(false)}>
+              {phase === 'success' ? '完成' : '取消'}
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 export function CodexAgentCard() {
+  const [status, setStatus] = useState<AgentProviderStatus | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  const refresh = useCallback(async () => {
+    setChecking(true);
+    const next = (await fetchAgentStatus())?.providers.codex;
+    if (next) setStatus(next);
+    setChecking(false);
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const connected = status?.authMethod === 'chatgpt';
+  const ready = Boolean(status?.runtime && connected);
+
+  const disconnect = async () => {
+    if (!confirm('確定要登出目前的 OpenAI 帳號？')) return;
+    setDisconnecting(true);
+    try {
+      const response = await fetch(`${API.agent}/auth/logout`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ provider: 'codex' }),
+      });
+      if (!response.ok) throw new Error();
+      await refresh();
+      toast.success('OpenAI 帳號已登出');
+    } catch {
+      toast.error('登出失敗');
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
+  const beginLogin = () => {
+    window.open(CODEX_DEVICE_URL, '_blank', 'noopener,noreferrer');
+    setLoginOpen(true);
+  };
+
   return (
-    <AgentProviderCard
-      config={{
-        provider: 'codex',
-        title: 'Codex Agent',
-        quotaBadge: 'ChatGPT Plus / Pro 訂閱額度',
-        description:
-          '用 OpenAI Codex CLI 生成卡片，吃 ChatGPT 訂閱額度。安裝後執行 codex login 以 ChatGPT 帳號登入即可，不需要 API key。',
-        runtimeLabels: { builtin: '自訂路徑', global: '系統已安裝的 Codex CLI' },
-        tokenLabel: 'OpenAI API key',
-        tokenPlaceholder: 'sk-…',
-        tokenHint: (
-          <>
-            用訂閱登入（<code className="font-mono">codex login</code>
-            ）可留空；只有想改用 API 計費時才需要貼 key。
-          </>
-        ),
-        notReadyHint: (
-          <>
-            未偵測到 Codex CLI。執行 <code className="font-mono">npm install -g @openai/codex</code>{' '}
-            安裝，再執行 <code className="font-mono">codex login</code> 以 ChatGPT 帳號登入。
-          </>
-        ),
-      }}
-    />
+    <>
+      <section className="rounded-[10px] border border-hairline bg-card p-5 shadow-edge">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-[8px] bg-muted/60">
+            <Sparkles className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-heading text-[15px] font-semibold tracking-tight">Codex Agent</h2>
+            <p className="text-[11.5px] text-muted-foreground">ChatGPT Plus / Pro 訂閱額度</p>
+          </div>
+          <Badge variant={ready ? 'default' : 'secondary'}>
+            {status === null ? '檢查中…' : ready ? '已連線' : '未連線'}
+          </Badge>
+        </div>
+
+        <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+          使用 OpenAI 帳號授權 Codex，以 ChatGPT 訂閱額度生成卡片。無需建立或保存 API key。
+        </p>
+
+        <div className="mt-5 flex flex-col gap-4">
+          <div className="flex flex-col gap-3 rounded-lg border border-hairline bg-muted/30 p-4 text-[13px]">
+            <ConnectionDetail label="執行環境">
+              <span className="font-medium">
+                {status?.runtime
+                  ? status.runtime === 'global'
+                    ? '系統已安裝的 Codex CLI'
+                    : '自訂路徑'
+                  : '未偵測到'}
+              </span>
+            </ConnectionDetail>
+            {status?.version ? (
+              <ConnectionDetail label="版本">
+                <span className="font-mono font-medium">{status.version}</span>
+              </ConnectionDetail>
+            ) : null}
+            <ConnectionDetail label="登入方式">
+              <span className={cn('font-medium', !connected && 'text-muted-foreground')}>
+                {connected
+                  ? 'ChatGPT 帳號'
+                  : status?.authMethod === 'api_key'
+                    ? 'API key（請改用帳號登入）'
+                    : '未登入'}
+              </span>
+            </ConnectionDetail>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            {!connected ? (
+              <Button variant="brand" size="sm" disabled={!status?.runtime} onClick={beginLogin}>
+                <LogIn data-icon="inline-start" /> 使用 ChatGPT 登入
+              </Button>
+            ) : null}
+            <Button variant="outline" size="sm" disabled={checking} onClick={refresh}>
+              <RefreshCw data-icon="inline-start" className={cn(checking && 'animate-spin')} />
+              重新檢查
+            </Button>
+            {connected ? (
+              <Button variant="ghost" size="sm" disabled={disconnecting} onClick={disconnect}>
+                <Unplug data-icon="inline-start" /> {disconnecting ? '登出中…' : '登出'}
+              </Button>
+            ) : null}
+          </div>
+
+          {!status?.runtime && status !== null ? (
+            <p className="rounded-[6px] bg-muted/60 px-3 py-2 text-[11.5px] leading-relaxed text-muted-foreground">
+              未偵測到 Codex CLI。執行{' '}
+              <code className="font-mono">npm install -g @openai/codex</code> 安裝後再試。
+            </p>
+          ) : null}
+        </div>
+      </section>
+
+      <CodexLoginDialog open={loginOpen} onOpenChange={setLoginOpen} onConnected={refresh} />
+    </>
   );
 }
 

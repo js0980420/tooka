@@ -1,7 +1,4 @@
 import { execFile, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import path from 'node:path';
 import type { ViteDevServer } from 'vite';
 import {
   ensureEnvGitignored,
@@ -14,26 +11,21 @@ import { validateMutationRequest } from '../../http/request-guard.ts';
 import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
-// GET  /__agent/status            per-provider runtime/auth + busy state
-// POST /__agent/token             save an auth value { provider, token }
-// POST /__agent/token/disconnect  remove a saved auth value { provider }
-// POST /__agent/run               { provider?, prompt } → NDJSON stream
-
 const PROMPT_MAX_LENGTH = 8000;
 const RUN_TIMEOUT_MS = 10 * 60 * 1000;
+const AUTH_TIMEOUT_MS = 10 * 60 * 1000;
 
 type Command = { command: string; args: string[] };
 type RuntimeKind = 'builtin' | 'global';
 
 type Provider = {
-  id: 'claude' | 'codex' | 'gemini';
-  envKey: string;
+  id: 'codex' | 'gemini';
+  envKey?: string;
   cliOverrideEnv: string;
   globalBin: string;
-  resolveBuiltin?: (userCwd: string) => Command | null;
   runArgs: (prompt: string) => { args: string[]; promptViaStdin: boolean };
-  // claude emits NDJSON natively; the others emit plain text that gets
-  // wrapped into the tooka NDJSON envelope before streaming to the client.
+  // A provider whose CLI emits NDJSON natively is passed through untouched;
+  // plain-text CLIs get each chunk wrapped in the tooka NDJSON envelope.
   streamsNdjson: boolean;
 };
 
@@ -43,64 +35,21 @@ function overrideCommand(value: string): Command {
     : { command: value, args: [] };
 }
 
-// The claude npm package is a wrapper: the native binary lives in a
-// per-platform optional dependency, and a postinstall copies it over
-// bin/claude.exe. Package managers often skip that postinstall, so resolve
-// the platform binary directly and fall back to the wrapper's Node launcher.
-function resolveClaudeBuiltin(userCwd: string): Command | null {
-  for (const base of [path.join(userCwd, 'package.json'), import.meta.url]) {
-    let wrapperRequire: NodeJS.Require;
-    let wrapperDir: string;
-    try {
-      const require = createRequire(base);
-      const wrapperPkg = require.resolve('@anthropic-ai/claude-code/package.json');
-      wrapperDir = path.dirname(wrapperPkg);
-      wrapperRequire = createRequire(wrapperPkg);
-    } catch {
-      continue;
-    }
-    const binName = process.platform === 'win32' ? 'claude.exe' : 'claude';
-    const key = `${process.platform}-${process.arch}`;
-    for (const suffix of [key, `${key}-musl`]) {
-      try {
-        const pkg = wrapperRequire.resolve(`@anthropic-ai/claude-code-${suffix}/package.json`);
-        const bin = path.join(path.dirname(pkg), binName);
-        if (existsSync(bin)) return { command: bin, args: [] };
-      } catch {}
-    }
-    const launcher = path.join(wrapperDir, 'cli-wrapper.cjs');
-    if (existsSync(launcher)) return { command: process.execPath, args: [launcher] };
-  }
-  return null;
-}
-
 const PROVIDERS: Record<string, Provider> = {
-  claude: {
-    id: 'claude',
-    envKey: 'CLAUDE_CODE_OAUTH_TOKEN',
-    cliOverrideEnv: 'TOOKA_AGENT_CLI',
-    globalBin: 'claude',
-    resolveBuiltin: resolveClaudeBuiltin,
-    runArgs: () => ({
-      args: [
-        '-p',
-        '--output-format',
-        'stream-json',
-        '--verbose',
-        '--permission-mode',
-        'acceptEdits',
-      ],
-      promptViaStdin: true,
-    }),
-    streamsNdjson: true,
-  },
   codex: {
     id: 'codex',
-    envKey: 'OPENAI_API_KEY',
     cliOverrideEnv: 'TOOKA_CODEX_CLI',
     globalBin: 'codex',
     runArgs: (prompt) => ({
-      args: ['exec', '--skip-git-repo-check', '--sandbox', 'workspace-write', prompt],
+      args: [
+        'exec',
+        '-c',
+        'forced_login_method="chatgpt"',
+        '--skip-git-repo-check',
+        '--sandbox',
+        'workspace-write',
+        prompt,
+      ],
       promptViaStdin: false,
     }),
     streamsNdjson: false,
@@ -126,12 +75,9 @@ async function hasGlobalCli(bin: string): Promise<boolean> {
 
 async function resolveRuntime(
   provider: Provider,
-  userCwd: string,
 ): Promise<(Command & { kind: RuntimeKind }) | null> {
   const override = process.env[provider.cliOverrideEnv];
   if (override) return { kind: 'builtin', ...overrideCommand(override) };
-  const builtin = provider.resolveBuiltin?.(userCwd);
-  if (builtin) return { kind: 'builtin', ...builtin };
   if (await hasGlobalCli(provider.globalBin)) {
     return { kind: 'global', command: provider.globalBin, args: [] };
   }
@@ -152,12 +98,34 @@ async function runtimeVersion(runtime: Command): Promise<string | null> {
   });
 }
 
+type CodexAuthMethod = 'chatgpt' | 'api_key' | null;
+
+async function codexAuthMethod(runtime: Command | null): Promise<CodexAuthMethod> {
+  if (!runtime) return null;
+  return await new Promise((resolve) => {
+    const child = execFile(
+      runtime.command,
+      [...runtime.args, 'login', 'status'],
+      { timeout: 10_000 },
+      (err, stdout, stderr) => {
+        if (err) return resolve(null);
+        const output = `${stdout}\n${stderr}`.toLowerCase();
+        if (output.includes('logged in using chatgpt')) return resolve('chatgpt');
+        if (output.includes('logged in using an api key')) return resolve('api_key');
+        resolve(null);
+      },
+    );
+    child.on('error', () => resolve(null));
+  });
+}
+
 function pickProvider(value: unknown): Provider | null {
-  const id = typeof value === 'string' ? value : 'claude';
+  const id = typeof value === 'string' ? value : 'codex';
   return PROVIDERS[id] ?? null;
 }
 
 let running = false;
+let authenticating = false;
 
 export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): void {
   server.middlewares.use(API.agent, async (req, res, next) => {
@@ -166,16 +134,19 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
 
     try {
       if (url.pathname === '/status' && method === 'GET') {
-        const envKeys = Object.values(PROVIDERS).map((p) => p.envKey);
+        const envKeys = Object.values(PROVIDERS).flatMap((provider) =>
+          provider.envKey ? [provider.envKey] : [],
+        );
         const env = await readEnvValues(ctx.userCwd, envKeys);
         const providers: Record<string, unknown> = {};
         await Promise.all(
           Object.values(PROVIDERS).map(async (provider) => {
-            const runtime = await resolveRuntime(provider, ctx.userCwd);
+            const runtime = await resolveRuntime(provider);
             providers[provider.id] = {
               runtime: runtime?.kind ?? null,
               version: runtime ? await runtimeVersion(runtime) : null,
-              tokenMasked: maskSecret(env[provider.envKey]),
+              tokenMasked: provider.envKey ? maskSecret(env[provider.envKey]) : null,
+              authMethod: provider.id === 'codex' ? await codexAuthMethod(runtime) : null,
             };
           }),
         );
@@ -190,6 +161,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const body = (await readBody(req)) as { provider?: unknown; token?: unknown };
         const provider = pickProvider(body.provider);
         if (!provider) return json(res, 400, { error: 'invalid_provider' });
+        if (!provider.envKey) return json(res, 400, { error: 'token_auth_not_supported' });
         const token = validateEnvValue(body.token);
         if (!token) return json(res, 400, { error: 'invalid_token' });
         await ensureEnvGitignored(ctx.userCwd);
@@ -205,8 +177,97 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
         const body = (await readBody(req)) as { provider?: unknown };
         const provider = pickProvider(body.provider);
         if (!provider) return json(res, 400, { error: 'invalid_provider' });
+        if (!provider.envKey) return json(res, 400, { error: 'token_auth_not_supported' });
         await upsertEnvValues(ctx.userCwd, { [provider.envKey]: '' });
         return json(res, 200, { ok: true });
+      }
+
+      if (url.pathname === '/auth/login' && method === 'POST') {
+        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        if (!requestCheck.ok) {
+          return json(res, requestCheck.status, { error: requestCheck.error });
+        }
+        const body = (await readBody(req)) as { provider?: unknown };
+        const provider = pickProvider(body.provider);
+        if (provider?.id !== 'codex') return json(res, 400, { error: 'invalid_provider' });
+        if (authenticating) return json(res, 409, { error: 'auth_busy' });
+
+        const runtime = await resolveRuntime(provider);
+        if (!runtime) return json(res, 503, { error: 'runtime_not_found' });
+
+        authenticating = true;
+        res.writeHead(200, {
+          'content-type': 'application/x-ndjson; charset=utf-8',
+          'cache-control': 'no-cache',
+          'x-accel-buffering': 'no',
+        });
+
+        const child = spawn(runtime.command, [...runtime.args, 'login', '--device-auth'], {
+          cwd: ctx.userCwd,
+          env: process.env,
+        });
+        let settled = false;
+        const finish = async (code: number | null, error?: string) => {
+          if (settled) return;
+          settled = true;
+          authenticating = false;
+          clearTimeout(timer);
+          const authMethod = await codexAuthMethod(runtime);
+          try {
+            res.write(
+              `${JSON.stringify({ type: 'exit', code, authMethod, ...(error ? { error } : {}) })}\n`,
+            );
+          } catch {}
+          res.end();
+        };
+        const writeOutput = (chunk: Buffer) => {
+          if (settled) return;
+          const text = chunk.toString('utf8');
+          if (text) res.write(`${JSON.stringify({ type: 'output', text })}\n`);
+        };
+        const timer = setTimeout(() => {
+          child.kill('SIGTERM');
+          void finish(null, 'auth_timeout');
+        }, AUTH_TIMEOUT_MS);
+
+        child.stdout.on('data', writeOutput);
+        child.stderr.on('data', writeOutput);
+        child.on('error', (err) => void finish(null, String(err.message ?? err)));
+        child.on('close', (code) => void finish(code));
+        res.on('close', () => {
+          if (!settled) {
+            settled = true;
+            authenticating = false;
+            clearTimeout(timer);
+            child.kill('SIGTERM');
+          }
+        });
+        return;
+      }
+
+      if (url.pathname === '/auth/logout' && method === 'POST') {
+        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        if (!requestCheck.ok) {
+          return json(res, requestCheck.status, { error: requestCheck.error });
+        }
+        const body = (await readBody(req)) as { provider?: unknown };
+        const provider = pickProvider(body.provider);
+        if (provider?.id !== 'codex') return json(res, 400, { error: 'invalid_provider' });
+        const runtime = await resolveRuntime(provider);
+        if (!runtime) return json(res, 503, { error: 'runtime_not_found' });
+
+        const loggedOut = await new Promise<boolean>((resolve) => {
+          const child = execFile(
+            runtime.command,
+            [...runtime.args, 'logout'],
+            { cwd: ctx.userCwd, timeout: 30_000 },
+            (err) => resolve(!err),
+          );
+          child.on('error', () => resolve(false));
+        });
+        return json(res, loggedOut ? 200 : 500, {
+          ...(loggedOut ? { ok: true } : { error: 'logout_failed' }),
+        });
       }
 
       if (url.pathname === '/run' && method === 'POST') {
@@ -223,12 +284,17 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
         }
         if (running) return json(res, 409, { error: 'agent_busy' });
 
-        const runtime = await resolveRuntime(provider, ctx.userCwd);
+        const runtime = await resolveRuntime(provider);
         if (!runtime) return json(res, 503, { error: 'runtime_not_found' });
+        if (provider.id === 'codex' && (await codexAuthMethod(runtime)) !== 'chatgpt') {
+          return json(res, 401, { error: 'auth_required' });
+        }
 
         const env = { ...process.env };
-        const saved = await readEnvValues(ctx.userCwd, [provider.envKey]);
-        if (saved[provider.envKey]) env[provider.envKey] = saved[provider.envKey];
+        if (provider.envKey) {
+          const saved = await readEnvValues(ctx.userCwd, [provider.envKey]);
+          if (saved[provider.envKey]) env[provider.envKey] = saved[provider.envKey];
+        }
 
         running = true;
         res.writeHead(200, {
@@ -261,10 +327,6 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
           finish({ type: 'tooka', subtype: 'timeout' });
         }, RUN_TIMEOUT_MS);
 
-        // claude's stdout is already NDJSON — pass chunks through untouched
-        // and only append our own lines after the child has exited, so a
-        // mid-line chunk boundary can never interleave with an injected line.
-        // Plain-text providers get each chunk wrapped as a JSON line instead.
         child.stdout.on('data', (chunk: Buffer) => {
           if (settled) return;
           if (provider.streamsNdjson) {
@@ -308,6 +370,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
       return next();
     } catch (err) {
       running = false;
+      authenticating = false;
       if (!res.headersSent) {
         json(res, 500, { error: String((err as Error).message ?? err) });
       } else {

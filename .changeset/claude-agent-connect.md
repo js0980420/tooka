@@ -2,4 +2,4 @@
 "@tooka/core": minor
 ---
 
-Add a Claude Agent connect: generate cards from a prompt in the web UI using your Claude subscription, with a bundled CLI runtime so no global install, clone, or fork is needed.
+Add AI-agent card generation: describe a carousel in the web UI and a local Codex (ChatGPT subscription) or Gemini (free tier) agent writes it straight into the draft area — no clone, fork, or API key required.

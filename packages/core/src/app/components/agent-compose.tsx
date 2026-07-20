@@ -21,10 +21,16 @@ import {
 } from './connects/agent-cards';
 
 const PROVIDER_OPTIONS: Array<{ id: AgentProviderId; label: string; quota: string }> = [
-  { id: 'claude', label: 'Claude', quota: '訂閱' },
   { id: 'codex', label: 'Codex', quota: 'ChatGPT 訂閱' },
   { id: 'gemini', label: 'Gemini', quota: '免費' },
 ];
+
+function providerIsReady(status: AgentStatusResponse, provider: AgentProviderId): boolean {
+  const providerStatus = status.providers[provider];
+  return Boolean(
+    providerStatus?.runtime && (provider !== 'codex' || providerStatus.authMethod === 'chatgpt'),
+  );
+}
 
 type LogEntry =
   | { kind: 'text'; text: string }
@@ -90,7 +96,7 @@ function entryFromEvent(event: StreamEvent): LogEntry[] {
 export function AgentComposeLauncher() {
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState<AgentProviderId>('claude');
+  const [provider, setProvider] = useState<AgentProviderId>('codex');
   const [log, setLog] = useState<LogEntry[]>([]);
   const [runState, setRunState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
   const [status, setStatus] = useState<AgentStatusResponse | null>(null);
@@ -104,8 +110,8 @@ export function AgentComposeLauncher() {
       if (cancelled || !body) return;
       setStatus(body);
       setProvider((current) => {
-        if (body.providers[current]?.runtime) return current;
-        const firstReady = PROVIDER_OPTIONS.find((option) => body.providers[option.id]?.runtime);
+        if (providerIsReady(body, current)) return current;
+        const firstReady = PROVIDER_OPTIONS.find((option) => providerIsReady(body, option.id));
         return firstReady?.id ?? current;
       });
     });
@@ -142,8 +148,10 @@ export function AgentComposeLauncher() {
           body.error === 'agent_busy'
             ? 'Agent 正在執行其他任務，請稍候'
             : body.error === 'runtime_not_found'
-              ? '未偵測到 Claude 執行環境，請到「連結」頁完成設定'
-              : '啟動失敗';
+              ? '未偵測到 AI 執行環境，請到「串接」頁完成設定'
+              : body.error === 'auth_required'
+                ? '請先到「串接」頁使用 ChatGPT 帳號登入 Codex'
+                : '啟動失敗';
         setLog([{ kind: 'error', text: message }]);
         setRunState('error');
         return;
@@ -226,8 +234,8 @@ export function AgentComposeLauncher() {
   };
 
   const noneReady =
-    status !== null && !PROVIDER_OPTIONS.some((option) => status.providers[option.id]?.runtime);
-  const providerReady = Boolean(status?.providers[provider]?.runtime);
+    status !== null && !PROVIDER_OPTIONS.some((option) => providerIsReady(status, option.id));
+  const providerReady = status ? providerIsReady(status, provider) : false;
 
   return (
     <>
@@ -238,10 +246,10 @@ export function AgentComposeLauncher() {
       <Dialog open={open} onOpenChange={close}>
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
-            <span className="eyebrow">Claude Agent</span>
+            <span className="eyebrow">AI Agent</span>
             <DialogTitle>AI 生成卡片</DialogTitle>
             <DialogDescription>
-              描述想要的輪播主題，Agent 會用你的訂閱額度直接在草稿區生成卡片。
+              描述想要的輪播主題，Agent 會用 GPT 訂閱或免費地端模型直接在草稿區生成卡片。
             </DialogDescription>
           </DialogHeader>
 
@@ -261,7 +269,7 @@ export function AgentComposeLauncher() {
 
           <div className="flex flex-wrap items-center gap-1.5">
             {PROVIDER_OPTIONS.map((option) => {
-              const optionReady = Boolean(status?.providers[option.id]?.runtime);
+              const optionReady = status ? providerIsReady(status, option.id) : false;
               const selected = provider === option.id;
               return (
                 <button

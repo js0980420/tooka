@@ -3,11 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { API } from '../../shared/api-routes';
-import {
-  ClaudeAgentCard,
-  CodexAgentCard,
-  GeminiAgentCard,
-} from '../components/connects/agent-cards';
+import { CodexAgentCard, GeminiAgentCard } from '../components/connects/agent-cards';
 import { FacebookPageCard } from '../components/connects/facebook';
 import { ImgbbCard } from '../components/connects/imgbb';
 import { InstagramCard } from '../components/connects/instagram';
@@ -27,7 +23,8 @@ const SUBPAGES: Array<{ id: SubPage; label: string; icon: typeof Sparkles; descr
       id: 'ai',
       label: 'AI 模型串接',
       icon: Sparkles,
-      description: '接上任一個 agent，就能在首頁用提示詞直接生成卡片——訂閱額度或免費額度都可以。',
+      description:
+        '接上任一個 agent，就能在首頁用提示詞直接生成卡片——GPT 訂閱額度或免費地端模型都可以。',
     },
     {
       id: 'publish',
@@ -82,7 +79,6 @@ function PublishConnects() {
 function AiConnects() {
   return (
     <div className="flex flex-col gap-5">
-      <ClaudeAgentCard />
       <CodexAgentCard />
       <GeminiAgentCard />
     </div>
