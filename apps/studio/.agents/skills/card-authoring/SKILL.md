@@ -1,6 +1,6 @@
 ---
 name: card-authoring
-description: Technical reference for writing or editing tooka carousel cards on the fixed 1080×1350 canvas. Use before modifying any carousel `index.tsx` under `slides/`, including from `create-carousel`, `apply-comments`, or `current-card`; also trigger for requests to edit a card, fix a carousel layout, change card copy, adjust visual style, or understand the card runtime.
+description: Technical reference for writing or editing tooka carousel cards and custom-format decks. Use before modifying any carousel `index.tsx` under `slides/`, including from `create-carousel`, `apply-comments`, or `current-card`; also trigger for requests to edit a card, fix a carousel layout, change card copy, adjust visual style, or understand the card runtime.
 ---
 
 # Author carousel cards
@@ -46,7 +46,7 @@ When editing one card in a long file, first locate page declarations with `rg -n
 
 ## Canvas
 
-Every card renders into a fixed **1080×1350** 4:5 portrait canvas. Design at those exact pixels; the framework handles scaling.
+Every card defaults to a **1080×1350** 4:5 portrait canvas. Design at those exact pixels; the framework handles scaling. When the user explicitly requests another format, set `meta.canvas`, such as `canvas: { width: 1920, height: 1080 }` for a landscape video thumbnail, and calculate the layout against those dimensions.
 
 - Fill the canvas with `width: '100%'` and `height: '100%'`.
 - Use pixel values for type, padding, and positioning. Do not use viewport units for type.
@@ -197,7 +197,7 @@ When custom motion is justified, use one consistent family, restrained durations
 ## Self-review
 
 - [ ] `slides/<id>/index.tsx` exports a non-empty `Page[]`.
-- [ ] Every root fills the 1080×1350 canvas.
+- [ ] Every root fills the deck's configured canvas.
 - [ ] Content stays inside 72–90 px side padding and above the bottom 120 px.
 - [ ] Hook/body/list/metadata sizes stay within the mobile reading scale.
 - [ ] Each card contains one independently understandable idea.

@@ -45,7 +45,13 @@ async function runSkillsDriftCheck(skillsDir: string): Promise<void> {
   if (stale.length === 0) return;
 
   const names = stale.map((d) => d.name).join(', ');
-  const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  // Turbo (and CI) hand the task a pseudo-TTY but never forward keystrokes, so
+  // an interactive prompt would block the dev server forever. Detect the
+  // orchestrator and fall back to a non-blocking warning instead.
+  const orchestrated = Boolean(
+    process.env.TURBO_INVOCATION_DIR || process.env.TURBO_HASH || process.env.CI,
+  );
+  const interactive = !orchestrated && Boolean(process.stdin.isTTY && process.stdout.isTTY);
 
   if (!interactive) {
     process.stderr.write(

@@ -14,12 +14,13 @@ import { type ApiContext, json, readBody } from './context.ts';
 const PROMPT_MAX_LENGTH = 8000;
 const RUN_TIMEOUT_MS = 10 * 60 * 1000;
 const AUTH_TIMEOUT_MS = 10 * 60 * 1000;
+const CLI_PROBE_TIMEOUT_MS = 3000;
 
 type Command = { command: string; args: string[] };
 type RuntimeKind = 'builtin' | 'global';
 
 type Provider = {
-  id: 'codex' | 'gemini';
+  id: 'codex' | 'gemma4';
   envKey?: string;
   cliOverrideEnv: string;
   globalBin: string;
@@ -54,19 +55,22 @@ const PROVIDERS: Record<string, Provider> = {
     }),
     streamsNdjson: false,
   },
-  gemini: {
-    id: 'gemini',
+  gemma4: {
+    id: 'gemma4',
     envKey: 'GEMINI_API_KEY',
     cliOverrideEnv: 'TOOKA_GEMINI_CLI',
     globalBin: 'gemini',
-    runArgs: (prompt) => ({ args: ['--yolo', '-p', prompt], promptViaStdin: false }),
+    runArgs: (prompt) => ({
+      args: ['--yolo', '--model', 'gemma-4-26b-a4b-it', '-p', prompt],
+      promptViaStdin: false,
+    }),
     streamsNdjson: false,
   },
 };
 
 async function hasGlobalCli(bin: string): Promise<boolean> {
   return await new Promise((resolve) => {
-    const child = execFile(bin, ['--version'], { timeout: 10_000 }, (err) => {
+    const child = execFile(bin, ['--version'], { timeout: CLI_PROBE_TIMEOUT_MS }, (err) => {
       resolve(!err);
     });
     child.on('error', () => resolve(false));

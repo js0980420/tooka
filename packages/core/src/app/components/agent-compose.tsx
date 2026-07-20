@@ -1,16 +1,20 @@
-import { CircleAlert, CircleCheck, Loader2, Sparkles, Wrench } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Bot, CheckCircle2, CircleAlert, RotateCcw, Send, Sparkles, Square, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
+import { Bubble, BubbleContent } from '@/components/ui/bubble';
 import { Button } from '@/components/ui/button';
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
+import { Message, MessageAvatar, MessageContent, MessageHeader } from '@/components/ui/message';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from '@/components/ui/message-scroller';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { API } from '../../shared/api-routes';
@@ -20,23 +24,24 @@ import {
   fetchAgentStatus,
 } from './connects/agent-cards';
 
-const PROVIDER_OPTIONS: Array<{ id: AgentProviderId; label: string; quota: string }> = [
-  { id: 'codex', label: 'Codex', quota: 'ChatGPT 訂閱' },
-  { id: 'gemini', label: 'Gemini', quota: '免費' },
+const PROVIDER_OPTIONS: Array<{ id: AgentProviderId; label: string }> = [
+  { id: 'codex', label: 'Codex' },
+  { id: 'gemma4', label: 'Gemma 4' },
+];
+const CHAT_REQUEST_MAX_LENGTH = 3000;
+
+const STARTERS = [
+  '幫我做一組 5 張 IG 輪播，先規劃內容再直接建立',
+  '把目前卡片改得更精簡、更有視覺層次',
+  '檢查所有卡片的排版問題並直接修正',
 ];
 
-function providerIsReady(status: AgentStatusResponse, provider: AgentProviderId): boolean {
-  const providerStatus = status.providers[provider];
-  return Boolean(
-    providerStatus?.runtime && (provider !== 'codex' || providerStatus.authMethod === 'chatgpt'),
-  );
-}
-
-type LogEntry =
-  | { kind: 'text'; text: string }
-  | { kind: 'tool'; label: string }
-  | { kind: 'done'; text: string }
-  | { kind: 'error'; text: string };
+type ChatMessage = {
+  id: string;
+  role: 'assistant' | 'user';
+  text: string;
+  state?: 'streaming' | 'error' | 'done';
+};
 
 type StreamEvent = {
   type?: string;
@@ -47,121 +52,153 @@ type StreamEvent = {
   error?: string;
   is_error?: boolean;
   result?: string;
-  duration_ms?: number;
-  message?: {
-    content?: Array<{
-      type?: string;
-      text?: string;
-      name?: string;
-      input?: { file_path?: string; command?: string };
-    }>;
-  };
+  message?: { content?: Array<{ type?: string; text?: string }> };
 };
 
-function entryFromEvent(event: StreamEvent): LogEntry[] {
-  if (event.type === 'assistant') {
-    const out: LogEntry[] = [];
-    for (const block of event.message?.content ?? []) {
-      if (block.type === 'text' && block.text?.trim()) {
-        out.push({ kind: 'text', text: block.text.trim() });
-      } else if (block.type === 'tool_use' && block.name) {
-        const target = block.input?.file_path ?? block.input?.command ?? '';
-        out.push({ kind: 'tool', label: target ? `${block.name} · ${target}` : block.name });
-      }
-    }
-    return out;
-  }
-  if (event.type === 'result') {
-    if (event.is_error) {
-      return [{ kind: 'error', text: event.result || '執行失敗' }];
-    }
-    const seconds = event.duration_ms ? `（${Math.round(event.duration_ms / 1000)} 秒）` : '';
-    return [{ kind: 'done', text: `完成${seconds}` }];
-  }
-  if (event.type === 'tooka') {
-    if (event.subtype === 'output' && event.text) {
-      return [{ kind: 'text', text: event.text }];
-    }
-    if (event.subtype === 'timeout') return [{ kind: 'error', text: '執行逾時，已中止' }];
-    if (event.subtype === 'spawn-error') {
-      return [{ kind: 'error', text: `無法啟動 Agent：${event.error ?? ''}` }];
-    }
-    if (event.subtype === 'exit' && event.code !== 0) {
-      return [{ kind: 'error', text: event.stderr?.trim() || 'Agent 異常結束' }];
-    }
-  }
-  return [];
+let nextMessageId = 0;
+
+function messageId(): string {
+  nextMessageId += 1;
+  return `agent-message-${nextMessageId}`;
 }
 
-export function AgentComposeLauncher() {
+function providerIsReady(status: AgentStatusResponse, provider: AgentProviderId): boolean {
+  const providerStatus = status.providers[provider];
+  return Boolean(
+    providerStatus?.runtime &&
+      (provider !== 'codex' || providerStatus.authMethod === 'chatgpt') &&
+      (provider !== 'gemma4' || providerStatus.tokenMasked),
+  );
+}
+
+function firstReadyProvider(status: AgentStatusResponse): AgentProviderId | null {
+  return PROVIDER_OPTIONS.find(({ id }) => providerIsReady(status, id))?.id ?? null;
+}
+
+function outputFromEvent(event: StreamEvent): string {
+  if (event.type === 'tooka' && event.subtype === 'output') return event.text ?? '';
+  if (event.type === 'assistant') {
+    return (event.message?.content ?? [])
+      .filter((block) => block.type === 'text')
+      .map((block) => block.text ?? '')
+      .join('\n');
+  }
+  if (event.type === 'result' && event.result && !event.is_error) return event.result;
+  return '';
+}
+
+function errorFromResponse(error?: string): string {
+  if (error === 'agent_busy') return 'AI 助手正在處理另一個工作，請稍候再試。';
+  if (error === 'runtime_not_found') return '尚未偵測到可用的 AI 執行環境。';
+  if (error === 'auth_required') return 'Codex 尚未使用 ChatGPT 帳號登入。';
+  return '無法啟動 AI 助手，請稍後再試。';
+}
+
+function buildAgentPrompt(messages: ChatMessage[], request: string, pathname: string): string {
+  const history = messages
+    .filter((message) => message.text && message.state !== 'error')
+    .slice(-6)
+    .map((message) => `${message.role === 'user' ? '使用者' : '助手'}：${message.text}`)
+    .join('\n')
+    .slice(-3000);
+
+  return [
+    '你是 tooka 網頁版內的操作助手。請直接在目前專案中完成使用者要求，不只提供教學。',
+    '卡片內容位於目前工作目錄的 slides/；遵守專案內 AGENTS.md 與相關 card-authoring skills。',
+    `使用者目前所在頁面：${pathname}`,
+    history ? `近期對話：\n${history}` : '',
+    `這次要求：${request}`,
+    '先自行檢查需要的檔案並執行工作。完成後用繁體中文簡短說明做了什麼；只有真正缺少關鍵資訊時才向使用者提問。',
+  ]
+    .filter(Boolean)
+    .join('\n\n');
+}
+
+function AssistantAvatar() {
+  return (
+    <MessageAvatar className="size-7 border border-hairline bg-card text-brand shadow-edge">
+      <Sparkles className="size-3.5" />
+    </MessageAvatar>
+  );
+}
+
+export function AgentChatbot() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState<AgentProviderId>('codex');
-  const [log, setLog] = useState<LogEntry[]>([]);
-  const [runState, setRunState] = useState<'idle' | 'running' | 'done' | 'error'>('idle');
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    {
+      id: messageId(),
+      role: 'assistant',
+      text: '嗨，我可以直接幫你建立、修改和檢查卡片。告訴我想完成什麼就好。',
+    },
+  ]);
   const [status, setStatus] = useState<AgentStatusResponse | null>(null);
+  const [statusChecked, setStatusChecked] = useState(false);
+  const [provider, setProvider] = useState<AgentProviderId | null>(null);
+  const [runState, setRunState] = useState<'idle' | 'running'>('idle');
   const abortRef = useRef<AbortController | null>(null);
-  const logEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    let cancelled = false;
-    fetchAgentStatus().then((body) => {
-      if (cancelled || !body) return;
-      setStatus(body);
-      setProvider((current) => {
-        if (providerIsReady(body, current)) return current;
-        const firstReady = PROVIDER_OPTIONS.find((option) => providerIsReady(body, option.id));
-        return firstReady?.id ?? current;
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (log.length > 0) logEndRef.current?.scrollIntoView({ block: 'end' });
-  }, [log]);
-
-  useEffect(() => {
-    return () => abortRef.current?.abort();
+  const refreshStatus = useCallback(async () => {
+    const next = await fetchAgentStatus();
+    if (next) {
+      setStatus(next);
+      setProvider((current) =>
+        current && providerIsReady(next, current) ? current : firstReadyProvider(next),
+      );
+    }
+    setStatusChecked(true);
   }, []);
 
-  const run = async () => {
-    const trimmed = prompt.trim();
-    if (!trimmed || runState === 'running') return;
+  useEffect(() => {
+    void refreshStatus();
+  }, [refreshStatus]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const updateMessage = (id: string, update: (message: ChatMessage) => ChatMessage) => {
+    setMessages((current) =>
+      current.map((message) => (message.id === id ? update(message) : message)),
+    );
+  };
+
+  const send = async (request = prompt) => {
+    const trimmed = request.trim().slice(0, CHAT_REQUEST_MAX_LENGTH);
+    if (!trimmed || runState === 'running' || !provider) return;
+
+    const userMessage: ChatMessage = { id: messageId(), role: 'user', text: trimmed };
+    const assistantId = messageId();
     const controller = new AbortController();
     abortRef.current = controller;
-    setLog([]);
+    setPrompt('');
+    setMessages((current) => [
+      ...current,
+      userMessage,
+      { id: assistantId, role: 'assistant', text: '', state: 'streaming' },
+    ]);
     setRunState('running');
+
     try {
-      const res = await fetch(`${API.agent}/run`, {
+      const response = await fetch(`${API.agent}/run`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ provider, prompt: trimmed }),
+        body: JSON.stringify({
+          provider,
+          prompt: buildAgentPrompt(messages, trimmed, location.pathname),
+        }),
         signal: controller.signal,
       });
-      if (!res.ok || !res.body) {
-        const body = (await res.json().catch(() => ({}))) as { error?: string };
-        const message =
-          body.error === 'agent_busy'
-            ? 'Agent 正在執行其他任務，請稍候'
-            : body.error === 'runtime_not_found'
-              ? '未偵測到 AI 執行環境，請到「串接」頁完成設定'
-              : body.error === 'auth_required'
-                ? '請先到「串接」頁使用 ChatGPT 帳號登入 Codex'
-                : '啟動失敗';
-        setLog([{ kind: 'error', text: message }]);
-        setRunState('error');
-        return;
+      if (!response.ok || !response.body) {
+        const body = (await response.json().catch(() => ({}))) as { error?: string };
+        throw new Error(errorFromResponse(body.error));
       }
 
-      const reader = res.body.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let failed = false;
-      let finished = false;
+      let output = '';
+      let failure = '';
       const consume = (line: string) => {
         if (!line.trim()) return;
         let event: StreamEvent;
@@ -170,198 +207,278 @@ export function AgentComposeLauncher() {
         } catch {
           return;
         }
-        if (event.type === 'tooka' && event.subtype === 'exit' && event.code === 0) {
-          finished = true;
+        const text = outputFromEvent(event);
+        if (text) {
+          output += text;
+          updateMessage(assistantId, (message) => ({ ...message, text: output }));
         }
-        const entries = entryFromEvent(event);
-        if (entries.length === 0) return;
-        if (entries.some((entry) => entry.kind === 'error')) failed = true;
-        if (entries.some((entry) => entry.kind === 'done')) finished = true;
-        setLog((prev) => {
-          // Plain-text providers stream raw chunks — merge them into the
-          // previous text entry so the log reads as one flowing block.
-          if (
-            entries.length === 1 &&
-            entries[0].kind === 'text' &&
-            event.subtype === 'output' &&
-            prev.length > 0 &&
-            prev[prev.length - 1].kind === 'text'
-          ) {
-            const last = prev[prev.length - 1] as { kind: 'text'; text: string };
-            return [...prev.slice(0, -1), { kind: 'text', text: last.text + entries[0].text }];
-          }
-          return [...prev, ...entries];
-        });
+        if (event.type === 'result' && event.is_error) failure = event.result ?? '執行失敗';
+        if (event.type === 'tooka' && event.subtype === 'timeout') failure = '工作逾時，已中止。';
+        if (event.type === 'tooka' && event.subtype === 'spawn-error') {
+          failure = `無法啟動 AI 助手：${event.error ?? ''}`;
+        }
+        if (event.type === 'tooka' && event.subtype === 'exit' && event.code !== 0) {
+          failure = event.stderr?.trim() || 'AI 助手異常結束。';
+        }
       };
+
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
+        buffer += decoder.decode(value, { stream: !done });
         const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
+        buffer = done ? '' : (lines.pop() ?? '');
         for (const line of lines) consume(line);
+        if (done) break;
       }
-      consume(buffer);
 
-      if (failed) {
-        setRunState('error');
-      } else if (finished) {
-        setRunState('done');
-        toast.success('卡片已生成，請到草稿區查看');
-      } else {
-        setLog((prev) => [...prev, { kind: 'error', text: '連線中斷' }]);
-        setRunState('error');
-      }
-    } catch (err) {
-      if ((err as Error).name === 'AbortError') {
-        setLog((prev) => [...prev, { kind: 'error', text: '已取消' }]);
-      } else {
-        setLog((prev) => [...prev, { kind: 'error', text: '連線失敗' }]);
-      }
-      setRunState('error');
+      if (failure) throw new Error(failure);
+      updateMessage(assistantId, (message) => ({
+        ...message,
+        text: message.text || '完成了。你可以繼續告訴我下一步要調整什麼。',
+        state: 'done',
+      }));
+      toast.success('AI 助手已完成工作');
+    } catch (error) {
+      const cancelled = (error as Error).name === 'AbortError';
+      updateMessage(assistantId, (message) => ({
+        ...message,
+        text: cancelled ? '已取消這次工作。' : (error as Error).message,
+        state: 'error',
+      }));
     } finally {
       abortRef.current = null;
-    }
-  };
-
-  const close = (next: boolean) => {
-    if (!next) abortRef.current?.abort();
-    setOpen(next);
-    if (!next && runState !== 'running') {
       setRunState('idle');
-      setLog([]);
+      void refreshStatus();
     }
   };
 
-  const noneReady =
-    status !== null && !PROVIDER_OPTIONS.some((option) => providerIsReady(status, option.id));
-  const providerReady = status ? providerIsReady(status, provider) : false;
+  const clearConversation = () => {
+    if (runState === 'running') return;
+    setMessages([
+      {
+        id: messageId(),
+        role: 'assistant',
+        text: '新的對話開始了。告訴我這次想建立或修改什麼。',
+      },
+    ]);
+  };
+
+  if (location.pathname.endsWith('/presenter')) return null;
+
+  const providerLabel = PROVIDER_OPTIONS.find(({ id }) => id === provider)?.label;
+  const ready = Boolean(status && provider);
 
   return (
-    <>
-      <Button variant="brand" size="sm" onClick={() => setOpen(true)}>
-        <Sparkles data-icon="inline-start" />
-        AI 生成
-      </Button>
-      <Dialog open={open} onOpenChange={close}>
-        <DialogContent className="sm:max-w-[560px]">
-          <DialogHeader>
-            <span className="eyebrow">AI Agent</span>
-            <DialogTitle>AI 生成卡片</DialogTitle>
-            <DialogDescription>
-              描述想要的輪播主題，Agent 會用 GPT 訂閱或免費地端模型直接在草稿區生成卡片。
-            </DialogDescription>
-          </DialogHeader>
-
-          {noneReady ? (
-            <p className="rounded-[6px] bg-muted/60 px-3 py-2 text-[12px] leading-relaxed text-muted-foreground">
-              未偵測到任何 AI 執行環境，請先到{' '}
-              <Link
-                to="/connects"
-                className="text-brand hover:underline"
-                onClick={() => close(false)}
-              >
-                串接頁
-              </Link>{' '}
-              完成 AI 模型串接。
-            </p>
-          ) : null}
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            {PROVIDER_OPTIONS.map((option) => {
-              const optionReady = status ? providerIsReady(status, option.id) : false;
-              const selected = provider === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={!optionReady || runState === 'running'}
-                  onClick={() => setProvider(option.id)}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] transition-colors',
-                    selected
-                      ? 'border-foreground/40 bg-muted text-foreground'
-                      : 'border-border text-muted-foreground hover:text-foreground',
-                    !optionReady && 'cursor-not-allowed opacity-40',
-                  )}
-                >
-                  <span className="font-medium">{option.label}</span>
-                  <span className="opacity-70">{option.quota}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          <Textarea
-            value={prompt}
-            onChange={(event) => setPrompt(event.target.value)}
-            disabled={runState === 'running'}
-            rows={4}
-            placeholder="例：做一組 5 張的 IG 輪播，主題是「新手學會用 AI 寫程式的 3 個步驟」，語氣輕鬆、繁體中文。"
-          />
-
-          {log.length > 0 ? (
-            <div className="max-h-56 overflow-y-auto rounded-[6px] border border-hairline bg-muted/30 p-3 text-[12px] leading-relaxed">
-              {log.map((entry, i) => (
-                <div
-                  // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
-                  key={i}
-                  className="flex items-start gap-2 py-0.5"
-                >
-                  {entry.kind === 'tool' ? (
-                    <>
-                      <Wrench className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-                      <span className="font-mono text-muted-foreground">{entry.label}</span>
-                    </>
-                  ) : entry.kind === 'done' ? (
-                    <>
-                      <CircleCheck className="mt-0.5 size-3.5 shrink-0 text-brand" />
-                      <span className="font-medium">{entry.text}</span>
-                    </>
-                  ) : entry.kind === 'error' ? (
-                    <>
-                      <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-destructive" />
-                      <span className="whitespace-pre-wrap text-destructive">{entry.text}</span>
-                    </>
-                  ) : (
-                    <span className="whitespace-pre-wrap">{entry.text}</span>
-                  )}
-                </div>
-              ))}
-              {runState === 'running' ? (
-                <div className="flex items-center gap-2 py-0.5 text-muted-foreground">
-                  <Loader2 className="size-3.5 animate-spin" />
-                  執行中…
-                </div>
+    <div className="fixed right-4 bottom-4 z-40 flex flex-col items-end gap-3 sm:right-5 sm:bottom-5">
+      {open ? (
+        <section
+          role="dialog"
+          aria-labelledby="agent-chat-title"
+          className="flex h-[min(650px,calc(100dvh-2rem))] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[14px] border border-hairline bg-card shadow-overlay sm:w-[410px]"
+        >
+          <header className="flex items-center gap-3 border-b border-hairline bg-card px-4 py-3.5">
+            <span className="relative flex size-9 items-center justify-center rounded-[9px] bg-foreground text-background shadow-edge">
+              <Bot className="size-[18px]" />
+              {ready ? (
+                <span className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-card bg-brand" />
               ) : null}
-              <div ref={logEndRef} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 id="agent-chat-title" className="font-heading text-sm font-semibold">
+                tooka 助手
+              </h2>
+              <p className="truncate text-[11px] text-muted-foreground">
+                {!statusChecked
+                  ? '正在檢查可用模型…'
+                  : providerLabel
+                    ? `使用 ${providerLabel} · 可直接操作專案`
+                    : '尚未完成 AI 串接'}
+              </p>
             </div>
-          ) : null}
-
-          <DialogFooter>
-            <Button variant="ghost" size="sm" onClick={() => close(false)}>
-              {runState === 'running' ? '取消並關閉' : '關閉'}
+            {providerLabel ? <Badge variant="secondary">{providerLabel}</Badge> : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="清除對話"
+              disabled={runState === 'running'}
+              onClick={clearConversation}
+            >
+              <RotateCcw />
             </Button>
             <Button
-              size="sm"
-              disabled={runState === 'running' || !prompt.trim() || !providerReady}
-              onClick={run}
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="關閉 AI 助手"
+              onClick={() => setOpen(false)}
             >
-              {runState === 'running' ? (
-                <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
-                  生成中…
-                </>
-              ) : (
-                <>
-                  <Sparkles data-icon="inline-start" />
-                  開始生成
-                </>
-              )}
+              <X />
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          </header>
+
+          <div className="min-h-0 flex-1 bg-canvas/70">
+            <MessageScrollerProvider autoScroll>
+              <MessageScroller>
+                <MessageScrollerViewport>
+                  <MessageScrollerContent className="px-4 py-5">
+                    {messages.map((message) => (
+                      <MessageScrollerItem
+                        key={message.id}
+                        messageId={message.id}
+                        scrollAnchor={message.role === 'user'}
+                      >
+                        <Message align={message.role === 'user' ? 'end' : 'start'}>
+                          {message.role === 'assistant' ? <AssistantAvatar /> : null}
+                          <MessageContent>
+                            {message.role === 'assistant' ? (
+                              <MessageHeader>tooka 助手</MessageHeader>
+                            ) : null}
+                            <Bubble
+                              align={message.role === 'user' ? 'end' : 'start'}
+                              variant={
+                                message.role === 'user'
+                                  ? 'default'
+                                  : message.state === 'error'
+                                    ? 'destructive'
+                                    : 'muted'
+                              }
+                              className={cn(message.role === 'assistant' && 'max-w-[92%]')}
+                            >
+                              <BubbleContent className="whitespace-pre-wrap">
+                                {message.state === 'streaming' && !message.text ? (
+                                  <span className="shimmer text-muted-foreground">
+                                    正在理解並操作專案…
+                                  </span>
+                                ) : (
+                                  message.text
+                                )}
+                              </BubbleContent>
+                            </Bubble>
+                          </MessageContent>
+                        </Message>
+                      </MessageScrollerItem>
+                    ))}
+
+                    {messages.length === 1 && ready ? (
+                      <MessageScrollerItem messageId="starter-actions">
+                        <div className="ml-9 flex flex-col items-start gap-2">
+                          {STARTERS.map((starter) => (
+                            <Button
+                              key={starter}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-auto max-w-full justify-start whitespace-normal py-2 text-left"
+                              onClick={() => void send(starter)}
+                            >
+                              {starter}
+                            </Button>
+                          ))}
+                        </div>
+                      </MessageScrollerItem>
+                    ) : null}
+
+                    {!ready && statusChecked ? (
+                      <MessageScrollerItem messageId="setup-required">
+                        <Marker className="rounded-md border border-hairline bg-card px-3 py-2.5">
+                          <MarkerIcon>
+                            <CircleAlert />
+                          </MarkerIcon>
+                          <MarkerContent className="flex-1">
+                            先完成一次 AI 串接，之後就能直接在這裡操作。
+                          </MarkerContent>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="xs"
+                            onClick={() => {
+                              navigate('/connects');
+                              setOpen(false);
+                            }}
+                          >
+                            前往串接
+                          </Button>
+                        </Marker>
+                      </MessageScrollerItem>
+                    ) : null}
+                  </MessageScrollerContent>
+                </MessageScrollerViewport>
+                <MessageScrollerButton />
+              </MessageScroller>
+            </MessageScrollerProvider>
+          </div>
+
+          <form
+            className="border-t border-hairline bg-card p-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void send();
+            }}
+          >
+            <div className="rounded-[10px] border border-input bg-background p-1.5 shadow-edge focus-within:border-foreground/25 focus-within:ring-2 focus-within:ring-ring/20">
+              <label htmlFor="agent-chat-prompt" className="sr-only">
+                告訴 AI 助手要完成什麼
+              </label>
+              <Textarea
+                id="agent-chat-prompt"
+                value={prompt}
+                rows={2}
+                maxLength={CHAT_REQUEST_MAX_LENGTH}
+                disabled={!ready || runState === 'running'}
+                placeholder={ready ? '告訴我想建立或修改什麼…' : '請先完成 AI 串接'}
+                className="min-h-14 resize-none border-0 bg-transparent px-2 py-1.5 shadow-none focus-visible:ring-0"
+                onChange={(event) => setPrompt(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    void send();
+                  }
+                }}
+              />
+              <div className="flex items-center justify-between gap-2 px-1 pb-0.5">
+                <span className="text-[10.5px] text-muted-foreground">
+                  Enter 傳送 · Shift Enter 換行
+                </span>
+                {runState === 'running' ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    aria-label="停止目前工作"
+                    onClick={() => abortRef.current?.abort()}
+                  >
+                    <Square />
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    variant="brand"
+                    size="icon-sm"
+                    aria-label="傳送訊息"
+                    disabled={!ready || !prompt.trim()}
+                  >
+                    <Send />
+                  </Button>
+                )}
+              </div>
+            </div>
+          </form>
+        </section>
+      ) : (
+        <Button
+          type="button"
+          variant="brand"
+          size="lg"
+          className="h-12 rounded-full px-4 shadow-overlay"
+          aria-label="開啟 tooka AI 助手"
+          onClick={() => setOpen(true)}
+        >
+          <Sparkles data-icon="inline-start" />
+          <span>AI 助手</span>
+          {ready ? <CheckCircle2 data-icon="inline-end" /> : null}
+        </Button>
+      )}
+    </div>
   );
 }
