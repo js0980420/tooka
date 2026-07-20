@@ -6,7 +6,6 @@ import {
   ImageIcon,
   ListChecks,
   MousePointerClick,
-  Plug,
   Quote,
   RefreshCw,
   Rocket,
@@ -33,7 +32,6 @@ import {
 } from '../../publishing/copy';
 import { API } from '../../shared/api-routes';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
-import { PageTabs } from '../components/page-tabs';
 import { designToCssVars } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
 import { PngExportVariantProvider } from '../lib/png-export-variant';
@@ -491,13 +489,6 @@ export function PublishPage() {
           <h1 className="font-heading text-xl font-bold tracking-tight md:text-2xl">
             {t.publish.title}
           </h1>
-          <PageTabs
-            className="ml-auto"
-            tabs={[
-              { label: t.home.publish, path: '/publish', icon: Rocket },
-              { label: t.home.connects, path: '/connects', icon: Plug },
-            ]}
-          />
         </div>
         <p className="mt-2 text-[13px] text-muted-foreground">{t.publish.subtitle}</p>
       </header>
@@ -829,7 +820,7 @@ export function PublishPage() {
 
         {/* Publish Action Button */}
         <div className="flex items-center justify-end border-t border-hairline pt-5 gap-3">
-          <Link to="/connects">
+          <Link to="/connects?tab=publish">
             <Button variant="ghost" className="border hover:bg-muted text-[13px] h-9">
               {t.publish.manageConnects}
             </Button>

@@ -5,6 +5,7 @@ import {
   MoreHorizontal,
   Pencil,
   PencilLine,
+  Plug,
   Rocket,
   Trash2,
 } from 'lucide-react';
@@ -29,6 +30,7 @@ const BUILTIN_ICONS = {
   templates: LayoutTemplate,
   publish: Rocket,
   tutorials: BookOpen,
+  connects: Plug,
 } as const;
 
 function useSlideDragActive() {
@@ -96,6 +98,9 @@ type Row =
     }
   | {
       kind: 'publish';
+    }
+  | {
+      kind: 'connects';
     };
 
 export function FolderItem({
@@ -158,7 +163,9 @@ export function FolderItem({
             ? t.home.tutorials
             : row.kind === 'publish'
               ? t.home.publish
-              : row.folder.name;
+              : row.kind === 'connects'
+                ? '串接'
+                : row.folder.name;
 
   const commitRename = () => {
     if (row.kind !== 'folder') return;

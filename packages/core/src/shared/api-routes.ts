@@ -2,6 +2,7 @@
 // fetches these paths and the Vite middlewares mount on them — both sides
 // import from here so a rename can't silently break the other side.
 export const API = {
+  agent: '/__agent',
   assets: '/__assets',
   comments: '/__comments',
   connects: '/__connects',

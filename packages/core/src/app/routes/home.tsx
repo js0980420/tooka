@@ -36,6 +36,7 @@ import {
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
 import { AddToCardsButton } from '../components/add-to-cards-button';
+import { AgentComposeLauncher } from '../components/agent-compose';
 import { PageTabs } from '../components/page-tabs';
 import { FolderIconChip, SLIDE_DND_MIME } from '../components/sidebar/folder-item';
 import { ALL_SLIDES_ID, DRAFT_ID, TEMPLATES_ID } from '../components/sidebar/sidebar';
@@ -205,6 +206,7 @@ export function Home() {
             </span>
           )}
           <div className="ml-auto flex w-full items-center gap-2 md:w-auto">
+            {import.meta.env.DEV && <AgentComposeLauncher />}
             {import.meta.env.DEV && (
               <PageTabs
                 tabs={[

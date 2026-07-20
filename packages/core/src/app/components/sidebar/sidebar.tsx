@@ -18,6 +18,7 @@ export const DRAFT_ID = 'draft';
 export const TEMPLATES_ID = '__templates__';
 export const TUTORIALS_ID = '__tutorials__';
 export const PUBLISH_ID = '__publish__';
+export const CONNECTS_ID = '__connects__';
 
 export const FOLDER_DND_MIME = 'application/x-folder-id';
 
@@ -330,6 +331,14 @@ export function Sidebar({
           <span className="h-px flex-1 bg-hairline" aria-hidden />
         </div>
         <div className="px-2 pb-2">
+          {import.meta.env.DEV && (
+            <FolderItem
+              row={{ kind: 'connects' }}
+              selected={selectedId === CONNECTS_ID}
+              onSelect={() => onSelect(CONNECTS_ID)}
+              onDropSlide={() => {}}
+            />
+          )}
           <FolderItem
             row={{ kind: 'tutorials' }}
             selected={selectedId === TUTORIALS_ID}

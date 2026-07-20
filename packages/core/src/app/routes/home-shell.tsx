@@ -18,6 +18,7 @@ import { useUiZoom } from '@/lib/use-ui-zoom';
 import { cn } from '@/lib/utils';
 import {
   ALL_SLIDES_ID,
+  CONNECTS_ID,
   DRAFT_ID,
   PUBLISH_ID,
   Sidebar,
@@ -48,7 +49,8 @@ export type HomeOutletContext = {
 function pathToSelectedId(pathname: string, search: URLSearchParams): string {
   if (pathname === '/templates' || pathname.startsWith('/templates/')) return TEMPLATES_ID;
   if (pathname === '/assets') return ALL_SLIDES_ID;
-  if (pathname === '/connects' || pathname === '/publish') return PUBLISH_ID;
+  if (pathname === '/connects') return CONNECTS_ID;
+  if (pathname === '/publish') return PUBLISH_ID;
   if (
     pathname === '/tutorials' ||
     pathname.startsWith('/tutorials/') ||
@@ -92,6 +94,7 @@ export function HomeShell() {
     (id: string) => {
       if (id === TEMPLATES_ID) navigate('/templates', { replace: true });
       else if (id === PUBLISH_ID) navigate('/publish', { replace: true });
+      else if (id === CONNECTS_ID) navigate('/connects', { replace: true });
       else if (id === TUTORIALS_ID) navigate('/tutorials', { replace: true });
       else if (id === ALL_SLIDES_ID) navigate('/', { replace: true });
       else navigate(`/?f=${encodeURIComponent(id)}`, { replace: true });
