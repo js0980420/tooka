@@ -8,6 +8,11 @@ import {
   validateEnvValue,
 } from '../../files/env.ts';
 import { validateMutationRequest } from '../../http/request-guard.ts';
+import {
+  AGENT_PROVIDERS,
+  type AgentProviderId,
+  type AgentProviderMeta,
+} from '../../shared/agent-providers.ts';
 import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
@@ -19,9 +24,10 @@ const CLI_PROBE_TIMEOUT_MS = 3000;
 type Command = { command: string; args: string[] };
 type RuntimeKind = 'builtin' | 'global';
 
-type Provider = {
-  id: 'codex' | 'gemma4';
-  envKey?: string;
+// The server-only half of a provider: how to find and drive its CLI. The
+// shared half (id, label, auth mode, envKey) lives in ../../shared and is
+// merged in below so both sides stay in lockstep.
+type RuntimeSpec = {
   cliOverrideEnv: string;
   globalBin: string;
   runArgs: (prompt: string) => { args: string[]; promptViaStdin: boolean };
@@ -30,15 +36,16 @@ type Provider = {
   streamsNdjson: boolean;
 };
 
+type Provider = AgentProviderMeta & RuntimeSpec;
+
 function overrideCommand(value: string): Command {
   return /\.(c|m)?js$/.test(value)
     ? { command: process.execPath, args: [value] }
     : { command: value, args: [] };
 }
 
-const PROVIDERS: Record<string, Provider> = {
+const RUNTIME_SPECS: Record<AgentProviderId, RuntimeSpec> = {
   codex: {
-    id: 'codex',
     cliOverrideEnv: 'TOOKA_CODEX_CLI',
     globalBin: 'codex',
     runArgs: (prompt) => ({
@@ -56,8 +63,6 @@ const PROVIDERS: Record<string, Provider> = {
     streamsNdjson: false,
   },
   gemma4: {
-    id: 'gemma4',
-    envKey: 'GEMINI_API_KEY',
     cliOverrideEnv: 'TOOKA_GEMINI_CLI',
     globalBin: 'gemini',
     runArgs: (prompt) => ({
@@ -67,6 +72,10 @@ const PROVIDERS: Record<string, Provider> = {
     streamsNdjson: false,
   },
 };
+
+const PROVIDERS: Record<string, Provider> = Object.fromEntries(
+  AGENT_PROVIDERS.map((meta) => [meta.id, { ...meta, ...RUNTIME_SPECS[meta.id] }]),
+);
 
 async function hasGlobalCli(bin: string): Promise<boolean> {
   return await new Promise((resolve) => {
@@ -150,7 +159,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
               runtime: runtime?.kind ?? null,
               version: runtime ? await runtimeVersion(runtime) : null,
               tokenMasked: provider.envKey ? maskSecret(env[provider.envKey]) : null,
-              authMethod: provider.id === 'codex' ? await codexAuthMethod(runtime) : null,
+              authMethod: provider.auth === 'subscription' ? await codexAuthMethod(runtime) : null,
             };
           }),
         );
@@ -193,7 +202,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
         }
         const body = (await readBody(req)) as { provider?: unknown };
         const provider = pickProvider(body.provider);
-        if (provider?.id !== 'codex') return json(res, 400, { error: 'invalid_provider' });
+        if (provider?.auth !== 'subscription') return json(res, 400, { error: 'invalid_provider' });
         if (authenticating) return json(res, 409, { error: 'auth_busy' });
 
         const runtime = await resolveRuntime(provider);
@@ -256,7 +265,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
         }
         const body = (await readBody(req)) as { provider?: unknown };
         const provider = pickProvider(body.provider);
-        if (provider?.id !== 'codex') return json(res, 400, { error: 'invalid_provider' });
+        if (provider?.auth !== 'subscription') return json(res, 400, { error: 'invalid_provider' });
         const runtime = await resolveRuntime(provider);
         if (!runtime) return json(res, 503, { error: 'runtime_not_found' });
 

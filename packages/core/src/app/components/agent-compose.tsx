@@ -17,17 +17,11 @@ import {
 } from '@/components/ui/message-scroller';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { AGENT_PROVIDERS, type AgentProviderId } from '../../shared/agent-providers';
 import { API } from '../../shared/api-routes';
-import {
-  type AgentProviderId,
-  type AgentStatusResponse,
-  fetchAgentStatus,
-} from './connects/agent-cards';
+import { type AgentStatusResponse, fetchAgentStatus } from './connects/agent-cards';
 
-const PROVIDER_OPTIONS: Array<{ id: AgentProviderId; label: string }> = [
-  { id: 'codex', label: 'Codex' },
-  { id: 'gemma4', label: 'Gemma 4' },
-];
+const PROVIDER_OPTIONS = AGENT_PROVIDERS.map(({ id, label }) => ({ id, label }));
 const CHAT_REQUEST_MAX_LENGTH = 3000;
 
 const STARTERS = [
@@ -64,11 +58,13 @@ function messageId(): string {
 
 function providerIsReady(status: AgentStatusResponse, provider: AgentProviderId): boolean {
   const providerStatus = status.providers[provider];
-  return Boolean(
-    providerStatus?.runtime &&
-      (provider !== 'codex' || providerStatus.authMethod === 'chatgpt') &&
-      (provider !== 'gemma4' || providerStatus.tokenMasked),
-  );
+  if (!providerStatus?.runtime) return false;
+  const meta = AGENT_PROVIDERS.find(({ id }) => id === provider);
+  // Subscription providers need a completed login; api-key providers need a
+  // stored key.
+  if (meta?.auth === 'subscription') return providerStatus.authMethod === 'chatgpt';
+  if (meta?.auth === 'api-key') return Boolean(providerStatus.tokenMasked);
+  return true;
 }
 
 function firstReadyProvider(status: AgentStatusResponse): AgentProviderId | null {

@@ -23,10 +23,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { type AgentProviderId, getAgentProviderMeta } from '../../../shared/agent-providers';
 import { API } from '../../../shared/api-routes';
 import { ConnectionDetail, SecretValue } from './shared';
 
-export type AgentProviderId = 'codex' | 'gemma4';
+export type { AgentProviderId };
 
 export type AgentProviderStatus = {
   runtime: 'builtin' | 'global' | null;
@@ -571,7 +572,7 @@ export function GemmaAgentCard() {
       config={{
         provider: 'gemma4',
         title: 'Gemma 4 Agent',
-        quotaBadge: 'Gemini API 免費額度',
+        quotaBadge: getAgentProviderMeta('gemma4')?.quota ?? '',
         description:
           '透過 Gemini CLI 指定 Gemma 4 26B A4B 模型生成卡片，使用 Google AI Studio 的免費 API 額度。',
         runtimeLabels: { builtin: '自訂路徑', global: '系統已安裝的 Gemini CLI' },
@@ -597,7 +598,7 @@ export function GemmaAgentCard() {
             <code className="font-mono">npm install -g @google/gemini-cli</code>。
           </>
         ),
-        requiresToken: true,
+        requiresToken: getAgentProviderMeta('gemma4')?.auth === 'api-key',
       }}
     />
   );
