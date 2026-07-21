@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { API } from '../../../shared/api-routes';
+import { API } from '../../lib/api';
 import type { DesignSystem } from '../../lib/design';
 
 type FetchedState = {

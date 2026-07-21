@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { format, useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { API } from '../../../shared/api-routes';
+import { API } from '../../lib/api';
 import { InstagramIcon } from '../brand-icons';
 import {
   ConnectionDetail,

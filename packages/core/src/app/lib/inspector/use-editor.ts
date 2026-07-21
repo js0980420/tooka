@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { API } from '../../../shared/api-routes';
+import { API } from '../api';
 
 export type EditOp =
   | { kind: 'set-style'; key: string; value: string | null; prevText?: string }

@@ -41,7 +41,7 @@ import {
   type AgentModelOption,
   type AgentProviderId,
 } from '../../shared/agent-providers';
-import { API } from '../../shared/api-routes';
+import { agentApi, companionCommand, companionEnabled } from '../lib/companion';
 import { type AgentStatusResponse, fetchAgentStatus } from './connects/agent-cards';
 
 const PROVIDER_OPTIONS = AGENT_PROVIDERS.map(({ id, label }) => ({ id, label }));
@@ -334,7 +334,7 @@ export function AgentChatbot() {
     setRunState('running');
 
     try {
-      const response = await fetch(`${API.agent}/run`, {
+      const response = await fetch(agentApi('/run'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -681,20 +681,41 @@ export function AgentChatbot() {
                           <MarkerIcon>
                             <CircleAlert />
                           </MarkerIcon>
-                          <MarkerContent className="flex-1">
-                            先完成一次 AI 串接，之後就能直接在這裡操作。
-                          </MarkerContent>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="xs"
-                            onClick={() => {
-                              navigate('/connects');
-                              setOpen(false);
-                            }}
-                          >
-                            前往串接
-                          </Button>
+                          {companionEnabled && !status ? (
+                            <>
+                              <MarkerContent className="flex-1">
+                                尚未連上本機服務。請先在專案目錄執行{' '}
+                                <code className="rounded bg-muted px-1 py-0.5 font-mono text-[11px]">
+                                  {companionCommand()}
+                                </code>
+                              </MarkerContent>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="xs"
+                                onClick={() => void refreshStatus()}
+                              >
+                                重新檢查
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <MarkerContent className="flex-1">
+                                先完成一次 AI 串接，之後就能直接在這裡操作。
+                              </MarkerContent>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="xs"
+                                onClick={() => {
+                                  navigate('/connects');
+                                  setOpen(false);
+                                }}
+                              >
+                                前往串接
+                              </Button>
+                            </>
+                          )}
                         </Marker>
                       </MessageScrollerItem>
                     ) : null}

@@ -28,7 +28,7 @@ import {
   type AgentProviderId,
   getAgentProviderMeta,
 } from '../../../shared/agent-providers';
-import { API } from '../../../shared/api-routes';
+import { agentApi } from '../../lib/companion';
 import { ConnectionDetail, SecretValue } from './shared';
 
 export type { AgentProviderId };
@@ -48,7 +48,7 @@ export type AgentStatusResponse = {
 
 export async function fetchAgentStatus(): Promise<AgentStatusResponse | null> {
   try {
-    const res = await fetch(`${API.agent}/status`);
+    const res = await fetch(agentApi('/status'));
     if (!res.ok) return null;
     return (await res.json()) as AgentStatusResponse;
   } catch {
@@ -110,7 +110,7 @@ function AgentProviderCard({ config }: { config: AgentCardConfig }) {
     if (!value) return;
     setSaving(true);
     try {
-      await fetch(`${API.agent}/token`, {
+      await fetch(agentApi('/token'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ provider: config.provider, token: value }),
@@ -133,7 +133,7 @@ function AgentProviderCard({ config }: { config: AgentCardConfig }) {
     if (!confirm('確定要移除已儲存的金鑰？')) return;
     setDisconnecting(true);
     try {
-      await fetch(`${API.agent}/token/disconnect`, {
+      await fetch(agentApi('/token/disconnect'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ provider: config.provider }),
@@ -296,7 +296,7 @@ function CodexLoginDialog({
 
     let transcript = '';
     try {
-      const response = await fetch(`${API.agent}/auth/login`, {
+      const response = await fetch(agentApi('/auth/login'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ provider: 'codex' }),
@@ -484,7 +484,7 @@ export function CodexAgentCard() {
     if (!confirm('確定要登出目前的 OpenAI 帳號？')) return;
     setDisconnecting(true);
     try {
-      const response = await fetch(`${API.agent}/auth/logout`, {
+      const response = await fetch(agentApi('/auth/logout'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ provider: 'codex' }),

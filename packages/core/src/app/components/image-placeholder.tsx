@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { assetPathFor, hasAssetDrag, readAssetDrag } from '@/lib/asset-dnd';
 import { uploadWithAutoRename } from '@/lib/assets';
 import { useLocale } from '@/lib/use-locale';
-import { API } from '../../shared/api-routes';
+import { API } from '../lib/api';
 
 export type ImagePlaceholderProps = {
   hint: string;

@@ -30,8 +30,8 @@ import {
   validateInstagramHashtags,
   validateThreadsTopicTag,
 } from '../../publishing/copy';
-import { API } from '../../shared/api-routes';
 import { FacebookIcon, InstagramIcon, ThreadsIcon } from '../components/brand-icons';
+import { API } from '../lib/api';
 import { designToCssVars } from '../lib/design';
 import { SlidePageProvider } from '../lib/page-context';
 import { PngExportVariantProvider } from '../lib/png-export-variant';

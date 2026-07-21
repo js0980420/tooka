@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLocale } from '@/lib/use-locale';
 import { cn } from '@/lib/utils';
-import { API } from '../../../shared/api-routes';
+import { API } from '../../lib/api';
 import { ConnectionDetail, type ConnectionError, type ImgbbStatus, SecretValue } from './shared';
 
 export function ImgbbCard({ initialStatus }: { initialStatus: ImgbbStatus | null }) {

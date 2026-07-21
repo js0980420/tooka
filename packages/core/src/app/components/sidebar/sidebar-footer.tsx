@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format, useLocale } from '@/lib/use-locale';
-import { API } from '../../../shared/api-routes';
+import { API } from '../../lib/api';
 
 type UpdateCheck = { current: string; latest: string | null; outdated: boolean };
 type ServerStatus = { executionId: string; canRestart: boolean };

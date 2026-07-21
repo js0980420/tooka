@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format, useLocale } from '@/lib/use-locale';
-import { API } from '../../../shared/api-routes';
 import type { ThumbnailActions } from '../../components/thumbnail-rail';
+import { API } from '../../lib/api';
 import { remapNotesSessionCacheAfterReorder } from '../../lib/inspector/use-notes';
 import type { SlideModule } from '../../lib/sdk';
 

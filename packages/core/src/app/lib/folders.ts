@@ -1,6 +1,6 @@
 import buildManifest from 'virtual:tooka/folders';
 import { useCallback, useEffect, useState } from 'react';
-import { API } from '../../shared/api-routes';
+import { API } from './api';
 import type { Folder, FolderIcon, FoldersManifest } from './sdk';
 
 const EMPTY: FoldersManifest = { folders: [], assignments: {} };

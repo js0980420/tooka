@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { API } from '../../shared/api-routes';
+import { API } from './api';
 
 export type AssetEntry = {
   name: string;

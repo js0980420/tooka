@@ -32,6 +32,14 @@ export function normalizedOrigin(origin: string): string | null {
   }
 }
 
+// Process-wide allowlist for standalone hosts (the companion CLI) where every
+// route should trust the same external origins; per-call opts still win.
+let processAllowedOrigins: readonly string[] = [];
+
+export function configureAllowedOrigins(origins: readonly string[]): void {
+  processAllowedOrigins = origins;
+}
+
 export function validateMutationRequest(
   req: Connect.IncomingMessage,
   opts: { requireJsonBody?: boolean; allowedOrigins?: readonly string[] } = {},
@@ -49,10 +57,11 @@ export function validateMutationRequest(
 
   // An explicitly allowlisted origin (the hosted web app talking to a local
   // companion) is trusted even though the browser marks it cross-site.
+  const allowedOrigins = opts.allowedOrigins ?? processAllowedOrigins;
   const allowlisted = headerValue(req, 'origin');
-  if (allowlisted && opts.allowedOrigins?.length) {
+  if (allowlisted && allowedOrigins.length) {
     const normalized = normalizedOrigin(allowlisted);
-    if (normalized && opts.allowedOrigins.includes(normalized)) return { ok: true };
+    if (normalized && allowedOrigins.includes(normalized)) return { ok: true };
   }
 
   const fetchSite = firstCommaToken(headerValue(req, 'sec-fetch-site'))?.toLowerCase();

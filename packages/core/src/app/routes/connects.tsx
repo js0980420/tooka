@@ -2,7 +2,6 @@ import { Plug, Rocket, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { API } from '../../shared/api-routes';
 import { CodexAgentCard, GemmaAgentCard } from '../components/connects/agent-cards';
 import { FacebookPageCard } from '../components/connects/facebook';
 import { ImgbbCard } from '../components/connects/imgbb';
@@ -14,6 +13,7 @@ import type {
   ThreadsStatus,
 } from '../components/connects/shared';
 import { ThreadsCard } from '../components/connects/threads';
+import { API } from '../lib/api';
 
 type SubPage = 'ai' | 'publish';
 

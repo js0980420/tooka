@@ -2,6 +2,7 @@ import config from 'virtual:tooka/config';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AgentChatbot } from './components/agent-compose';
 import { Toaster } from './components/ui/sonner';
+import { companionEnabled } from './lib/companion';
 import { useLocale } from './lib/use-locale';
 import { AssetsPage } from './routes/assets';
 import { ConnectsPage } from './routes/connects';
@@ -36,7 +37,7 @@ export function App() {
         <Route path="/s/:slideId/presenter" element={<Presenter />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {import.meta.env.DEV ? <AgentChatbot /> : null}
+      {import.meta.env.DEV || companionEnabled ? <AgentChatbot /> : null}
       <Toaster />
     </BrowserRouter>
   );
