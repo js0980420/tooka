@@ -139,7 +139,7 @@ async function generateSlidesModule(
   slidesRoot: string,
   isDev: boolean,
 ): Promise<string> {
-  const entries = await Promise.all(
+  const allEntries = await Promise.all(
     files.map(async (abs) => {
       const id = toId(abs, slidesRoot);
       const importPath = isDev ? `@fs/${normalizePath(abs).replace(/^\/+/, '')}` : abs;
@@ -154,6 +154,11 @@ async function generateSlidesModule(
       };
     }),
   );
+  // Hosted (companion-mode) bundles are public: ship only template slides so
+  // personal cards can never leak into a deploy, regardless of the local tree.
+  const raw = process.env.VITE_TOOKA_COMPANION?.trim();
+  const companionBuild = !isDev && !!raw && raw !== '0' && raw !== 'false';
+  const entries = companionBuild ? allEntries.filter((e) => e.template) : allEntries;
 
   const ids = JSON.stringify(entries.map((e) => e.id).sort());
   const themesMap: Record<string, string> = {};
