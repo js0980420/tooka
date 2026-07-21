@@ -83,6 +83,11 @@ interface BuildFlags {
   outDir?: string;
 }
 
+interface CompanionFlags {
+  port?: number;
+  origin?: string[];
+}
+
 interface SyncFlags {
   dryRun?: boolean;
 }
@@ -137,6 +142,16 @@ export async function run(argv: string[]): Promise<void> {
     .action(async (flags: ServerFlags) => {
       const { preview } = await import('./preview.ts');
       await preview(flags);
+    });
+
+  program
+    .command('companion')
+    .description('Run the local AI agent service for a hosted tooka web app')
+    .addOption(new Option('-p, --port <port>', 'port to listen on').argParser(parsePort))
+    .option('--origin <origin...>', 'web origins allowed to call this service')
+    .action(async (flags: CompanionFlags) => {
+      const { companion } = await import('./companion.ts');
+      await companion(flags, version);
     });
 
   program

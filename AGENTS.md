@@ -10,7 +10,7 @@ pnpm + Turbo monorepo.
 
 | Path | Package | Role |
 | --- | --- | --- |
-| `packages/core` | `@tooka/core` | Everything published: viewer runtime + inspector (`src/app`, ships as raw source), Vite plugin + dev-server API (`src/vite`), `tooka` CLI — `dev` / `build` / `preview` / `sync:skills` (`src/cli`), built-in agent skills (`skills/`). |
+| `packages/core` | `@tooka/core` | Everything published: viewer runtime + inspector (`src/app`, ships as raw source), Vite plugin + dev-server API (`src/vite`), `tooka` CLI — `dev` / `build` / `preview` / `companion` / `sync:skills` (`src/cli`), built-in agent skills (`skills/`). |
 | `apps/studio` | private | Local consumer of `@tooka/core` via `workspace:*`. Dogfood target — run `pnpm dev` here to exercise the framework. Card decks live in `slides/`, brand kits in `themes/`. |
 
 Shared config: `biome.json`, `turbo.json`, `pnpm-workspace.yaml`, `tsconfig` per package.

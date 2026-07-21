@@ -1,10 +1,29 @@
-import { Bot, CheckCircle2, CircleAlert, RotateCcw, Send, Sparkles, Square, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Bot,
+  CheckCircle2,
+  ChevronDown,
+  CircleAlert,
+  LayoutTemplate,
+  RotateCcw,
+  Send,
+  Sparkles,
+  Square,
+  X,
+} from 'lucide-react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
 import { Bubble, BubbleContent } from '@/components/ui/bubble';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
 import { Message, MessageAvatar, MessageContent, MessageHeader } from '@/components/ui/message';
 import {
@@ -17,12 +36,19 @@ import {
 } from '@/components/ui/message-scroller';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { AGENT_PROVIDERS, type AgentProviderId } from '../../shared/agent-providers';
+import {
+  AGENT_PROVIDERS,
+  type AgentModelOption,
+  type AgentProviderId,
+} from '../../shared/agent-providers';
 import { API } from '../../shared/api-routes';
 import { type AgentStatusResponse, fetchAgentStatus } from './connects/agent-cards';
 
 const PROVIDER_OPTIONS = AGENT_PROVIDERS.map(({ id, label }) => ({ id, label }));
 const CHAT_REQUEST_MAX_LENGTH = 3000;
+const MODEL_STORAGE_KEY = 'tooka-agent-model';
+const CHAT_STORAGE_KEY = 'tooka-agent-chat';
+const CHAT_STORAGE_MAX_MESSAGES = 100;
 
 const STARTERS = [
   '幫我做一組 5 張 IG 輪播，先規劃內容再直接建立',
@@ -35,6 +61,7 @@ type ChatMessage = {
   role: 'assistant' | 'user';
   text: string;
   state?: 'streaming' | 'error' | 'done';
+  hint?: string;
 };
 
 type StreamEvent = {
@@ -43,10 +70,12 @@ type StreamEvent = {
   code?: number | null;
   stderr?: string;
   text?: string;
-  error?: string;
+  error?: string | { message?: string };
   is_error?: boolean;
   result?: string;
   message?: { content?: Array<{ type?: string; text?: string }> };
+  thread_id?: string;
+  item?: { type?: string; text?: string; command?: string };
 };
 
 let nextMessageId = 0;
@@ -67,8 +96,85 @@ function providerIsReady(status: AgentStatusResponse, provider: AgentProviderId)
   return true;
 }
 
-function firstReadyProvider(status: AgentStatusResponse): AgentProviderId | null {
-  return PROVIDER_OPTIONS.find(({ id }) => providerIsReady(status, id))?.id ?? null;
+type ModelChoice = {
+  provider: AgentProviderId;
+  model: string;
+};
+
+function modelsFor(status: AgentStatusResponse, provider: AgentProviderId): AgentModelOption[] {
+  const fromStatus = status.providers[provider]?.models;
+  if (fromStatus?.length) return fromStatus;
+  return [...(AGENT_PROVIDERS.find(({ id }) => id === provider)?.models ?? [])];
+}
+
+function normalizeChoice(
+  status: AgentStatusResponse,
+  candidate: ModelChoice | null,
+): ModelChoice | null {
+  if (candidate && providerIsReady(status, candidate.provider)) {
+    const models = modelsFor(status, candidate.provider);
+    if (models.some(({ id }) => id === candidate.model)) return candidate;
+    if (models[0]) return { provider: candidate.provider, model: models[0].id };
+  }
+  const provider = PROVIDER_OPTIONS.find(({ id }) => providerIsReady(status, id))?.id;
+  if (!provider) return null;
+  const fallback = modelsFor(status, provider)[0];
+  return fallback ? { provider, model: fallback.id } : null;
+}
+
+type AgentSession = { provider: AgentProviderId; id: string };
+
+type StoredChat = {
+  messages: ChatMessage[];
+  session: AgentSession | null;
+};
+
+function loadStoredChat(): StoredChat | null {
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredChat>;
+    if (!Array.isArray(parsed.messages)) return null;
+    const messages = parsed.messages
+      .filter(
+        (message): message is ChatMessage =>
+          Boolean(message) &&
+          typeof message.id === 'string' &&
+          typeof message.text === 'string' &&
+          (message.role === 'user' || message.role === 'assistant'),
+      )
+      .map((message) =>
+        message.state === 'streaming'
+          ? { ...message, state: 'error' as const, text: message.text || '上次工作在完成前中斷。' }
+          : message,
+      );
+    if (messages.length === 0) return null;
+    for (const message of messages) {
+      const n = Number(message.id.replace('agent-message-', ''));
+      if (Number.isFinite(n) && n > nextMessageId) nextMessageId = n;
+    }
+    const session =
+      parsed.session &&
+      typeof parsed.session.provider === 'string' &&
+      typeof parsed.session.id === 'string'
+        ? (parsed.session as AgentSession)
+        : null;
+    return { messages, session };
+  } catch {
+    return null;
+  }
+}
+
+function storedChoice(): ModelChoice | null {
+  try {
+    const raw = localStorage.getItem(MODEL_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ModelChoice>;
+    if (typeof parsed.provider !== 'string' || typeof parsed.model !== 'string') return null;
+    return parsed as ModelChoice;
+  } catch {
+    return null;
+  }
 }
 
 function outputFromEvent(event: StreamEvent): string {
@@ -90,6 +196,29 @@ function errorFromResponse(error?: string): string {
   return '無法啟動 AI 助手，請稍後再試。';
 }
 
+function hintFromItem(item: StreamEvent['item']): string | null {
+  if (item?.type === 'command_execution') {
+    const command = (item.command ?? '').replace(/^\/bin\/(ba)?sh -lc /, '').slice(0, 80);
+    return command ? `正在執行:${command}` : '正在執行指令…';
+  }
+  if (item?.type === 'reasoning') return '正在思考…';
+  if (item?.type === 'file_change') return '正在修改檔案…';
+  if (item?.type === 'web_search') return '正在搜尋網頁…';
+  return null;
+}
+
+function errorText(error: StreamEvent['error']): string | null {
+  if (typeof error === 'string') return error;
+  if (error && typeof error.message === 'string') return error.message;
+  return null;
+}
+
+// A resumed Codex session already holds the system preamble and the full
+// conversation, so follow-up turns only carry the new request.
+function buildResumePrompt(request: string, pathname: string): string {
+  return [`使用者目前所在頁面：${pathname}`, `這次要求：${request}`].join('\n\n');
+}
+
 function buildAgentPrompt(messages: ChatMessage[], request: string, pathname: string): string {
   const history = messages
     .filter((message) => message.text && message.state !== 'error')
@@ -105,6 +234,7 @@ function buildAgentPrompt(messages: ChatMessage[], request: string, pathname: st
     history ? `近期對話：\n${history}` : '',
     `這次要求：${request}`,
     '先自行檢查需要的檔案並執行工作。完成後用繁體中文簡短說明做了什麼；只有真正缺少關鍵資訊時才向使用者提問。',
+    '若這次工作建立或修改了卡片，結尾提醒使用者：到草稿區確認內容，滿意就按「新增到卡片」，再到發布頁準備發布。',
   ]
     .filter(Boolean)
     .join('\n\n');
@@ -123,33 +253,56 @@ export function AgentChatbot() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    {
-      id: messageId(),
-      role: 'assistant',
-      text: '嗨，我可以直接幫你建立、修改和檢查卡片。告訴我想完成什麼就好。',
-    },
-  ]);
+  const [storedChat] = useState(loadStoredChat);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () =>
+      storedChat?.messages ?? [
+        {
+          id: messageId(),
+          role: 'assistant',
+          text: '嗨，我可以直接幫你建立、修改和檢查卡片。還沒有靈感的話，先到模板頁挑一個喜歡的視覺風格「加入草稿」，再告訴我要放什麼內容。',
+        },
+      ],
+  );
   const [status, setStatus] = useState<AgentStatusResponse | null>(null);
   const [statusChecked, setStatusChecked] = useState(false);
-  const [provider, setProvider] = useState<AgentProviderId | null>(null);
+  const [choice, setChoice] = useState<ModelChoice | null>(null);
   const [runState, setRunState] = useState<'idle' | 'running'>('idle');
   const abortRef = useRef<AbortController | null>(null);
+  const sessionRef = useRef<AgentSession | null>(storedChat?.session ?? null);
 
   const refreshStatus = useCallback(async () => {
     const next = await fetchAgentStatus();
     if (next) {
       setStatus(next);
-      setProvider((current) =>
-        current && providerIsReady(next, current) ? current : firstReadyProvider(next),
-      );
+      setChoice((current) => normalizeChoice(next, current ?? storedChoice()));
     }
     setStatusChecked(true);
   }, []);
 
+  const pickModel = (provider: AgentProviderId, model: string) => {
+    const next: ModelChoice = { provider, model };
+    setChoice(next);
+    try {
+      localStorage.setItem(MODEL_STORAGE_KEY, JSON.stringify(next));
+    } catch {}
+  };
+
   useEffect(() => {
     void refreshStatus();
   }, [refreshStatus]);
+
+  useEffect(() => {
+    try {
+      const snapshot: StoredChat = {
+        messages: messages
+          .slice(-CHAT_STORAGE_MAX_MESSAGES)
+          .map(({ hint: _hint, ...rest }) => rest),
+        session: sessionRef.current,
+      };
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {}
+  }, [messages]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -161,11 +314,16 @@ export function AgentChatbot() {
 
   const send = async (request = prompt) => {
     const trimmed = request.trim().slice(0, CHAT_REQUEST_MAX_LENGTH);
-    if (!trimmed || runState === 'running' || !provider) return;
+    const active = choice;
+    if (!trimmed || runState === 'running' || !active) return;
 
     const userMessage: ChatMessage = { id: messageId(), role: 'user', text: trimmed };
     const assistantId = messageId();
     const controller = new AbortController();
+    const session =
+      sessionRef.current && sessionRef.current.provider === active.provider
+        ? sessionRef.current.id
+        : null;
     abortRef.current = controller;
     setPrompt('');
     setMessages((current) => [
@@ -180,8 +338,12 @@ export function AgentChatbot() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          provider,
-          prompt: buildAgentPrompt(messages, trimmed, location.pathname),
+          provider: active.provider,
+          model: active.model,
+          prompt: session
+            ? buildResumePrompt(trimmed, location.pathname)
+            : buildAgentPrompt(messages, trimmed, location.pathname),
+          ...(session ? { resume: session } : {}),
         }),
         signal: controller.signal,
       });
@@ -203,6 +365,34 @@ export function AgentChatbot() {
         } catch {
           return;
         }
+        if (event.type === 'thread.started' && typeof event.thread_id === 'string') {
+          sessionRef.current = { provider: active.provider, id: event.thread_id };
+          return;
+        }
+        if (event.type === 'item.started') {
+          const hint = hintFromItem(event.item);
+          if (hint) updateMessage(assistantId, (message) => ({ ...message, hint }));
+          return;
+        }
+        if (event.type === 'item.completed') {
+          if (event.item?.type === 'agent_message' && event.item.text) {
+            output = output ? `${output}\n\n${event.item.text}` : event.item.text;
+            updateMessage(assistantId, (message) => ({
+              ...message,
+              text: output,
+              hint: undefined,
+            }));
+          } else if (event.item?.type === 'command_execution') {
+            // The command itself finishes fast; the wait after it is the model
+            // reading the output, so stop implying the command is still running.
+            updateMessage(assistantId, (message) => ({ ...message, hint: '正在思考…' }));
+          }
+          return;
+        }
+        if (event.type === 'turn.failed') {
+          failure = errorText(event.error) ?? '執行失敗';
+          return;
+        }
         const text = outputFromEvent(event);
         if (text) {
           output += text;
@@ -211,7 +401,7 @@ export function AgentChatbot() {
         if (event.type === 'result' && event.is_error) failure = event.result ?? '執行失敗';
         if (event.type === 'tooka' && event.subtype === 'timeout') failure = '工作逾時，已中止。';
         if (event.type === 'tooka' && event.subtype === 'spawn-error') {
-          failure = `無法啟動 AI 助手：${event.error ?? ''}`;
+          failure = `無法啟動 AI 助手：${errorText(event.error) ?? ''}`;
         }
         if (event.type === 'tooka' && event.subtype === 'exit' && event.code !== 0) {
           failure = event.stderr?.trim() || 'AI 助手異常結束。';
@@ -232,14 +422,19 @@ export function AgentChatbot() {
         ...message,
         text: message.text || '完成了。你可以繼續告訴我下一步要調整什麼。',
         state: 'done',
+        hint: undefined,
       }));
       toast.success('AI 助手已完成工作');
     } catch (error) {
       const cancelled = (error as Error).name === 'AbortError';
+      // A failed resume may mean the session is gone — fall back to a fresh
+      // session (with full context) on the next message.
+      if (!cancelled && session) sessionRef.current = null;
       updateMessage(assistantId, (message) => ({
         ...message,
         text: cancelled ? '已取消這次工作。' : (error as Error).message,
         state: 'error',
+        hint: undefined,
       }));
     } finally {
       abortRef.current = null;
@@ -250,6 +445,10 @@ export function AgentChatbot() {
 
   const clearConversation = () => {
     if (runState === 'running') return;
+    sessionRef.current = null;
+    try {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+    } catch {}
     setMessages([
       {
         id: messageId(),
@@ -261,8 +460,23 @@ export function AgentChatbot() {
 
   if (location.pathname.endsWith('/presenter')) return null;
 
-  const providerLabel = PROVIDER_OPTIONS.find(({ id }) => id === provider)?.label;
-  const ready = Boolean(status && provider);
+  const lastMessage = messages[messages.length - 1];
+  const showNextSteps =
+    runState === 'idle' &&
+    messages.length > 1 &&
+    lastMessage?.role === 'assistant' &&
+    lastMessage.state === 'done';
+  const onDraftView = location.pathname === '/' && location.search.includes('f=draft');
+  const providerLabel = PROVIDER_OPTIONS.find(({ id }) => id === choice?.provider)?.label;
+  const readyProviders = status
+    ? PROVIDER_OPTIONS.filter(({ id }) => providerIsReady(status, id))
+    : [];
+  const modelLabel =
+    status && choice
+      ? (modelsFor(status, choice.provider).find(({ id }) => id === choice.model)?.label ??
+        choice.model)
+      : null;
+  const ready = Boolean(status && choice);
 
   return (
     <div className="fixed right-4 bottom-4 z-40 flex flex-col items-end gap-3 sm:right-5 sm:bottom-5">
@@ -291,7 +505,39 @@ export function AgentChatbot() {
                     : '尚未完成 AI 串接'}
               </p>
             </div>
-            {providerLabel ? <Badge variant="secondary">{providerLabel}</Badge> : null}
+            {status && choice ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  type="button"
+                  aria-label="切換模型"
+                  disabled={runState === 'running'}
+                  className={cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'max-w-36')}
+                >
+                  <span className="truncate">{modelLabel}</span>
+                  <ChevronDown data-icon="inline-end" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {readyProviders.map(({ id, label }, index) => (
+                    <Fragment key={id}>
+                      {index > 0 ? <DropdownMenuSeparator /> : null}
+                      <DropdownMenuRadioGroup
+                        value={choice.provider === id ? choice.model : ''}
+                        onValueChange={(model) => pickModel(id, model)}
+                      >
+                        <DropdownMenuLabel className="text-[11px] text-muted-foreground">
+                          {label}
+                        </DropdownMenuLabel>
+                        {modelsFor(status, id).map((model) => (
+                          <DropdownMenuRadioItem key={model.id} value={model.id}>
+                            {model.label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </Fragment>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
             <Button
               type="button"
               variant="ghost"
@@ -344,10 +590,17 @@ export function AgentChatbot() {
                               <BubbleContent className="whitespace-pre-wrap">
                                 {message.state === 'streaming' && !message.text ? (
                                   <span className="shimmer text-muted-foreground">
-                                    正在理解並操作專案…
+                                    {message.hint ?? '正在理解並操作專案…'}
                                   </span>
                                 ) : (
-                                  message.text
+                                  <>
+                                    {message.text}
+                                    {message.state === 'streaming' && message.hint ? (
+                                      <span className="shimmer mt-1.5 block text-[11px] text-muted-foreground">
+                                        {message.hint}
+                                      </span>
+                                    ) : null}
+                                  </>
                                 )}
                               </BubbleContent>
                             </Bubble>
@@ -355,6 +608,25 @@ export function AgentChatbot() {
                         </Message>
                       </MessageScrollerItem>
                     ))}
+
+                    {messages.length === 1 ? (
+                      <MessageScrollerItem messageId="template-guide">
+                        <div className="ml-9">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigate('/templates');
+                              setOpen(false);
+                            }}
+                          >
+                            <LayoutTemplate data-icon="inline-start" />
+                            先逛模板找視覺風格
+                          </Button>
+                        </div>
+                      </MessageScrollerItem>
+                    ) : null}
 
                     {messages.length === 1 && ready ? (
                       <MessageScrollerItem messageId="starter-actions">
@@ -371,6 +643,34 @@ export function AgentChatbot() {
                               {starter}
                             </Button>
                           ))}
+                        </div>
+                      </MessageScrollerItem>
+                    ) : null}
+
+                    {showNextSteps ? (
+                      <MessageScrollerItem messageId={`next-steps-${lastMessage.id}`}>
+                        <div className="ml-9 flex flex-wrap items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground">下一步：</span>
+                          {!onDraftView ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="xs"
+                              onClick={() => navigate('/?f=draft')}
+                            >
+                              到草稿區確認卡片
+                            </Button>
+                          ) : null}
+                          {location.pathname !== '/publish' ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="xs"
+                              onClick={() => navigate('/publish')}
+                            >
+                              「新增到卡片」後前往發布
+                            </Button>
+                          ) : null}
                         </div>
                       </MessageScrollerItem>
                     ) : null}

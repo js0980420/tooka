@@ -23,7 +23,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { type AgentProviderId, getAgentProviderMeta } from '../../../shared/agent-providers';
+import {
+  type AgentModelOption,
+  type AgentProviderId,
+  getAgentProviderMeta,
+} from '../../../shared/agent-providers';
 import { API } from '../../../shared/api-routes';
 import { ConnectionDetail, SecretValue } from './shared';
 
@@ -34,6 +38,7 @@ export type AgentProviderStatus = {
   version: string | null;
   tokenMasked: string | null;
   authMethod: 'chatgpt' | 'api_key' | null;
+  models: AgentModelOption[];
 };
 
 export type AgentStatusResponse = {

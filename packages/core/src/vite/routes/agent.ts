@@ -1,5 +1,9 @@
 import { execFile, spawn } from 'node:child_process';
-import type { ViteDevServer } from 'vite';
+import { readFile } from 'node:fs/promises';
+import type { ServerResponse } from 'node:http';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+import type { Connect, ViteDevServer } from 'vite';
 import {
   ensureEnvGitignored,
   maskSecret,
@@ -10,6 +14,7 @@ import {
 import { validateMutationRequest } from '../../http/request-guard.ts';
 import {
   AGENT_PROVIDERS,
+  type AgentModelOption,
   type AgentProviderId,
   type AgentProviderMeta,
 } from '../../shared/agent-providers.ts';
@@ -17,6 +22,11 @@ import { API } from '../../shared/api-routes.ts';
 import { type ApiContext, json, readBody } from './context.ts';
 
 const PROMPT_MAX_LENGTH = 8000;
+// Model ids become CLI arguments — restrict to a slug shape that can never be
+// mistaken for a flag.
+const MODEL_ID_PATTERN = /^[A-Za-z0-9][\w.-]{0,63}$/;
+// Codex session ids are UUIDs (from the `thread.started` stream event).
+const RESUME_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const RUN_TIMEOUT_MS = 10 * 60 * 1000;
 const AUTH_TIMEOUT_MS = 10 * 60 * 1000;
 const CLI_PROBE_TIMEOUT_MS = 3000;
@@ -27,13 +37,18 @@ type RuntimeKind = 'builtin' | 'global';
 // The server-only half of a provider: how to find and drive its CLI. The
 // shared half (id, label, auth mode, envKey) lives in ../../shared and is
 // merged in below so both sides stay in lockstep.
+type RunOptions = { model?: string; resume?: string };
+
 type RuntimeSpec = {
   cliOverrideEnv: string;
   globalBin: string;
-  runArgs: (prompt: string) => { args: string[]; promptViaStdin: boolean };
+  runArgs: (prompt: string, opts: RunOptions) => { args: string[]; promptViaStdin: boolean };
   // A provider whose CLI emits NDJSON natively is passed through untouched;
   // plain-text CLIs get each chunk wrapped in the tooka NDJSON envelope.
   streamsNdjson: boolean;
+  // Live model list; falls back to the registry's static `models` when absent
+  // or when it resolves to null.
+  listModels?: () => Promise<AgentModelOption[] | null>;
 };
 
 type Provider = AgentProviderMeta & RuntimeSpec;
@@ -44,29 +59,69 @@ function overrideCommand(value: string): Command {
     : { command: value, args: [] };
 }
 
+async function codexModelsFromCache(): Promise<AgentModelOption[] | null> {
+  try {
+    const codexHome = process.env.CODEX_HOME || join(homedir(), '.codex');
+    const raw = await readFile(join(codexHome, 'models_cache.json'), 'utf8');
+    const parsed = JSON.parse(raw) as {
+      models?: Array<{
+        slug?: unknown;
+        display_name?: unknown;
+        visibility?: unknown;
+        priority?: unknown;
+      }>;
+    };
+    const models = (parsed.models ?? [])
+      .filter(
+        (model): model is { slug: string; display_name?: unknown; priority?: unknown } =>
+          model.visibility === 'list' &&
+          typeof model.slug === 'string' &&
+          MODEL_ID_PATTERN.test(model.slug),
+      )
+      .sort(
+        (a, b) =>
+          (typeof a.priority === 'number' ? a.priority : 0) -
+          (typeof b.priority === 'number' ? b.priority : 0),
+      )
+      .map((model) => ({
+        id: model.slug,
+        label: typeof model.display_name === 'string' ? model.display_name : model.slug,
+      }));
+    return models.length > 0 ? models : null;
+  } catch {
+    return null;
+  }
+}
+
 const RUNTIME_SPECS: Record<AgentProviderId, RuntimeSpec> = {
   codex: {
     cliOverrideEnv: 'TOOKA_CODEX_CLI',
     globalBin: 'codex',
-    runArgs: (prompt) => ({
-      args: [
-        'exec',
+    runArgs: (prompt, { model, resume }) => {
+      const common = [
+        '--json',
+        ...(model ? ['--model', model] : []),
         '-c',
         'forced_login_method="chatgpt"',
         '--skip-git-repo-check',
-        '--sandbox',
-        'workspace-write',
-        prompt,
-      ],
-      promptViaStdin: false,
-    }),
-    streamsNdjson: false,
+      ];
+      return {
+        // `exec resume` has no --sandbox flag, so the resumed turn sets the
+        // sandbox through config instead.
+        args: resume
+          ? ['exec', 'resume', resume, ...common, '-c', 'sandbox_mode="workspace-write"', prompt]
+          : ['exec', ...common, '--sandbox', 'workspace-write', prompt],
+        promptViaStdin: false,
+      };
+    },
+    streamsNdjson: true,
+    listModels: codexModelsFromCache,
   },
   gemma4: {
     cliOverrideEnv: 'TOOKA_GEMINI_CLI',
     globalBin: 'gemini',
-    runArgs: (prompt) => ({
-      args: ['--yolo', '--model', 'gemma-4-26b-a4b-it', '-p', prompt],
+    runArgs: (prompt, { model }) => ({
+      args: ['--yolo', '--model', model ?? 'gemma-4-26b-a4b-it', '-p', prompt],
       promptViaStdin: false,
     }),
     streamsNdjson: false,
@@ -140,8 +195,16 @@ function pickProvider(value: unknown): Provider | null {
 let running = false;
 let authenticating = false;
 
-export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): void {
-  server.middlewares.use(API.agent, async (req, res, next) => {
+export type AgentMiddlewareOptions = {
+  allowedOrigins?: readonly string[];
+};
+
+export function createAgentMiddleware(
+  ctx: ApiContext,
+  options: AgentMiddlewareOptions = {},
+): (req: Connect.IncomingMessage, res: ServerResponse, next: () => void) => Promise<void> {
+  const guard = { allowedOrigins: options.allowedOrigins, requireJsonBody: true };
+  return async (req, res, next) => {
     const url = new URL(req.url ?? '/', 'http://local');
     const method = req.method ?? 'GET';
 
@@ -160,6 +223,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
               version: runtime ? await runtimeVersion(runtime) : null,
               tokenMasked: provider.envKey ? maskSecret(env[provider.envKey]) : null,
               authMethod: provider.auth === 'subscription' ? await codexAuthMethod(runtime) : null,
+              models: (await provider.listModels?.()) ?? provider.models,
             };
           }),
         );
@@ -167,7 +231,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (url.pathname === '/token' && method === 'POST') {
-        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        const requestCheck = validateMutationRequest(req, guard);
         if (!requestCheck.ok) {
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
@@ -183,7 +247,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (url.pathname === '/token/disconnect' && method === 'POST') {
-        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        const requestCheck = validateMutationRequest(req, guard);
         if (!requestCheck.ok) {
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
@@ -196,7 +260,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (url.pathname === '/auth/login' && method === 'POST') {
-        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        const requestCheck = validateMutationRequest(req, guard);
         if (!requestCheck.ok) {
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
@@ -259,7 +323,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (url.pathname === '/auth/logout' && method === 'POST') {
-        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        const requestCheck = validateMutationRequest(req, guard);
         if (!requestCheck.ok) {
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
@@ -284,16 +348,35 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
       }
 
       if (url.pathname === '/run' && method === 'POST') {
-        const requestCheck = validateMutationRequest(req, { requireJsonBody: true });
+        const requestCheck = validateMutationRequest(req, guard);
         if (!requestCheck.ok) {
           return json(res, requestCheck.status, { error: requestCheck.error });
         }
-        const body = (await readBody(req)) as { provider?: unknown; prompt?: unknown };
+        const body = (await readBody(req)) as {
+          provider?: unknown;
+          prompt?: unknown;
+          model?: unknown;
+          resume?: unknown;
+        };
         const provider = pickProvider(body.provider);
         if (!provider) return json(res, 400, { error: 'invalid_provider' });
         const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
         if (!prompt || prompt.length > PROMPT_MAX_LENGTH) {
           return json(res, 400, { error: 'invalid_prompt' });
+        }
+        let model: string | undefined;
+        if (body.model !== undefined) {
+          if (typeof body.model !== 'string' || !MODEL_ID_PATTERN.test(body.model)) {
+            return json(res, 400, { error: 'invalid_model' });
+          }
+          model = body.model;
+        }
+        let resume: string | undefined;
+        if (body.resume !== undefined) {
+          if (typeof body.resume !== 'string' || !RESUME_ID_PATTERN.test(body.resume)) {
+            return json(res, 400, { error: 'invalid_resume' });
+          }
+          resume = body.resume;
         }
         if (running) return json(res, 409, { error: 'agent_busy' });
 
@@ -316,7 +399,7 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
           'x-accel-buffering': 'no',
         });
 
-        const { args, promptViaStdin } = provider.runArgs(prompt);
+        const { args, promptViaStdin } = provider.runArgs(prompt, { model, resume });
         const child = spawn(runtime.command, [...runtime.args, ...args], {
           cwd: ctx.userCwd,
           env,
@@ -390,5 +473,9 @@ export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): voi
         res.end();
       }
     }
-  });
+  };
+}
+
+export function registerAgentRoutes(server: ViteDevServer, ctx: ApiContext): void {
+  server.middlewares.use(API.agent, createAgentMiddleware(ctx));
 }

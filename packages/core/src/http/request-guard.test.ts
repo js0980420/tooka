@@ -91,4 +91,38 @@ describe('validateMutationRequest', () => {
     });
     expect(validateMutationRequest(req, { requireJsonBody: true })).toEqual({ ok: true });
   });
+
+  it('accepts cross-site requests from an allowlisted origin', () => {
+    const req = makeReq({
+      host: '127.0.0.1:4983',
+      origin: 'https://app.tooka.example',
+      'sec-fetch-site': 'cross-site',
+      'content-type': 'application/json',
+    });
+    expect(
+      validateMutationRequest(req, {
+        requireJsonBody: true,
+        allowedOrigins: ['https://app.tooka.example'],
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it('still rejects cross-site requests from origins outside the allowlist', () => {
+    const req = makeReq({
+      host: '127.0.0.1:4983',
+      origin: 'https://evil.example',
+      'sec-fetch-site': 'cross-site',
+      'content-type': 'application/json',
+    });
+    expect(
+      validateMutationRequest(req, {
+        requireJsonBody: true,
+        allowedOrigins: ['https://app.tooka.example'],
+      }),
+    ).toEqual({
+      ok: false,
+      status: 403,
+      error: 'cross-site request blocked',
+    });
+  });
 });

@@ -23,7 +23,7 @@ function requestProto(req: Connect.IncomingMessage): 'http' | 'https' {
   return 'encrypted' in req.socket && req.socket.encrypted ? 'https' : 'http';
 }
 
-function normalizedOrigin(origin: string): string | null {
+export function normalizedOrigin(origin: string): string | null {
   try {
     const url = new URL(origin);
     return `${url.protocol}//${url.host}`.toLowerCase();
@@ -34,7 +34,7 @@ function normalizedOrigin(origin: string): string | null {
 
 export function validateMutationRequest(
   req: Connect.IncomingMessage,
-  opts: { requireJsonBody?: boolean } = {},
+  opts: { requireJsonBody?: boolean; allowedOrigins?: readonly string[] } = {},
 ): MutationRequestValidationResult {
   if (opts.requireJsonBody) {
     const contentType = headerValue(req, 'content-type')?.toLowerCase();
@@ -45,6 +45,14 @@ export function validateMutationRequest(
         error: 'content-type must be application/json',
       };
     }
+  }
+
+  // An explicitly allowlisted origin (the hosted web app talking to a local
+  // companion) is trusted even though the browser marks it cross-site.
+  const allowlisted = headerValue(req, 'origin');
+  if (allowlisted && opts.allowedOrigins?.length) {
+    const normalized = normalizedOrigin(allowlisted);
+    if (normalized && opts.allowedOrigins.includes(normalized)) return { ok: true };
   }
 
   const fetchSite = firstCommaToken(headerValue(req, 'sec-fetch-site'))?.toLowerCase();
