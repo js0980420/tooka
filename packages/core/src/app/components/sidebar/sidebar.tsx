@@ -5,6 +5,7 @@ import { TookaMark } from '@/components/brand-mark';
 import { LanguageToggle, TranslationButton } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { companionEnabled } from '@/lib/companion';
 import type { Folder, FolderIcon } from '@/lib/sdk';
 import { format, useLocale } from '@/lib/use-locale';
 import { useResizableWidth } from '@/lib/use-resizable-width';
@@ -331,7 +332,7 @@ export function Sidebar({
           <span className="h-px flex-1 bg-hairline" aria-hidden />
         </div>
         <div className="px-2 pb-2">
-          {import.meta.env.DEV && (
+          {(import.meta.env.DEV || companionEnabled) && (
             <FolderItem
               row={{ kind: 'connects' }}
               selected={selectedId === CONNECTS_ID}

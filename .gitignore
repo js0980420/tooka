@@ -10,5 +10,13 @@ apps/studio/slides/*
 !apps/studio/slides/video-banner-ai-template/**
 !apps/studio/slides/short-video-ai-template/
 !apps/studio/slides/short-video-ai-template/**
+!apps/studio/slides/aurora-cyan/
+!apps/studio/slides/aurora-cyan/**
+!apps/studio/slides/demo-carousel/
+!apps/studio/slides/demo-carousel/**
+!apps/studio/slides/hand-drawn-story/
+!apps/studio/slides/hand-drawn-story/**
+!apps/studio/slides/noir-gold/
+!apps/studio/slides/noir-gold/**
 .env
 gemini.md
