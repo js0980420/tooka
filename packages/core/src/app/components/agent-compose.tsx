@@ -41,7 +41,7 @@ import {
   type AgentModelOption,
   type AgentProviderId,
 } from '../../shared/agent-providers';
-import { agentApi, companionCommand, companionEnabled } from '../lib/companion';
+import { agentApi, companionCommand, companionEnabled, companionUrl } from '../lib/companion';
 import { type AgentStatusResponse, fetchAgentStatus } from './connects/agent-cards';
 
 const PROVIDER_OPTIONS = AGENT_PROVIDERS.map(({ id, label }) => ({ id, label }));
@@ -270,6 +270,20 @@ export function AgentChatbot() {
   const [runState, setRunState] = useState<'idle' | 'running'>('idle');
   const abortRef = useRef<AbortController | null>(null);
   const sessionRef = useRef<AgentSession | null>(storedChat?.session ?? null);
+
+  // Hosted shell: studio pages live on the companion, so open them in a new
+  // tab to keep this chat alive. Local dev keeps in-app routing.
+  const goTo = useCallback(
+    (path: string, { close = false }: { close?: boolean } = {}) => {
+      if (companionEnabled) {
+        window.open(companionUrl(path), '_blank', 'noopener');
+        return;
+      }
+      navigate(path);
+      if (close) setOpen(false);
+    },
+    [navigate],
+  );
 
   const refreshStatus = useCallback(async () => {
     const next = await fetchAgentStatus();
@@ -616,10 +630,7 @@ export function AgentChatbot() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              navigate('/templates');
-                              setOpen(false);
-                            }}
+                            onClick={() => goTo('/templates', { close: true })}
                           >
                             <LayoutTemplate data-icon="inline-start" />
                             先逛模板找視覺風格
@@ -656,7 +667,7 @@ export function AgentChatbot() {
                               type="button"
                               variant="outline"
                               size="xs"
-                              onClick={() => navigate('/?f=draft')}
+                              onClick={() => goTo('/?f=draft')}
                             >
                               到草稿區確認卡片
                             </Button>
@@ -666,7 +677,7 @@ export function AgentChatbot() {
                               type="button"
                               variant="outline"
                               size="xs"
-                              onClick={() => navigate('/publish')}
+                              onClick={() => goTo('/publish')}
                             >
                               「新增到卡片」後前往發布
                             </Button>
@@ -707,10 +718,7 @@ export function AgentChatbot() {
                                 type="button"
                                 variant="outline"
                                 size="xs"
-                                onClick={() => {
-                                  navigate('/connects');
-                                  setOpen(false);
-                                }}
+                                onClick={() => goTo('/connects', { close: true })}
                               >
                                 前往串接
                               </Button>

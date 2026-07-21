@@ -18,6 +18,12 @@ export function agentApi(path: string): string {
   return `${COMPANION_ORIGIN ?? ''}${API.agent}${path}`;
 }
 
+// App pages (home, drafts, publish, live slide previews) are served by the
+// companion's dev server; the hosted shell links into it.
+export function companionUrl(path: string): string {
+  return `${COMPANION_ORIGIN ?? ''}${path}`;
+}
+
 export function companionCommand(): string {
   return `tooka companion --origin ${window.location.origin}`;
 }
