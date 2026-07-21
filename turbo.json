@@ -8,6 +8,7 @@
     },
     "build": {
       "dependsOn": ["^build"],
+      "env": ["VITE_TOOKA_COMPANION"],
       "outputs": ["dist/**", "template/**"]
     },
     "typecheck": {
