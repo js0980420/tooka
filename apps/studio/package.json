@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tooka dev --host",
     "build": "tooka build",
-    "preview": "tooka preview"
+    "preview": "tooka preview",
+    "companion": "tooka companion --origin https://tooka.js0980420.workers.dev"
   },
   "dependencies": {
     "@tooka/core": "workspace:*",
