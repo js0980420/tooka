@@ -17,6 +17,22 @@ npm install @tooka/core react react-dom
 npx tooka dev
 ```
 
+## 繁體中文介紹
+
+**tooka 是為 AI Agent 打造的開源社群圖文模板框架**——用中文描述需求，讓 Claude Code、Codex、Cursor 等 coding agent 生成整組 **1080×1350（4:5）IG 輪播貼文標準尺寸**的社群圖文卡片。
+
+- **AI 圖文生成，不跑版、不失真**：文字用程式（React）渲染而不是用生圖模型「畫」，中文字不會出錯，版型由模板鎖定，整組輪播風格一致
+- **品牌視覺套件**：`themes/` 內統一配色、字體、語氣與元件，所有輪播共用同一套視覺識別
+- **一鍵發佈**：透過 Meta Graph API 直接發佈到 **Facebook 粉專、Instagram、Threads**，不用離開對話
+- **瀏覽器內檢查器**：點擊卡片元素留言（「這裡改紅色」），`/apply-comments` 讓 agent 一次套用所有修改
+
+適合需要大量產出**知識型輪播、懶人包、社群貼文圖卡**的內容創作者與行銷團隊。
+
+延伸閱讀（作者部落格）：
+- [IG 輪播貼文尺寸是多少？用 AI 一句話生成 1080×1350 圖文](https://aixwang.dev/blog/ig-carousel-size/)
+- [AI 圖文生成工具怎麼選？我為什麼開發 Tooka](https://aixwang.dev/blog/why-i-built-tooka/)
+- [如何用 AI 自動發文且不被 Meta 封鎖](https://aixwang.dev/blog/auto-posting-permissions/)
+
 ## Why tooka
 
 Cards are visual code. Agents are great at writing code. tooka is the missing runtime that turns "make cards about X" into a polished, presentable card carousel — without you ever leaving the chat.
