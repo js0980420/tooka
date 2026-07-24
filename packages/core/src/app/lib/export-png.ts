@@ -107,17 +107,22 @@ export async function exportSlideAsPng(
     }
     await waitForDataWaitfor(container);
 
-    const { toBlob } = await import('html-to-image');
+    const { toBlob, getFontEmbedCSS } = await import('html-to-image');
+    const captureOptions = {
+      width: canvas.width,
+      height: canvas.height,
+      pixelRatio: CAPTURE_PIXEL_RATIO,
+      backgroundColor: '#ffffff',
+      cacheBust: true,
+    };
+    // Embedding fonts dominates capture time for CJK decks; resolve the font CSS
+    // once and reuse it for every card instead of re-fetching per capture.
+    const fontEmbedCSS = frames[0] ? await getFontEmbedCSS(frames[0], captureOptions) : undefined;
+    await inlineImagesOnce(container);
     const images: Uint8Array[] = [];
     for (let i = 0; i < frames.length; i++) {
       freezeForCapture(frames[i]);
-      let blob = await toBlob(frames[i], {
-        width: canvas.width,
-        height: canvas.height,
-        pixelRatio: CAPTURE_PIXEL_RATIO,
-        backgroundColor: '#ffffff',
-        cacheBust: true,
-      });
+      let blob = await toBlob(frames[i], { ...captureOptions, fontEmbedCSS });
       if (!blob) throw new Error(`failed to capture page ${i + 1}`);
       if (variant?.crop) blob = await centerCrop(blob, variant.crop.width, variant.crop.height);
       images.push(new Uint8Array(await blob.arrayBuffer()));
@@ -162,6 +167,45 @@ function freezeForCapture(root: HTMLElement): void {
     el.style.setProperty('animation', 'none', 'important');
     el.style.setProperty('transition', 'none', 'important');
   }
+}
+
+// html-to-image re-fetches every image per capture (cache-busted for the
+// cross-origin companion case). Pre-inline each unique URL as a data URL once so
+// captures never hit the network; on failure keep the original src and let
+// html-to-image's own cache-busted fetch handle that image.
+async function inlineImagesOnce(container: HTMLElement): Promise<void> {
+  const imgs = Array.from(container.querySelectorAll('img'));
+  const cache = new Map<string, Promise<string>>();
+  await Promise.all(
+    imgs.map(async (img) => {
+      const src = img.currentSrc || img.src;
+      if (!src || src.startsWith('data:')) return;
+      let dataUrl = cache.get(src);
+      if (!dataUrl) {
+        dataUrl = fetch(src, { cache: 'no-cache' })
+          .then((res) => {
+            if (!res.ok) throw new Error(`${res.status}`);
+            return res.blob();
+          })
+          .then(blobToDataUrl);
+        cache.set(src, dataUrl);
+      }
+      try {
+        const resolved = await dataUrl;
+        img.srcset = '';
+        img.src = resolved;
+      } catch {}
+    }),
+  );
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
 }
 
 async function centerCrop(png: Blob, width: number, height: number): Promise<Blob> {
