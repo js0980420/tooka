@@ -24,18 +24,18 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
       react:
-        specifier: ^18.3.1
-        version: 18.3.1
+        specifier: ^19.2.7
+        version: 19.2.7
       react-dom:
         specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
+        version: 18.3.1(react@19.2.7)
     devDependencies:
       '@types/react':
-        specifier: ^18.3.12
-        version: 18.3.28
+        specifier: ^19.2.17
+        version: 19.2.17
       '@types/react-dom':
         specifier: ^18.3.1
-        version: 18.3.7(@types/react@18.3.28)
+        version: 18.3.7(@types/react@19.2.17)
 
   packages/core:
     dependencies:
@@ -47,16 +47,16 @@ importers:
         version: 7.29.0
       '@base-ui/react':
         specifier: 1.6.0
-        version: 1.6.0(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.6.0(@types/react@19.2.17)(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
       '@dnd-kit/core':
         specifier: ^6.3.1
-        version: 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 6.3.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
       '@dnd-kit/sortable':
         specifier: ^10.0.0
-        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
+        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7))(react@19.2.7)
       '@dnd-kit/utilities':
         specifier: ^3.2.2
-        version: 3.2.2(react@18.3.1)
+        version: 3.2.2(react@19.2.7)
       '@fontsource-variable/geist':
         specifier: ^5.2.8
         version: 5.2.8
@@ -80,7 +80,7 @@ importers:
         version: 15.0.0
       emoji-picker-react:
         specifier: ^4.19.1
-        version: 4.19.1(react@18.3.1)
+        version: 4.19.1(react@19.2.7)
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
@@ -92,19 +92,19 @@ importers:
         version: 1.11.13
       lucide-react:
         specifier: ^1.8.0
-        version: 1.8.0(react@18.3.1)
+        version: 1.8.0(react@19.2.7)
       next-themes:
         specifier: ^0.4.6
-        version: 0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 0.4.6(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
       react-image-crop:
         specifier: ^11.0.10
-        version: 11.0.10(react@18.3.1)
+        version: 11.0.10(react@19.2.7)
       react-router-dom:
         specifier: ^7.18.1
-        version: 7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 7.18.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
       sonner:
         specifier: ^2.0.7
-        version: 2.0.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 2.0.7(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -116,7 +116,7 @@ importers:
         version: 1.4.0
       use-sync-external-store:
         specifier: ^1.6.0
-        version: 1.6.0(react@18.3.1)
+        version: 1.6.0(react@19.2.7)
       vite:
         specifier: ^5.4.10
         version: 5.4.21(@types/node@22.19.17)(lightningcss@1.32.0)
@@ -125,17 +125,17 @@ importers:
         specifier: ^22.19.17
         version: 22.19.17
       '@types/react':
-        specifier: ^18.3.12
-        version: 18.3.28
+        specifier: ^19.2.17
+        version: 19.2.17
       '@types/react-dom':
         specifier: ^18.3.1
-        version: 18.3.7(@types/react@18.3.28)
+        version: 18.3.7(@types/react@19.2.17)
       react:
-        specifier: ^18.3.1
-        version: 18.3.1
+        specifier: ^19.2.7
+        version: 19.2.7
       react-dom:
         specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
+        version: 18.3.1(react@19.2.7)
       shadcn:
         specifier: ^4.13.0
         version: 4.13.0(typescript@5.9.3)
@@ -1204,19 +1204,19 @@ packages:
   '@types/node@22.19.17':
     resolution: {integrity: sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q==}
 
+  '@types/node@22.20.1':
+    resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
+
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
-
-  '@types/prop-types@15.7.15':
-    resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
   '@types/react-dom@18.3.7':
     resolution: {integrity: sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ==}
     peerDependencies:
       '@types/react': ^18.0.0
 
-  '@types/react@18.3.28':
-    resolution: {integrity: sha512-z9VXpC7MWrhfWipitjNdgCauoMLRdIILQsAEV+ZesIzBq/oUlxk0m3ApZuMFCXdnS4U7KrI+l3WRUEGQ8K1QKw==}
+  '@types/react@19.2.17':
+    resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
 
   '@types/set-cookie-parser@2.4.10':
     resolution: {integrity: sha512-GGmQVGpQWUe5qglJozEjZV/5dyxbOOZ0LHe/lqyWssB88Y4svNfst0uqBVscdDeIKl5Jy5+aPSvy7mI9tYRguw==}
@@ -2432,8 +2432,8 @@ packages:
       react-dom:
         optional: true
 
-  react@18.3.1:
-    resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
+  react@19.2.7:
+    resolution: {integrity: sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==}
     engines: {node: '>=0.10.0'}
 
   readdirp@4.1.2:
@@ -2697,11 +2697,11 @@ packages:
     resolution: {integrity: sha512-n1cw8k1k0x4pgA2+9XrOkFydTerNcJ1zWCO5Nn9scWHTD+5tp8dghT2x1uduQePZTZgd3Tupf+x9BxJjeJi77Q==}
     engines: {node: '>=14.0.0'}
 
-  tldts-core@7.4.8:
-    resolution: {integrity: sha512-c1P7u0EhACHj7lPy4MJm8iTFEU8+nB0LCtddH0fhP7noaVoXAqafMtOOeX+ulpuPBqnrRgRhw494RICT3mbhnw==}
+  tldts-core@7.4.9:
+    resolution: {integrity: sha512-DxKfPBI52p2msTEu7MPhdpdDTBhhVQg1a/8PjQckeyAvO13eMYElX545grIp6nnTGIMZlRvFZPvFhvI/WIz2Vg==}
 
-  tldts@7.4.8:
-    resolution: {integrity: sha512-htwgN/8KRB3z3vnC0BOETVh2m499g5GmyTK9Wq5JBLX3FNz6tSBveAd+fQhzy9hkjif8vy2jwDMR1sGhLtZl2A==}
+  tldts@7.4.9:
+    resolution: {integrity: sha512-3kZ8wQQ/k5DrChD4X4FVvr2D7E5uoRgAqkPyLpSCGUvqOvqu+JEdr3mwMUaVWb+vMHZaKhF5fp2PBigKsui7hA==}
     hasBin: true
 
   to-regex-range@5.0.1:
@@ -3254,28 +3254,28 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
-  '@base-ui/react@1.6.0(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@base-ui/react@1.6.0(@types/react@19.2.17)(react-dom@18.3.1(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.2
-      '@base-ui/utils': 0.3.1(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@floating-ui/react-dom': 2.1.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@base-ui/utils': 0.3.1(@types/react@19.2.17)(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
+      '@floating-ui/react-dom': 2.1.8(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
       '@floating-ui/utils': 0.2.11
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      use-sync-external-store: 1.6.0(react@18.3.1)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
+      use-sync-external-store: 1.6.0(react@19.2.7)
     optionalDependencies:
-      '@types/react': 18.3.28
+      '@types/react': 19.2.17
 
-  '@base-ui/utils@0.3.1(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@base-ui/utils@0.3.1(@types/react@19.2.17)(react-dom@18.3.1(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@babel/runtime': 7.29.2
       '@floating-ui/utils': 0.2.11
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
       reselect: 5.2.0
-      use-sync-external-store: 1.6.0(react@18.3.1)
+      use-sync-external-store: 1.6.0(react@19.2.7)
     optionalDependencies:
-      '@types/react': 18.3.28
+      '@types/react': 19.2.17
 
   '@biomejs/biome@2.4.12':
     optionalDependencies:
@@ -3312,29 +3312,29 @@ snapshots:
   '@biomejs/cli-win32-x64@2.4.12':
     optional: true
 
-  '@dnd-kit/accessibility@3.1.1(react@18.3.1)':
+  '@dnd-kit/accessibility@3.1.1(react@19.2.7)':
     dependencies:
-      react: 18.3.1
+      react: 19.2.7
       tslib: 2.8.1
 
-  '@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@dnd-kit/core@6.3.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@dnd-kit/accessibility': 3.1.1(react@18.3.1)
-      '@dnd-kit/utilities': 3.2.2(react@18.3.1)
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      '@dnd-kit/accessibility': 3.1.1(react@19.2.7)
+      '@dnd-kit/utilities': 3.2.2(react@19.2.7)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
       tslib: 2.8.1
 
-  '@dnd-kit/sortable@10.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)':
+  '@dnd-kit/sortable@10.0.0(@dnd-kit/core@6.3.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@dnd-kit/core': 6.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@dnd-kit/utilities': 3.2.2(react@18.3.1)
-      react: 18.3.1
+      '@dnd-kit/core': 6.3.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
+      '@dnd-kit/utilities': 3.2.2(react@19.2.7)
+      react: 19.2.7
       tslib: 2.8.1
 
-  '@dnd-kit/utilities@3.2.2(react@18.3.1)':
+  '@dnd-kit/utilities@3.2.2(react@19.2.7)':
     dependencies:
-      react: 18.3.1
+      react: 19.2.7
       tslib: 2.8.1
 
   '@dotenvx/dotenvx@1.75.1':
@@ -3452,11 +3452,11 @@ snapshots:
       '@floating-ui/core': 1.7.5
       '@floating-ui/utils': 0.2.11
 
-  '@floating-ui/react-dom@2.1.8(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@floating-ui/react-dom@2.1.8(react-dom@18.3.1(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@floating-ui/dom': 1.7.6
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
 
   '@floating-ui/utils@0.2.11': {}
 
@@ -3931,25 +3931,27 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@22.20.1':
+    dependencies:
+      undici-types: 6.21.0
+    optional: true
+
   '@types/node@25.6.0':
     dependencies:
       undici-types: 7.19.2
     optional: true
 
-  '@types/prop-types@15.7.15': {}
-
-  '@types/react-dom@18.3.7(@types/react@18.3.28)':
+  '@types/react-dom@18.3.7(@types/react@19.2.17)':
     dependencies:
-      '@types/react': 18.3.28
+      '@types/react': 19.2.17
 
-  '@types/react@18.3.28':
+  '@types/react@19.2.17':
     dependencies:
-      '@types/prop-types': 15.7.15
       csstype: 3.2.3
 
   '@types/set-cookie-parser@2.4.10':
     dependencies:
-      '@types/node': 22.19.17
+      '@types/node': 22.20.1
     optional: true
 
   '@types/statuses@2.0.6':
@@ -4292,10 +4294,10 @@ snapshots:
 
   electron-to-chromium@1.5.389: {}
 
-  emoji-picker-react@4.19.1(react@18.3.1):
+  emoji-picker-react@4.19.1(react@19.2.7):
     dependencies:
       flairup: 1.0.0
-      react: 18.3.1
+      react: 19.2.7
 
   emoji-regex@10.6.0: {}
 
@@ -4783,9 +4785,9 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-react@1.8.0(react@18.3.1):
+  lucide-react@1.8.0(react@19.2.7):
     dependencies:
-      react: 18.3.1
+      react: 19.2.7
 
   magic-string@0.30.21:
     dependencies:
@@ -4887,10 +4889,10 @@ snapshots:
 
   negotiator@1.0.0: {}
 
-  next-themes@0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next-themes@0.4.6(react-dom@18.3.1(react@19.2.7))(react@19.2.7):
     dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
 
   node-releases@2.0.51: {}
 
@@ -5093,35 +5095,33 @@ snapshots:
       iconv-lite: 0.7.3
       unpipe: 1.0.0
 
-  react-dom@18.3.1(react@18.3.1):
+  react-dom@18.3.1(react@19.2.7):
     dependencies:
       loose-envify: 1.4.0
-      react: 18.3.1
+      react: 19.2.7
       scheduler: 0.23.2
 
-  react-image-crop@11.0.10(react@18.3.1):
+  react-image-crop@11.0.10(react@19.2.7):
     dependencies:
-      react: 18.3.1
+      react: 19.2.7
 
   react-refresh@0.17.0: {}
 
-  react-router-dom@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-router-dom@7.18.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7):
     dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      react-router: 7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
+      react-router: 7.18.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7)
 
-  react-router@7.18.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  react-router@7.18.1(react-dom@18.3.1(react@19.2.7))(react@19.2.7):
     dependencies:
       cookie: 1.1.1
-      react: 18.3.1
+      react: 19.2.7
       set-cookie-parser: 2.7.2
     optionalDependencies:
-      react-dom: 18.3.1(react@18.3.1)
+      react-dom: 18.3.1(react@19.2.7)
 
-  react@18.3.1:
-    dependencies:
-      loose-envify: 1.4.0
+  react@19.2.7: {}
 
   readdirp@4.1.2: {}
 
@@ -5363,10 +5363,10 @@ snapshots:
 
   sisteransi@1.0.5: {}
 
-  sonner@2.0.7(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  sonner@2.0.7(react-dom@18.3.1(react@19.2.7))(react@19.2.7):
     dependencies:
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
+      react: 19.2.7
+      react-dom: 18.3.1(react@19.2.7)
 
   source-map-js@1.2.1: {}
 
@@ -5448,12 +5448,12 @@ snapshots:
 
   tinyspy@3.0.2: {}
 
-  tldts-core@7.4.8:
+  tldts-core@7.4.9:
     optional: true
 
-  tldts@7.4.8:
+  tldts@7.4.9:
     dependencies:
-      tldts-core: 7.4.8
+      tldts-core: 7.4.9
     optional: true
 
   to-regex-range@5.0.1:
@@ -5464,7 +5464,7 @@ snapshots:
 
   tough-cookie@6.0.2:
     dependencies:
-      tldts: 7.4.8
+      tldts: 7.4.9
     optional: true
 
   ts-morph@26.0.0:
@@ -5577,9 +5577,9 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  use-sync-external-store@1.6.0(react@18.3.1):
+  use-sync-external-store@1.6.0(react@19.2.7):
     dependencies:
-      react: 18.3.1
+      react: 19.2.7
 
   util-deprecate@1.0.2: {}
 
